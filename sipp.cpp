@@ -194,9 +194,14 @@ void SIPP::addOpen(Node &newNode)
 
 SearchResult SIPP::startSearch(cLogger *Log, cMap &Map)
 {
+#ifdef __linux__
+    timeval begin, end;
+    gettimeofday(&begin, NULL);
+#else
     LARGE_INTEGER begin, end, freq;
     QueryPerformanceCounter(&begin);
     QueryPerformanceFrequency(&freq);
+#endif
     sresult.pathInfo.resize(Map.agents);
     sresult.agents = Map.agents;
     sresult.agentsSolved = 0;
@@ -224,8 +229,13 @@ SearchResult SIPP::startSearch(cLogger *Log, cMap &Map)
         delete [] open;
     }
 
+#ifdef __linux__
+    gettimeofday(&end, NULL);
+    sresult.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
+#else
     QueryPerformanceCounter(&end);
-    sresult.time = static_cast<double long>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
+    sresult.time = static_cast<double>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
+#endif
     std::vector<conflict> conflicts = CheckConflicts();
     for(int i = 0; i < conflicts.size(); i++)
         std::cout<< i << " " << conflicts[i].agent1 << " " << conflicts[i].agent2 << " " << conflicts[i].g << "\n";
@@ -238,11 +248,11 @@ void SIPP::makePrimaryPath(Node curNode)
     std::list<Node> path;
     if(curNode.Parent != NULL)
         do
-        {
-            path.push_front(curNode);
-            curNode = *curNode.Parent;
-        }
-        while(curNode.Parent != NULL);
+    {
+        path.push_front(curNode);
+        curNode = *curNode.Parent;
+    }
+    while(curNode.Parent != NULL);
     path.push_front(curNode);
     for(auto it = path.begin(); it != path.end(); it++)
         hppath.push_back(*it);
@@ -252,11 +262,11 @@ void SIPP::makeSecondaryPath(Node curNode)
 {
     if(curNode.Parent != NULL)
         do
-        {
-            lppath.push_front(curNode);
-            curNode = *curNode.Parent;
-        }
-        while(curNode.Parent != NULL);
+    {
+        lppath.push_front(curNode);
+        curNode = *curNode.Parent;
+    }
+    while(curNode.Parent != NULL);
     lppath.push_front(curNode);
 }
 
@@ -388,9 +398,14 @@ void SIPP::addConstraints(int curAgent)
 
 bool SIPP::findPath(int numOfCurAgent, const cMap &Map)
 {
+#ifdef __linux__
+    timeval begin, end;
+    gettimeofday(&begin, NULL);
+#else
     LARGE_INTEGER begin, end, freq;
     QueryPerformanceCounter(&begin);
     QueryPerformanceFrequency(&freq);
+#endif
     open = new std::list<Node>[Map.height];
 
     ResultPathInfo resultPath;
@@ -455,8 +470,14 @@ bool SIPP::findPath(int numOfCurAgent, const cMap &Map)
             }
         }
 
+#ifdef __linux__
+        gettimeofday(&end, NULL);
+        resultPath.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
+#else
         QueryPerformanceCounter(&end);
         resultPath.time = static_cast<double long>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
+#endif
+
         resultPath.sections = hppath;
         makeSecondaryPath(curNode);
         resultPath.nodescreated = openSize + closeSize;
@@ -473,6 +494,13 @@ bool SIPP::findPath(int numOfCurAgent, const cMap &Map)
     }
     else
     {
+#ifdef __linux__
+        gettimeofday(&end, NULL);
+        resultPath.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
+#else
+        QueryPerformanceCounter(&end);
+        resultPath.time = static_cast<double long>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
+#endif
         std::cout<<numOfCurAgent<<" PATH NOT FOUND!\n";
         resultPath.nodescreated = closeSize;
         resultPath.pathfound = false;
@@ -485,5 +513,6 @@ bool SIPP::findPath(int numOfCurAgent, const cMap &Map)
         sresult.numberofsteps += closeSize;
         sresult.pathInfo[numOfCurAgent] = resultPath;
     }
+
     return resultPath.pathfound;
 }

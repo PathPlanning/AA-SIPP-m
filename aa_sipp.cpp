@@ -235,6 +235,14 @@ void AA_SIPP::addOpen(Node &newNode)
 
 SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
 {
+#ifdef __linux__
+    timeval begin, end;
+    gettimeofday(&begin, NULL);
+#else
+    LARGE_INTEGER begin, end, freq;
+    QueryPerformanceCounter(&begin);
+    QueryPerformanceFrequency(&freq);
+#endif
     sresult.pathInfo.resize(Map.agents);
     sresult.agents = Map.agents;
     sresult.agentsSolved = 0;
@@ -267,7 +275,13 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
             open[i].clear();
         delete [] open;
     }
-
+#ifdef __linux__
+    gettimeofday(&end, NULL);
+    sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+#else
+    QueryPerformanceCounter(&end);
+    sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+#endif
     std::vector<conflict> confs = CheckConflicts();
     for(int i = 0; i < confs.size(); i++)
         std::cout<<confs[i].i<<" "<<confs[i].j<<" "<<confs[i].g<<" "<<confs[i].agent1<<" "<<confs[i].agent2<<"\n";
@@ -555,9 +569,14 @@ void AA_SIPP::addConstraints(int curAgent)
 bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
 {
 
+#ifdef __linux__
+    timeval begin, end;
+    gettimeofday(&begin, NULL);
+#else
     LARGE_INTEGER begin, end, freq;
     QueryPerformanceCounter(&begin);
     QueryPerformanceFrequency(&freq);
+#endif
     open = new std::list<Node>[Map.height];
     ResultPathInfo resultPath;
     openSize = 0;
@@ -615,8 +634,13 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
                 hppath.emplace(hppath.begin() + i, add);
                 i++;
             }
+#ifdef __linux__
+        gettimeofday(&end, NULL);
+        resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+#else
         QueryPerformanceCounter(&end);
         resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+#endif
         resultPath.sections = hppath;
         makeSecondaryPath(curNode);
         resultPath.nodescreated = openSize + closeSize;
@@ -628,15 +652,20 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
         sresult.pathlength += curNode.g;
         sresult.nodescreated += openSize + closeSize;
         sresult.numberofsteps += closeSize;
-        sresult.time += resultPath.time;
         sresult.pathInfo[numOfCurAgent] = resultPath;
         sresult.agentsSolved++;
     }
     else
     {
+#ifdef __linux__
+        gettimeofday(&end, NULL);
+        resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+#else
+        QueryPerformanceCounter(&end);
+        resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+#endif
         std::cout<<numOfCurAgent<<" PATH NOT FOUND!\n";
         sresult.pathfound = false;
-        sresult.time += resultPath.time;
         sresult.nodescreated += closeSize;
         sresult.numberofsteps += closeSize;
         resultPath.nodescreated = closeSize;
@@ -688,21 +717,21 @@ std::vector<std::pair<double,double>> AA_SIPP::findIntervals(Node curNode, std::
             c2 = vj*vj + vi*vi;
             if(c1 <= 0 || c2 <= c1)//if constraint is outside of the segment
             {
-                    if(da < db)
-                        dist = da;
+                if(da < db)
+                    dist = da;
+                else
+                    dist = db;
+                if(dist < 1)
+                {
+                    if(dist == da)
+                        add={con.g - gap, con.g + gap};
                     else
-                        dist = db;
-                    if(dist < 1)
-                    {
-                        if(dist == da)
-                            add={con.g - gap, con.g + gap};
-                        else
-                            add={con.g - gap + ab, con.g + gap + ab};
-                        if(con.goal == true)
-                            add.second = CN_INFINITY;
-                        badIntervals.push_back(add);
-                        continue;
-                    }
+                        add={con.g - gap + ab, con.g + gap + ab};
+                    if(con.goal == true)
+                        add.second = CN_INFINITY;
+                    badIntervals.push_back(add);
+                    continue;
+                }
 
             }
             else if(con.i == curNode.i && con.j == curNode.j)
