@@ -277,7 +277,7 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
     }
 #ifdef __linux__
     gettimeofday(&end, NULL);
-    sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+    sresult.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
 #else
     QueryPerformanceCounter(&end);
     sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
@@ -636,7 +636,7 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
             }
 #ifdef __linux__
         gettimeofday(&end, NULL);
-        resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+        resultPath.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
 #else
         QueryPerformanceCounter(&end);
         resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
@@ -659,7 +659,7 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
     {
 #ifdef __linux__
         gettimeofday(&end, NULL);
-        resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+        resultPath.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
 #else
         QueryPerformanceCounter(&end);
         resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
