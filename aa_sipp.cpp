@@ -421,6 +421,17 @@ void AA_SIPP::addConstraints(int curAgent)
 {
     Node cur;
     std::vector<constraint> cells;
+    if(sresult.pathInfo[curAgent].sections.size()==1)
+    {
+        constraint add;
+        add.agent = curAgent;
+        add.i = sresult.pathInfo[curAgent].sections.back().i;
+        add.j = sresult.pathInfo[curAgent].sections.back().j;
+        add.g = 0;
+        add.goal = true;
+        ctable[add.i][add.j].push_back(add);
+        return;
+    }
     for(int a = 1; a < sresult.pathInfo[curAgent].sections.size(); a++)
     {
         cur = sresult.pathInfo[curAgent].sections[a];
