@@ -112,6 +112,8 @@ void SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node> &
                 {
                     newNode.interval = {newNode.g, CN_INFINITY};
                     newNode.F = newNode.g + h_value;
+                    if(newNode.interval.first >= curNode.interval.second + 1)
+                        continue;
                     succs.push_back(newNode);
                 }
             }
