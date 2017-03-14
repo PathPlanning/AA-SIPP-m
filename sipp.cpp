@@ -43,7 +43,7 @@ void SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node> &
     {
         for(int j = -1; j <= +1; j++)
         {
-            if(i*j==0 && Map.CellOnGrid(curNode.i + i, curNode.j + j) && (Map.CellIsTraversable(curNode.i + i, curNode.j + j)))
+            if((i*j) == 0 && (i+j) != 0 && Map.CellOnGrid(curNode.i + i, curNode.j + j) && (Map.CellIsTraversable(curNode.i + i, curNode.j + j)))
             {
                 newNode.i = curNode.i + i;
                 newNode.j = curNode.j + j;
@@ -61,7 +61,7 @@ void SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node> &
                     intervals.clear();
                     if(ctable[newNode.i][newNode.j][0].g - 1 >= newNode.g)
                     {
-                        interval={newNode.g,ctable[newNode.i][newNode.j][0].g - 1};
+                        interval = {newNode.g,ctable[newNode.i][newNode.j][0].g - 1};
                         if(ctable[newNode.i][newNode.j][0].g - 1 <= newNode.g)
                             interval.first++;
                         if(direction != ctable[newNode.i][newNode.j][0].s_dir)
@@ -77,7 +77,7 @@ void SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node> &
                         {
                             if(ctable[newNode.i][newNode.j][k].g + 1 <= ctable[newNode.i][newNode.j][k + 1].g - 1)
                             {
-                                interval={ctable[newNode.i][newNode.j][k].g + 1, ctable[newNode.i][newNode.j][k + 1].g - 1};
+                                interval = {ctable[newNode.i][newNode.j][k].g + 1, ctable[newNode.i][newNode.j][k + 1].g - 1};
                                 if(direction != ctable[newNode.i][newNode.j][k].s_dir)
                                     interval.first++;
                                 if(direction != ctable[newNode.i][newNode.j][k + 1].p_dir || direction != ctable[newNode.i][newNode.j][k + 1].s_dir)
@@ -416,7 +416,10 @@ bool SIPP::findPath(int numOfCurAgent, const cMap &Map)
 
     Node curNode(Map.start_i[numOfCurAgent], Map.start_j[numOfCurAgent], 0, 0);
     curNode.g = 0;
-    curNode.interval = {0, CN_INFINITY};
+    if(ctable[curNode.i][curNode.j].size()==0)
+        curNode.interval = {0, CN_INFINITY};
+    else
+        curNode.interval = {0, ctable[curNode.i][curNode.j][0].g-1};
     bool pathFound = false;
     open[curNode.i].push_back(curNode);
     openSize++;

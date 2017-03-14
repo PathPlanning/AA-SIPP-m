@@ -32,16 +32,14 @@ bool cMap::getMap(const char* FileName)
     std::string text = "";
     bool hasGrid = false;
     std::stringstream stream;
-    text.append(FileName);
-    TiXmlDocument doc(text.c_str());
+    TiXmlDocument doc(FileName);
     if(!doc.LoadFile())
     {
         std::cout << "Error openning input XML file."<<std::endl;
         return false;
     }
     else
-
-    root = doc.FirstChildElement(CNS_TAG_ROOT);
+        root = doc.FirstChildElement(CNS_TAG_ROOT);
     if (!root)
     {
         std::cout << "No '"<<CNS_TAG_ROOT<<"' element found in XML file."<<std::endl;
@@ -254,7 +252,6 @@ bool cMap::getMap(const char* FileName)
                 element = element->NextSiblingElement();
             }
         }
-
         node = map->IterateChildren(node);
     }
     return true;
@@ -290,10 +287,10 @@ int cMap::getValue(int i, int j) const
 
 void cMap::addConstraint(int i, int j)
 {
-    Grid[i][j]++;
+    Grid[i][j]=CN_OBSTL;
 }
 
 void cMap::removeConstraint(int i, int j)
 {
-    Grid[i][j]--;
+    Grid[i][j]=0;
 }

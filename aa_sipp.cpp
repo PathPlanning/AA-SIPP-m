@@ -40,17 +40,15 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
     {
         for(int j = -1; j <= +1; j++)
         {
-            if((i != 0 || j != 0) && Map.CellOnGrid(curNode.i + i, curNode.j + j) && Map.CellIsTraversable(curNode.i + i, curNode.j + j))
+            if((i+j) != 0 && i*j == 0 && Map.CellOnGrid(curNode.i + i, curNode.j + j) && Map.CellIsTraversable(curNode.i + i, curNode.j + j))
             {
-                if((i*j != 0) && (Map.CellIsObstacle(curNode.i, curNode.j + j) || Map.CellIsObstacle(curNode.i + i, curNode.j)))
-                    continue;
                 newNode.i = curNode.i + i;
                 newNode.j = curNode.j + j;
-                newNode.g = curNode.g + MoveCost(curNode.i, curNode.j, curNode.i + i, curNode.j + j);
+                newNode.g = curNode.g + 1;
                 newNode.Parent = parent;
                 EAT.clear();
                 h_value = weight*calculateDistanceFromCellToCell(newNode.i, newNode.j, Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
-                intervals = findIntervals(newNode, EAT);
+                intervals = findIntervals(newNode, EAT, Map.width);
                 for(int k = 0; k < intervals.size(); k++)
                 {
                     newNode.interval = intervals[k];
@@ -62,7 +60,7 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
                 if(newNode.Parent->i != parent->i || newNode.Parent->j != parent->j)
                 {
                     EAT.clear();
-                    intervals = findIntervals(newNode, EAT);
+                    intervals = findIntervals(newNode, EAT, Map.width);
                     for(int k = 0; k < intervals.size(); k++)
                     {
                         newNode.interval = intervals[k];
@@ -74,13 +72,6 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
             }
         }
     }
-}
-
-double AA_SIPP::MoveCost(int start_i, int start_j, int fin_i, int fin_j)
-{
-    if((start_i - fin_i)*(start_j - fin_j) != 0)
-        return sqrt(2);
-    return 1;
 }
 
 bool AA_SIPP::lineOfSight(int i1, int j1, int i2, int j2, const cMap &map)
@@ -114,7 +105,7 @@ bool AA_SIPP::lineOfSight(int i1, int j1, int i2, int j2, const cMap &map)
             if(map.CellIsObstacle(i, j + step_j))
                 return false;
             error += delta_j;
-            if(error >= delta_i)
+            if(error > delta_i)
             {
                 if(((error << 1) - delta_i - delta_j)*((error << 1) - delta_i - delta_j) < sep_value)
                     if(map.CellIsObstacle(i + step_i, j))
@@ -128,6 +119,8 @@ bool AA_SIPP::lineOfSight(int i1, int j1, int i2, int j2, const cMap &map)
         }
         if(map.CellIsObstacle(i, j))
             return false;
+        if(map.CellIsObstacle(i, j + step_j))
+            return false;
     }
     else
     {
@@ -138,12 +131,12 @@ bool AA_SIPP::lineOfSight(int i1, int j1, int i2, int j2, const cMap &map)
             if(map.CellIsObstacle(i + step_i, j))
                 return false;
             error += delta_i;
-            if(error >= delta_j)
+            if(error > delta_j)
             {
-                if(((error << 1) - delta_i - delta_j)*((error << 1) - delta_i - delta_j) < (delta_i*delta_i + delta_j*delta_j))
+                if(((error << 1) - delta_i - delta_j)*((error << 1) - delta_i - delta_j) < sep_value)
                     if(map.CellIsObstacle(i, j + step_j))
                         return false;
-                if((3*delta_j - ((error << 1) - delta_i))*(3*delta_j - ((error << 1) - delta_i))<(delta_i*delta_i+delta_j*delta_j))
+                if((3*delta_j - ((error << 1) - delta_i))*(3*delta_j - ((error << 1) - delta_i)) < sep_value)
                     if(map.CellIsObstacle(i + 2*step_i, j))
                         return false;
                 i += step_i;
@@ -151,6 +144,8 @@ bool AA_SIPP::lineOfSight(int i1, int j1, int i2, int j2, const cMap &map)
             }
         }
         if(map.CellIsObstacle(i, j))
+            return false;
+        if(map.CellIsObstacle(i + step_i, j))
             return false;
     }
     return true;
@@ -196,7 +191,7 @@ void AA_SIPP::addOpen(Node &newNode)
     {
         if ((iter->F >= newNode.F) && (!posFound))
         {
-            if (iter->F == newNode.F)
+            if (fabs(iter->F - newNode.F) < CN_EPSILON)//CN_EPSILON is needed to prevent mistakes with comparison of double-type values
             {
 
                 if ((newNode.g > iter->g && breakingties == CN_BT_G_MAX) || (newNode.g < iter->g && breakingties == CN_BT_G_MIN))
@@ -214,7 +209,7 @@ void AA_SIPP::addOpen(Node &newNode)
 
         if (iter->i == newNode.i && iter->j == newNode.j && iter->interval.first == newNode.interval.first)
         {
-            if(iter->g - newNode.g < CN_EPSILON)//CN_EPSILON is needed to prevent mistakes with comparison of double-type values
+            if(iter->g - newNode.g < CN_EPSILON)
                 return;
             if(pos == iter)
             {
@@ -266,6 +261,7 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
     }
     for(int numOfCurAgent = 0; numOfCurAgent < Map.agents; numOfCurAgent++)
     {
+        NUMOFCUR=numOfCurAgent;
         Map.removeConstraint(Map.start_i[numOfCurAgent], Map.start_j[numOfCurAgent]);
         Map.removeConstraint(Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
         if(findPath(numOfCurAgent, Map))
@@ -285,31 +281,27 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
     std::vector<conflict> confs = CheckConflicts();
     for(int i = 0; i < confs.size(); i++)
         std::cout<<confs[i].i<<" "<<confs[i].j<<" "<<confs[i].g<<" "<<confs[i].agent1<<" "<<confs[i].agent2<<"\n";
-
     return sresult;
 }
 
 
 Node AA_SIPP::resetParent(Node current, Node Parent, const cMap &Map)
 {
-    if(Parent.Parent == NULL || (Parent.Parent->i == current.i && Parent.Parent->j == current.j))
+    if(Parent.Parent == NULL || (current.i == Parent.Parent->i && current.j == Parent.Parent->j))
         return current;
 
-    double g_value = calculateDistanceFromCellToCell(Parent.Parent->i, Parent.Parent->j, current.i, current.j);
-    //if(g_value > 15)
-    //    return current;
     if(lineOfSight(Parent.Parent->i, Parent.Parent->j, current.i, current.j, Map))
     {
-        current.g = Parent.Parent->g + g_value;
+        current.g = Parent.Parent->g + calculateDistanceFromCellToCell(Parent.Parent->i, Parent.Parent->j, current.i, current.j);
         current.Parent = Parent.Parent;
     }
     return current;
 }
 
 
-std::vector<constraint> AA_SIPP::findConflictCells(Node cur)
+std::vector<std::pair<int,int>> AA_SIPP::findConflictCells(Node cur)
 {
-    std::vector<constraint> cells(0);
+    std::vector<std::pair<int,int>> cells(0);
     int i1 = cur.i, j1 = cur.j, i2 = cur.Parent->i, j2 = cur.Parent->j;
     int delta_i = std::abs(i1 - i2);
     int delta_j = std::abs(j1 - j2);
@@ -319,100 +311,53 @@ std::vector<constraint> AA_SIPP::findConflictCells(Node cur)
     int i = i1;
     int j = j1;
     int sep_value = delta_i*delta_i + delta_j*delta_j;
-    constraint add;
     if((delta_i + delta_j) == 0)//this situation is possible after modification of hppath and is needed for addConstraints function
-    {
-        add.i=i;
-        add.j=j;
-        cells.push_back(add);
-    }
+        cells.push_back({i,j});
     else if(delta_i == 0)
-    {
-        add.i = i1;
-        for(; j != j2; j += step_j)
-        {
-            add.j = j;
-            cells.push_back(add);
-        }
-        add.j=j2;
-        cells.push_back(add);
-    }
+        for(; j != j2+step_j; j += step_j)
+            cells.push_back({i,j});
     else if(delta_j == 0)
-    {
-        add.j = j1;
-        for(; i != i2; i += step_i)
-        {
-            add.i = i;
-            cells.push_back(add);
-        }
-        add.i=i2;
-        cells.push_back(add);
-    }
+        for(; i != i2+step_i; i += step_i)
+            cells.push_back({i,j});
     else if(delta_i > delta_j)
     {
         for(; i != i2; i += step_i)
         {
-            add.i = i;
-            add.j = j;
-            cells.push_back(add);
-            add.j += step_j;
-            cells.push_back(add);
-            add.j -= step_j;
+            cells.push_back({i,j});
+            cells.push_back({i,j+step_j});
             error += delta_j;
-            if(error >= delta_i)
+            if(error > delta_i)
             {
-                if(((error << 1) - delta_i - delta_j)*((error << 1) - delta_i - delta_j) < sep_value)
-                {
-                    add.i += step_i;
-                    cells.push_back(add);
-                    add.i -= step_i;
-                }
-                if((3*delta_i - ((error << 1) - delta_j))*(3*delta_i - ((error << 1) - delta_j)) < sep_value)
-                {
-                    add.j += 2*step_j;
-                    cells.push_back(add);
-                    add.j -= 2*step_j;
-                }
                 j += step_j;
+                if(((error << 1) - delta_i - delta_j)*((error << 1) - delta_i - delta_j) < sep_value)
+                    cells.push_back({i + step_i,j - step_j});
+                if((3*delta_i - ((error << 1) - delta_j))*(3*delta_i - ((error << 1) - delta_j)) < sep_value)
+                    cells.push_back({i,j + step_j});
                 error -= delta_i;
             }
         }
-        add.i = i;
-        add.j = j;
-        cells.push_back(add);
+        cells.push_back({i,j});
+        cells.push_back({i,j+step_j});
     }
     else
     {
         for(; j != j2; j += step_j)
         {
-            add.i = i;
-            add.j = j;
-            cells.push_back(add);
-            add.i += step_i;
-            cells.push_back(add);
-            add.i -= step_i;
+            cells.push_back({i,j});
+            cells.push_back({i+step_i,j});
             error += delta_i;
-            if(error >= delta_j)
+            if(error > delta_j)
             {
-                if(((error << 1) - delta_i - delta_j)*((error << 1) - delta_i - delta_j) < sep_value)
-                {
-                    add.j += step_j;
-                    cells.push_back(add);
-                    add.j -= step_j;
-                }
-                if((3*delta_j - ((error << 1) - delta_i))*(3*delta_j - ((error << 1) - delta_i)) < sep_value)
-                {
-                    add.i += 2*step_i;
-                    cells.push_back(add);
-                    add.i -= 2*step_i;
-                }
                 i += step_i;
+                if(((error << 1) - delta_i - delta_j)*((error << 1) - delta_i - delta_j) < sep_value)
+                    cells.push_back({i-step_i,j+step_j});
+                if((3*delta_j - ((error << 1) - delta_i))*(3*delta_j - ((error << 1) - delta_i)) < sep_value)
+                    cells.push_back({i+step_i,j});
                 error -= delta_j;
             }
         }
-        add.i = i;
-        add.j = j;
-        cells.push_back(add);
+        cells.push_back({i,j});
+        cells.push_back({i+step_i,j});
     }
     return cells;
 }
@@ -420,8 +365,8 @@ std::vector<constraint> AA_SIPP::findConflictCells(Node cur)
 void AA_SIPP::addConstraints(int curAgent)
 {
     Node cur;
-    std::vector<constraint> cells;
-    if(sresult.pathInfo[curAgent].sections.size()==1)
+    std::vector<std::pair<int,int>> cells;
+    if(sresult.pathInfo[curAgent].sections.size() == 1)
     {
         constraint add;
         add.agent = curAgent;
@@ -465,7 +410,8 @@ void AA_SIPP::addConstraints(int curAgent)
         {
             for(int i = 0; i < cells.size(); i++)
             {
-                add = cells[i];
+                add.i = cells[i].first;
+                add.j = cells[i].second;
                 add.agent = curAgent;
                 std::pair<double,double> ps,pg;
                 ps={x0, y0};
@@ -495,11 +441,13 @@ void AA_SIPP::addConstraints(int curAgent)
                 else
                     con.goal = false;
                 con.agent = curAgent;
-                ctable[add.i][add.j].push_back(con);
+                if(ctable[add.i][add.j].empty() || fabs(ctable[add.i][add.j].back().g-con.g)>CN_EPSILON)
+                    ctable[add.i][add.j].push_back(con);
             }
             for(int i = 0; i < cells.size(); i++)
             {
-                add = cells[i];
+                add.i = cells[i].first;
+                add.j = cells[i].second;
                 add.agent = curAgent;
                 std::pair<double,double> ps, pg, interval;
                 ps = {x0, y0};
@@ -595,7 +543,7 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
 
     Node curNode(Map.start_i[numOfCurAgent], Map.start_j[numOfCurAgent], 0, 0);
     curNode.F = weight * calculateDistanceFromCellToCell(curNode.i, curNode.j, Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
-    curNode.interval = {0, CN_INFINITY};
+    curNode.interval = safe_intervals[curNode.i][curNode.j][0];
     bool pathFound = false;
     open[curNode.i].push_back(curNode);
     openSize++;
@@ -614,24 +562,10 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
         std::list<Node> successors;
         successors.clear();
         findSuccessors(curNode, Map, successors, numOfCurAgent);
-        auto it = successors.begin();
-        while(it != successors.end())
-        {
-            bool has = false;
-            auto range = close.equal_range(it->i * Map.width + it->j);
-            for(auto i = range.first; i != range.second; i++)
-                if(i->second.interval.first == it->interval.first && i->second.interval.second == it->interval.second)
-                {
-                    has = true;
-                    break;
-                }
-            if(!has)
-                addOpen(*it);
-            it++;
-        }
+        for(auto it = successors.begin(); it != successors.end(); it++)
+            addOpen(*it);
     }
-
-    if (pathFound)
+    if(pathFound)
     {
         makePrimaryPath(curNode);
         for(int i = 1; i < hppath.size(); i++)
@@ -690,49 +624,62 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
     return resultPath.pathfound;
 }
 
-std::vector<std::pair<double,double>> AA_SIPP::findIntervals(Node curNode, std::vector<double> &EAT)
+std::vector<std::pair<double,double>> AA_SIPP::findIntervals(Node curNode, std::vector<double> &EAT, int w)
 {
     std::vector<std::pair<double,double>> badIntervals(0), curNodeIntervals(0);
-    double dist = curNode.g - curNode.Parent->g;
+    double ab = curNode.g-curNode.Parent->g;
 
+    auto range = close.equal_range(curNode.i * w + curNode.j);
+    bool has;
     for(int i = 0; i < safe_intervals[curNode.i][curNode.j].size(); i++)
-        if(safe_intervals[curNode.i][curNode.j][i].second > curNode.Parent->g + dist && safe_intervals[curNode.i][curNode.j][i].first <= curNode.Parent->interval.second + dist)
+        if(safe_intervals[curNode.i][curNode.j][i].second > curNode.g && safe_intervals[curNode.i][curNode.j][i].first <= curNode.Parent->interval.second + ab)
         {
-            curNodeIntervals.push_back(safe_intervals[curNode.i][curNode.j][i]);
-            if(curNodeIntervals.back().first < curNode.Parent->g + dist)
-                EAT.push_back(curNode.Parent->g + dist);
-            else
-                EAT.push_back(curNodeIntervals.back().first);
+            has = false;
+            for(auto it = range.first; it != range.second; it++)
+                if(it->second.interval.first == safe_intervals[curNode.i][curNode.j][i].first)
+                {
+                    has = true;
+                    break;
+                }
+            if(!has)
+            {
+                curNodeIntervals.push_back(safe_intervals[curNode.i][curNode.j][i]);
+                if(curNodeIntervals.back().first < curNode.g)
+                    EAT.push_back(curNode.g);
+                else
+                    EAT.push_back(curNodeIntervals.back().first);
+            }
         }
-    std::vector<constraint> cells = findConflictCells(curNode);
+    if(curNodeIntervals.empty())
+        return curNodeIntervals;
+    std::vector<std::pair<int,int>> cells = findConflictCells(curNode);
 
-    double ab = curNode.g - curNode.Parent->g;
-    double da, db, ha, vi, vj, wi, wj, c1, c2;
+    double da, db, offset, vi, vj, wi, wj, c1, c2, dist;
     std::pair<double,double> add;
     constraint con;
     for(int i = 0; i < cells.size(); i++)
     {
-        for(int j = 0; j < ctable[cells[i].i][cells[i].j].size(); j++)
+        for(int j = 0; j < ctable[cells[i].first][cells[i].second].size(); j++)
         {
 
-            con = ctable[cells[i].i][cells[i].j][j];
+            con = ctable[cells[i].first][cells[i].second][j];
             if(con.g + gap < curNode.Parent->g && !con.goal)
                 continue;
-            da = ((curNode.i - con.i)*(curNode.i - con.i) + (curNode.j - con.j)*(curNode.j - con.j));
-            db = ((curNode.Parent->i - con.i)*(curNode.Parent->i - con.i) +(curNode.Parent->j - con.j)*(curNode.Parent->j - con.j));
+            da = (curNode.i - con.i)*(curNode.i - con.i) + (curNode.j - con.j)*(curNode.j - con.j);
+            db = (curNode.Parent->i - con.i)*(curNode.Parent->i - con.i) + (curNode.Parent->j - con.j)*(curNode.Parent->j - con.j);
             vi = curNode.Parent->i - curNode.i;
             vj = curNode.Parent->j - curNode.j;
             wi = con.i - curNode.i;
             wj = con.j - curNode.j;
             c1 = vj*wj + vi*wi;
             c2 = vj*vj + vi*vi;
-            if(c1 <= 0 || c2 <= c1)//if constraint is outside of the segment
+            if(c1 <= 0 || c2 <= c1)//if constraint is outside of the section
             {
                 if(da < db)
                     dist = da;
                 else
                     dist = db;
-                if(dist < 1)
+                if(dist < 1)//less than 2r
                 {
                     if(dist == da)
                         add={con.g - gap, con.g + gap};
@@ -745,31 +692,14 @@ std::vector<std::pair<double,double>> AA_SIPP::findIntervals(Node curNode, std::
                 }
 
             }
-            else if(con.i == curNode.i && con.j == curNode.j)
-            {
-                add = {con.g - gap, con.g + gap};
-                if(con.goal == true)
-                    add.second = CN_INFINITY;
-                badIntervals.push_back(add);
-                continue;
-            }
-            else if(con.i==curNode.Parent->i && con.j==curNode.Parent->j)
-            {
-                add = {con.g - gap + ab, con.g + gap + ab};
-                if(con.goal == true)
-                    add.second = CN_INFINITY;
-                badIntervals.push_back(add);
-                continue;
-            }
             else
             {
                 dist = fabs(((curNode.Parent->i - curNode.i)*con.j + (curNode.j - curNode.Parent->j)*con.i
-                             +(curNode.Parent->j*curNode.i - curNode.Parent->i*curNode.j)))
-                        /sqrt(pow(curNode.Parent->i - curNode.i, 2) + pow(curNode.Parent->j - curNode.j, 2));
+                             +(curNode.Parent->j*curNode.i - curNode.Parent->i*curNode.j)))/ab;
                 if(dist < 1)
                 {
-                    ha = sqrt(da - dist*dist);
-                    add = {con.g - gap + ha, con.g + gap + ha};
+                    offset = sqrt(da - dist*dist);
+                    add = {con.g - gap + offset, con.g + gap + offset};
                     if(con.goal == true)
                         add.second = CN_INFINITY;
                     badIntervals.push_back(add);
@@ -787,23 +717,9 @@ std::vector<std::pair<double,double>> AA_SIPP::findIntervals(Node curNode, std::
         {
             cur = badIntervals[i];
             next = badIntervals[i + 1];
-            if(cur.first == next.first)
+            if((cur.first - next.first)*(cur.second - next.first) < CN_EPSILON)
             {
-                if(next.second >= cur.second)
-                    badIntervals[i].second = next.second;
-                badIntervals.erase(badIntervals.begin() + i + 1);
-                i--;
-            }
-            else if((next.first - cur.first)*(next.second - cur.first) <= 0)
-            {
-                if((cur.first - next.second)*(cur.second - next.second) <= 0)
-                    badIntervals[i].first = next.first;
-                badIntervals.erase(badIntervals.begin() + i + 1);
-                i--;
-            }
-            else if((cur.first - next.first)*(cur.second - next.first) <= 0)
-            {
-                if((cur.second - next.first)*(cur.second - next.second) <= 0)
+                if(next.second > cur.second)
                     badIntervals[i].second = next.second;
                 badIntervals.erase(badIntervals.begin() + i + 1);
                 i--;
@@ -814,7 +730,6 @@ std::vector<std::pair<double,double>> AA_SIPP::findIntervals(Node curNode, std::
     //searching reachebale intervals and theirs EAT
     if(badIntervals.size() > 0)
     {
-        std::pair<double,double> parentInterval = curNode.Parent->interval;
         for(int i = 0; i < badIntervals.size(); i++)
             for(int j = 0; j < curNodeIntervals.size(); j++)
                 if(badIntervals[i].first <= EAT[j])
@@ -829,9 +744,8 @@ std::vector<std::pair<double,double>> AA_SIPP::findIntervals(Node curNode, std::
                     else if(badIntervals[i].second > EAT[j])
                         EAT[j] = badIntervals[i].second;
                 }
-        dist = curNode.g - curNode.Parent->g;
         for(int i = 0; i < curNodeIntervals.size(); i++)
-            if(EAT[i] > parentInterval.second + dist || curNodeIntervals[i].second < curNode.g)
+            if(EAT[i] > curNode.Parent->interval.second + ab || curNodeIntervals[i].second < curNode.g)
             {
                 curNodeIntervals.erase(curNodeIntervals.begin() + i);
                 EAT.erase(EAT.begin() + i);
@@ -923,8 +837,9 @@ std::vector<conflict> AA_SIPP::CheckConflicts()
                     b = positions[j][k];
                 else
                     b = positions[j].back();
-                if(((a.i - b.i)*(a.i - b.i) + (a.j - b.j)*(a.j - b.j)) + CN_EPSILON < 1.0)
+                if(sqrt((a.i - b.i)*(a.i - b.i) + (a.j - b.j)*(a.j - b.j)) + CN_EPSILON < 1.0)
                 {
+                    std::cout<<a.i<<" "<<a.j<<" "<<b.i<<" "<<b.j<<" "<<sqrt((a.i - b.i)*(a.i - b.i) + (a.j - b.j)*(a.j - b.j))<<"\n";
                     conf.i = b.i;
                     conf.j = b.j;
                     conf.agent1 = i;
