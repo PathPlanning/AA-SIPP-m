@@ -261,7 +261,6 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
     }
     for(int numOfCurAgent = 0; numOfCurAgent < Map.agents; numOfCurAgent++)
     {
-        NUMOFCUR=numOfCurAgent;
         Map.removeConstraint(Map.start_i[numOfCurAgent], Map.start_j[numOfCurAgent]);
         Map.removeConstraint(Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
         if(findPath(numOfCurAgent, Map))
@@ -369,7 +368,6 @@ void AA_SIPP::addConstraints(int curAgent)
     if(sresult.pathInfo[curAgent].sections.size() == 1)
     {
         constraint add;
-        add.agent = curAgent;
         add.i = sresult.pathInfo[curAgent].sections.back().i;
         add.j = sresult.pathInfo[curAgent].sections.back().j;
         add.g = 0;
@@ -385,7 +383,6 @@ void AA_SIPP::addConstraints(int curAgent)
         if(x1 != x0 || y1 != y0)
             cur.Parent->g = cur.g - calculateDistanceFromCellToCell(x0, y0, x1, y1);
         constraint add;
-        add.agent = curAgent;
         int dx = abs(x1 - x0);
         int dy = abs(y1 - y0);
         if(dx == 0 && dy == 0)
@@ -412,7 +409,6 @@ void AA_SIPP::addConstraints(int curAgent)
             {
                 add.i = cells[i].first;
                 add.j = cells[i].second;
-                add.agent = curAgent;
                 std::pair<double,double> ps,pg;
                 ps={x0, y0};
                 pg={x1, y1};
@@ -440,84 +436,86 @@ void AA_SIPP::addConstraints(int curAgent)
                     con.goal = true;
                 else
                     con.goal = false;
-                con.agent = curAgent;
                 if(ctable[add.i][add.j].empty() || fabs(ctable[add.i][add.j].back().g-con.g)>CN_EPSILON)
                     ctable[add.i][add.j].push_back(con);
             }
-            for(int i = 0; i < cells.size(); i++)
+
+        }
+        for(int i = 0; i < cells.size(); i++)
+        {
+            add.i = cells[i].first;
+            add.j = cells[i].second;
+            std::pair<double,double> ps, pg, interval;
+            ps = {x0, y0};
+            pg = {x1, y1};
+            double dist = fabs((ps.first - pg.first)*add.j + (pg.second - ps.second)*add.i + (ps.second*pg.first - ps.first*pg.second))
+                    /sqrt(pow(ps.first - pg.first,2) + pow(ps.second - pg.second,2));
+            double da = (x0 - add.i)*(x0 - add.i) + (y0 - add.j)*(y0 - add.j);
+            double db = (x1 - add.i)*(x1 - add.i) + (y1 - add.j)*(y1 - add.j);
+            double ha = sqrt(da - dist*dist);
+            double hb = sqrt(db - dist*dist);
+            double size = sqrt(1 - dist*dist);
+            if(da == 0 && db == 0)
             {
-                add.i = cells[i].first;
-                add.j = cells[i].second;
-                add.agent = curAgent;
-                std::pair<double,double> ps, pg, interval;
-                ps = {x0, y0};
-                pg = {x1, y1};
-                double dist = fabs((ps.first - pg.first)*add.j + (pg.second - ps.second)*add.i + (ps.second*pg.first - ps.first*pg.second))
-                        /sqrt(pow(ps.first - pg.first,2) + pow(ps.second - pg.second,2));
-                double da = (x0 - add.i)*(x0 - add.i) + (y0 - add.j)*(y0 - add.j);
-                double db = (x1 - add.i)*(x1 - add.i) + (y1 - add.j)*(y1 - add.j);
-                double ha = sqrt(da - dist*dist);
-                double hb = sqrt(db - dist*dist);
-                double size = sqrt(1 - dist*dist);
-                if(da >= 1 && db >= 1)
+                interval.first = cur.Parent->g;
+                interval.second = cur.g;
+            }
+            if(da >= 1 && db >= 1)
+            {
+                interval.first = cur.Parent->g + ha - size;
+                interval.second = cur.Parent->g + ha + size;
+            }
+            else if(da < 1)
+            {
+                interval.first = cur.Parent->g;
+                interval.second = cur.g - hb + size;
+            }
+            else
+            {
+                interval.first = cur.Parent->g + ha - size;
+                interval.second = cur.g;
+            }
+            for(int j = 0; j < safe_intervals[add.i][add.j].size(); j++)
+            {
+                if(safe_intervals[add.i][add.j][j].first <= interval.first && safe_intervals[add.i][add.j][j].second >= interval.first)
                 {
-                    interval.first = cur.Parent->g + ha - size;
-                    interval.second = cur.Parent->g + ha + size;
-                }
-                else if(da < 1)
-                {
-                    interval.first = cur.Parent->g;
-                    interval.second = cur.g - hb + size;
-                }
-                else
-                {
-                    interval.first = cur.Parent->g + ha - size;
-                    interval.second = cur.g;
-                }
-                for(int j = 0; j < safe_intervals[add.i][add.j].size(); j++)
-                {
-                    if(safe_intervals[add.i][add.j][j].first <= interval.first && safe_intervals[add.i][add.j][j].second >= interval.first)
+                    if(fabs(safe_intervals[add.i][add.j][j].first - interval.first) < CN_EPSILON)
                     {
-                        if(safe_intervals[add.i][add.j][j].second < interval.second)
-                        {
+                        if(safe_intervals[add.i][add.j][j].second <= interval.second)
                             safe_intervals[add.i][add.j].erase(safe_intervals[add.i][add.j].begin() + j);
-                            break;
-                        }
-                        else if(safe_intervals[add.i][add.j][j].first == interval.first)
-                        {
-                            safe_intervals[add.i][add.j][j].first = interval.second;
-                            break;
-                        }
-                        else if(safe_intervals[add.i][add.j][j].second <= interval.second)
-                        {
-                            safe_intervals[add.i][add.j][j].second = interval.first;
-                            break;
-                        }
                         else
-                        {
-                            std::pair<double,double> new1, new2;
-                            new1.first = safe_intervals[add.i][add.j][j].first;
-                            new1.second = interval.first;
-                            new2.first = interval.second;
-                            new2.second = safe_intervals[add.i][add.j][j].second;
-                            safe_intervals[add.i][add.j].erase(safe_intervals[add.i][add.j].begin() + j);
-                            safe_intervals[add.i][add.j].insert(safe_intervals[add.i][add.j].begin() + j, new2);
-                            safe_intervals[add.i][add.j].insert(safe_intervals[add.i][add.j].begin() + j, new1);
-                            break;
-                        }
+                            safe_intervals[add.i][add.j][j].first = interval.second;
+                        break;
                     }
-                    else if(safe_intervals[add.i][add.j][j].first > interval.first && safe_intervals[add.i][add.j][j].first < interval.second)
+                    else if(safe_intervals[add.i][add.j][j].second <= interval.second)
                     {
-                        if(safe_intervals[add.i][add.j][j].second < interval.second)
-                        {
-                            safe_intervals[add.i][add.j].erase(safe_intervals[add.i][add.j].begin() + j);
-                            break;
-                        }
-                        else
-                        {
-                            safe_intervals[add.i][add.j][j].first = interval.second;
-                            break;
-                        }
+                        safe_intervals[add.i][add.j][j].second = interval.first;
+                        break;
+                    }
+                    else
+                    {
+                        std::pair<double,double> new1, new2;
+                        new1.first = safe_intervals[add.i][add.j][j].first;
+                        new1.second = interval.first;
+                        new2.first = interval.second;
+                        new2.second = safe_intervals[add.i][add.j][j].second;
+                        safe_intervals[add.i][add.j].erase(safe_intervals[add.i][add.j].begin() + j);
+                        safe_intervals[add.i][add.j].insert(safe_intervals[add.i][add.j].begin() + j, new2);
+                        safe_intervals[add.i][add.j].insert(safe_intervals[add.i][add.j].begin() + j, new1);
+                        break;
+                    }
+                }
+                else if(safe_intervals[add.i][add.j][j].first >= interval.first && safe_intervals[add.i][add.j][j].first < interval.second)
+                {
+                    if(safe_intervals[add.i][add.j][j].second <= interval.second)
+                    {
+                        safe_intervals[add.i][add.j].erase(safe_intervals[add.i][add.j].begin() + j);
+                        break;
+                    }
+                    else
+                    {
+                        safe_intervals[add.i][add.j][j].first = interval.second;
+                        break;
                     }
                 }
             }
@@ -880,6 +878,7 @@ void AA_SIPP::makePrimaryPath(Node curNode)
 
 void AA_SIPP::makeSecondaryPath(Node curNode)
 {
+    lppath.clear();
     if(curNode.Parent != NULL)
     {
         std::vector<Node> lineSegment;

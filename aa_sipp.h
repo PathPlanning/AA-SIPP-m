@@ -41,7 +41,6 @@ private:
     std::unordered_multimap<int, Node> close;
     std::vector<Node> hppath;
     double gap;
-    int NUMOFCUR;
 
 };
 
