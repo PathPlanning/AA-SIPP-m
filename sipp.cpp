@@ -224,7 +224,7 @@ SearchResult SIPP::startSearch(cLogger *Log, cMap &Map)
         Map.removeConstraint(Map.start_i[numOfCurAgent], Map.start_j[numOfCurAgent]);
         Map.removeConstraint(Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
         if(findPath(numOfCurAgent, Map))
-            addConstraints(numOfCurAgent);
+            addConstraints();
         close.clear();
         for(int i = 0; i < Map.height; i++)
             open[i].clear();
@@ -327,23 +327,23 @@ std::vector<conflict> SIPP::CheckConflicts()
     return conflicts;
 }
 
-void SIPP::addConstraints(int curAgent)
+void SIPP::addConstraints()
 {
     Node cur;
     movement add;
-    for(int i = 0; i < sresult.pathInfo[curAgent].sections.size() - 1; i++)
+    for(int i = 0; i < sresult.pathInfo.back().sections.size() - 1; i++)
     {
-        cur = sresult.pathInfo[curAgent].sections[i];
+        cur = sresult.pathInfo.back().sections[i];
         add.g = cur.g;
         if(i != 0)
         {
-            if(sresult.pathInfo[curAgent].sections[i - 1].i - 1 == cur.i)
+            if(sresult.pathInfo.back().sections[i - 1].i - 1 == cur.i)
                 add.p_dir = CN_UP_DIR;
-            else if(sresult.pathInfo[curAgent].sections[i - 1].i + 1 == cur.i)
+            else if(sresult.pathInfo.back().sections[i - 1].i + 1 == cur.i)
                 add.p_dir = CN_DOWN_DIR;
-            else if(sresult.pathInfo[curAgent].sections[i - 1].j - 1 == cur.j)
+            else if(sresult.pathInfo.back().sections[i - 1].j - 1 == cur.j)
                 add.p_dir = CN_LEFT_DIR;
-            else if(sresult.pathInfo[curAgent].sections[i - 1].j + 1 == cur.j)
+            else if(sresult.pathInfo.back().sections[i - 1].j + 1 == cur.j)
                 add.p_dir = CN_RIGHT_DIR;
             else
                 add.p_dir = CN_NO_DIR;
@@ -351,13 +351,13 @@ void SIPP::addConstraints(int curAgent)
         else
             add.p_dir = CN_NO_DIR;
         
-        if(sresult.pathInfo[curAgent].sections[i + 1].i + 1 == cur.i)
+        if(sresult.pathInfo.back().sections[i + 1].i + 1 == cur.i)
             add.s_dir = CN_DOWN_DIR;
-        else if(sresult.pathInfo[curAgent].sections[i + 1].i - 1 == cur.i)
+        else if(sresult.pathInfo.back().sections[i + 1].i - 1 == cur.i)
             add.s_dir = CN_UP_DIR;
-        else if(sresult.pathInfo[curAgent].sections[i + 1].j + 1 == cur.j)
+        else if(sresult.pathInfo.back().sections[i + 1].j + 1 == cur.j)
             add.s_dir = CN_RIGHT_DIR;
-        else if(sresult.pathInfo[curAgent].sections[i + 1].j - 1 == cur.j)
+        else if(sresult.pathInfo.back().sections[i + 1].j - 1 == cur.j)
             add.s_dir = CN_LEFT_DIR;
         else
             add.s_dir = CN_NO_DIR;
@@ -378,7 +378,7 @@ void SIPP::addConstraints(int curAgent)
                 ctable[cur.i][cur.j].push_back(add);
         }
     }
-    cur = sresult.pathInfo[curAgent].sections.back();
+    cur = sresult.pathInfo.back().sections.back();
     if(cur.Parent != NULL)
     {
         if(cur.Parent->i - 1 == cur.i)

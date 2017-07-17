@@ -22,7 +22,7 @@ private:
     bool stopCriterion();
     void makePrimaryPath(Node curNode);
     void makeSecondaryPath(Node curNode);
-    void addConstraints(int curAgent);
+    void addConstraints();
     std::vector<conflict> CheckConflicts();
 
     double weight;

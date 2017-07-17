@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     cLogger.cpp \
     cConfig.cpp \
     sipp.cpp \
-    aa_sipp.cpp
+    aa_sipp.cpp \
+    constraints.cpp
 
 HEADERS += \
     tinyxml.h \
@@ -32,4 +33,6 @@ HEADERS += \
     cConfig.h \
     sipp.h \
     aa_sipp.h \
-    structs.h
+    structs.h \
+    Vector2D.h \
+    constraints.h

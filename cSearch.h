@@ -7,6 +7,7 @@
 #include "gl_const.h"
 #include "searchresult.h"
 #include <math.h>
+#include "Vector2D.h"
 #ifdef __linux__
     #include <sys/time.h>
 #else
@@ -27,7 +28,7 @@ public:
     virtual bool stopCriterion() = 0;
     virtual void makePrimaryPath(Node curNode) = 0;
     virtual void makeSecondaryPath(Node curNode) = 0;
-    virtual void addConstraints(int curAgent) = 0;
+    virtual void addConstraints() = 0;
     virtual std::vector<conflict> CheckConflicts() = 0;
     SearchResult sresult;
 };
