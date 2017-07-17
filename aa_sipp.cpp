@@ -41,7 +41,6 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
                 newNode.j = curNode.j + j;
                 newNode.g = curNode.g + 1.0;
                 newNode.Parent = parent;
-                EAT.clear();
                 h_value = weight*calculateDistanceFromCellToCell(newNode.i, newNode.j, Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
                 intervals = constraints->findIntervals(newNode, EAT, close, Map.width);
                 for(int k = 0; k < intervals.size(); k++)
@@ -54,7 +53,6 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
                 newNode = resetParent(newNode, curNode, Map);
                 if(newNode.Parent->i != parent->i || newNode.Parent->j != parent->j)
                 {
-                    EAT.clear();
                     intervals = constraints->findIntervals(newNode, EAT, close, Map.width);
                     for(int k = 0; k < intervals.size(); k++)
                     {

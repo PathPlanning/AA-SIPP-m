@@ -16,7 +16,8 @@ public:
     Constraints(int width, int height);
     virtual ~Constraints(){}
     std::vector<std::pair<int,int>> findConflictCells(Node cur);
-    void updateSafeIntervals(const std::vector<std::pair<int,int>> &cells, section sec);
+    void updateSafeIntervals(const std::vector<std::pair<int,int>> &cells, section sec, bool goal);
+    std::vector<std::pair<double, double> > getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w);
     virtual void addConstraints(const std::vector<Node> &sections) = 0;
     virtual std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w) = 0;
 protected:
