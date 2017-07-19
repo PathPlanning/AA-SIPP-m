@@ -12,8 +12,9 @@
 #define CN_PT_MT        2   // metrictype
 #define CN_PT_BT        3   // breaking ties
 #define CN_PT_AA        4   // allow any-angle
+#define CN_PT_CT        5   // constraints type
 
-#define CN_PT_NUM       5   //number of parameters
+#define CN_PT_NUM       6   //number of parameters
 
 
 //Obstacle
@@ -38,6 +39,14 @@
 #define CNS_MT_DIAGONAL     "diagonal"
 #define CNS_MT_MANHATTAN    "manhattan"
 
+//constraints_type
+#define CN_CT_POINT     1
+#define CN_CT_VELOCITY  2
+#define CN_CT_SECTION   3
+
+#define CNS_CT_POINT     "point"
+#define CNS_CT_VELOCITY  "velocity"
+#define CNS_CT_SECTION   "section"
 
 /*
  * XML file tags ---------------------------------------------------------------
@@ -58,6 +67,7 @@
     #define CNS_TAG_ALLOW_AA        "allowanyangle"
     #define CNS_TAG_BT              "breakingties"
     #define CNS_TAG_METRICTYPE      "metrictype"
+    #define CNS_TAG_CONSTRAINTSTYPE "constraints_type"
     #define CNS_TAG_OPTIONS         "options"
     #define CNS_TAG_LOGLVL          "loglevel"
     #define CNS_TAG_LOG             "log"
@@ -122,6 +132,12 @@
     #define CN_RIGHT_DIR     3
     #define CN_DOWN_DIR      4
     #define CN_GOAL_DIR      5
-    
-    
+
+#define CN_PARALLEL          1
+#define CN_COINCIDENT        2
+#define CN_NONINTERSECTING   3
+#define CN_INTERSECTING      4
+
+
+
 #endif

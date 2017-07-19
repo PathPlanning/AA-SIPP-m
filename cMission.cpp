@@ -32,7 +32,7 @@ void cMission::createSearch()
     if(m_config.searchParams[CN_PT_AA]==0)
         m_pSearch = new SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_MT], m_config.searchParams[CN_PT_BT]);
     else
-        m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_BT]);
+        m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_BT], m_config.searchParams[CN_PT_CT]);
 }
 
 bool cMission::createLog()

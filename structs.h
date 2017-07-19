@@ -101,4 +101,35 @@ struct section
         g2 = b.g;
     }
 };
+
+class Point {
+public:
+    double i;
+    double j;
+
+    Point(double _i = 0.0, double _j =0.0):i (_i), j (_j){}
+    //Point(std::pair<double, double> p){i=p.first; j=p.second;}
+    Point operator-(Point& p){return Point(i - p.i, j - p.j);}
+    int operator== (Point& p){return (i == p.i) && (j == p.j);}
+    int classify(Point&pO, Point&p1)
+    {
+        Point p2 = *this;
+        Point a = p1 - pO;
+        Point b = p2 - pO;
+        double sa = a.i * b.j - b.i * a.j;
+        if ((a.i * b.i < 0.0) || (a.j * b.j < 0.0))
+            return 3;//BEHIND;
+        if ((a.i*a.i + a.j*a.j) < (b.i*b.i + b.j*b.j))
+            return 4;//BEYOND;
+        if (sa > 0.0)
+            return 1;//LEFT;
+        if (sa < 0.0)
+            return 2;//RIGHT;
+        if (pO == p2)
+            return 5;//ORIGIN;
+        if (p1 == p2)
+            return 6;//DESTINATION;
+        return 7;//BETWEEN;
+    }
+};
 #endif

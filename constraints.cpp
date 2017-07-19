@@ -522,3 +522,534 @@ std::vector<std::pair<double,double>> PointConstraints::findIntervals(Node curNo
     }
     return curNodeIntervals;
 }
+
+int SectionConstraints::checkIntersection(Point A, Point B, Point C, Point D, Point &intersec)
+{
+    double denom  = (D.j - C.j)*(B.i - A.i) - (D.i - C.i)*(B.j - A.j);
+    double nume_a = (D.i - C.i)*(A.j - C.j) - (D.j - C.j)*(A.i - C.i);
+    double nume_b = (B.i - A.i)*(A.j - C.j) - (B.j - A.j)*(A.i - C.i);
+    if(denom == 0.0)
+    {
+        if(nume_a == 0.0 && nume_b == 0.0)
+            return CN_COINCIDENT;
+        return CN_PARALLEL;
+    }
+    double ua = nume_a / denom;
+    double ub = nume_b / denom;
+    if(ua >= 0.0 && ua <= 1.0 && ub >= 0.0 && ub <= 1.0)
+    {
+        intersec = Point{A.i + ua*(B.i - A.i), A.j + ua*(B.j - A.j)};
+        return CN_INTERSECTING;
+    }
+    return CN_NONINTERSECTING;
+}
+
+
+std::vector<std::pair<double,double>> SectionConstraints::findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w)
+{
+    std::vector<std::pair<double,double>> badIntervals(0), curNodeIntervals(getSafeIntervals(curNode,close,w));
+    if(curNodeIntervals.empty())
+        return curNodeIntervals;
+    std::vector<std::pair<int,int>> cells = findConflictCells(curNode);
+    EAT.clear();
+    for(int i=0; i<curNodeIntervals.size(); i++)
+    {
+        if(curNodeIntervals[i].first<curNode.g)
+            EAT.push_back(curNode.g);
+        else
+            EAT.push_back(curNodeIntervals[i].first);
+    }
+    std::vector<section> sections(0);
+    section sec;
+    for(int i = 0; i < cells.size(); i++)
+        for(int j=0; j<constraints[cells[i].first][cells[i].second].size(); j++)
+        {
+            sec = constraints[cells[i].first][cells[i].second][j];
+            if(sec.g2 < curNode.Parent->g || sec.g1 > (curNode.Parent->interval.second + curNode.g - curNode.Parent->g))
+                continue;
+            if(std::find(sections.begin(), sections.end(), sec) == sections.end())
+                sections.push_back(sec);
+        }
+    for(int i=0; i<sections.size(); i++)
+    {
+        std::pair<double, double> badInterval = countInterval(sections[i], curNode);
+        if(badInterval.second > 0)
+            badIntervals.push_back(badInterval);
+    }
+    //combining and sorting bad intervals
+    if(badIntervals.size() > 1)
+    {
+        std::sort(badIntervals.begin(), badIntervals.end(), sort_function);
+        std::pair<double,double> cur, next;
+        for(int i = 0; i < badIntervals.size() - 1; i++)
+        {
+            cur = badIntervals[i];
+            next = badIntervals[i + 1];
+            if((cur.first - next.first)*(cur.second - next.first) < CN_EPSILON)
+            {
+                if(next.second > cur.second)
+                    badIntervals[i].second = next.second;
+                badIntervals.erase(badIntervals.begin() + i + 1);
+                i--;
+            }
+        }
+    }
+    //searching reachebale intervals and theirs EAT
+    if(badIntervals.size() > 0)
+    {
+        for(int i = 0; i < badIntervals.size(); i++)
+            for(int j = 0; j < curNodeIntervals.size(); j++)
+                if(badIntervals[i].first <= EAT[j])
+                {
+                    if(badIntervals[i].second >= curNodeIntervals[j].second)
+                    {
+                        curNodeIntervals.erase(curNodeIntervals.begin() + j);
+                        EAT.erase(EAT.begin() + j);
+                        j--;
+                        continue;
+                    }
+                    else if(badIntervals[i].second > EAT[j])
+                        EAT[j] = badIntervals[i].second;
+                }
+        for(int i = 0; i < curNodeIntervals.size(); i++)
+            if(EAT[i] > curNode.Parent->interval.second + curNode.g - curNode.Parent->g || curNodeIntervals[i].second < curNode.g)
+            {
+                curNodeIntervals.erase(curNodeIntervals.begin() + i);
+                EAT.erase(EAT.begin() + i);
+                i--;
+            }
+    }
+    return curNodeIntervals;
+}
+
+std::pair<double,double> SectionConstraints::countInterval(section sec, Node curNode)
+{
+    Point intersec, A(curNode.Parent->i, curNode.Parent->j), B(curNode.i, curNode.j), C(sec.i1, sec.j1), D(sec.i2, sec.j2);
+    int pos = checkIntersection(A, B, C, D, intersec);
+    int A1(A.j - B.j), A2(C.j - D.j), B1(A.i - B.i), B2(C.i - D.i);
+    double lengthAB = curNode.g - curNode.Parent->g;
+    double lengthCD = sec.g2 - sec.g1;
+    if(A2 == 0 && B2 == 0)//if we collide with a section, that represents wait action (or goal)
+    {
+        double dist_to_AB = (B1*D.j - A1*D.i + A.j*B.i - A.i*B.j)/lengthAB;
+        double gap = sqrt(1.0 - pow(dist_to_AB, 2));
+        double offset = sqrt(pow(dist(B, C), 2) - pow(dist_to_AB, 2));
+        return {sec.g1 + offset - gap, sec.g2 + offset + gap};
+    }
+    if(pos == CN_COINCIDENT || pos == CN_PARALLEL)
+    {
+        if(pos == CN_PARALLEL)
+            if((B1*D.j - A1*D.i + A.j*B.i - A.i*B.j) >= lengthAB)//if the distance between sections is not less than 1.0 (2r), collision is immpossible
+                return {-1, -1};
+        double BC = dist(B, C);
+        if(A1*A2 >= 0 && B1*B2 >= 0)//if sections are co-directional
+            return {sec.g1 + BC - 1, sec.g1 + BC + 1};
+        if((A.i - C.i)*(A.i - D.i) <= 0 && (A.j - C.j)*(A.j - D.j) <= 0)//A inside CD
+        {
+            if((B.i - C.i)*(B.i - D.i) <= 0 && (B.j - C.j)*(B.j - D.j) <= 0)//B inside CD => AB is fully in CD
+                return {sec.g1 + BC - 2, sec.g1 + BC + 2*lengthAB + 2};
+            else
+                return {sec.g1 + BC - 2, sec.g1 + BC + 2*(lengthAB - BC) + 2};
+        }
+        else//A outside of CD
+        {
+            if((B.i - C.i)*(B.i - D.i) <= 0 && (B.j - C.j)*(B.j - D.j) <= 0)//B inside CD
+                return {sec.g1 + BC - 2, sec.g1 + BC + 2*(lengthCD - BC) + 2};
+            else
+                return {sec.g1 + BC - 2, sec.g1 + BC + 2*lengthCD + 2};
+        }
+    }
+    else if(pos == CN_NONINTERSECTING)
+    {
+        double A_CD(minDist(A, C, D)), B_CD(minDist(B, C, D)), C_AB(minDist(C, A, B)), D_AB(minDist(D, A, B));
+        if(min(min(A_CD, B_CD), min(C_AB, D_AB)) >= 1.0)
+            return {-1,-1};
+        intersec.i = ((C.i*D.j - C.j*D.i)*B1 - B2*(A.i*B.j - A.j*B.i))/((C.i - D.i)*(A.j - B.j) - (C.j - D.j)*(A.i - B.i));
+        intersec.j = ((C.i*D.j - C.j*D.i)*A1 - A2*(A.i*B.j - A.j*B.i))/((C.i - D.i)*(A.j - B.j) - (C.j - D.j)*(A.i - B.i));
+        int classAB = intersec.classify(A, B);
+        int classCD = intersec.classify(C, D);
+        double span = sqrt(2.0/((A1*A2 + B1*B2)/(sqrt(A1*A1 + B1*B1)*sqrt(A2*A2 + B2*B2)) + 1.0));
+        std::pair<double, double> interval, interval2(-1,-1);
+        if(classAB == 3 && classCD == 4)//intersection point is behind AB and beyond CD
+        {
+            double dist_A(sqrt(pow(A.i - intersec.i,2) + pow(A.j - intersec.j,2))),
+                   dist_B(sqrt(pow(B.i - intersec.i,2) + pow(B.j - intersec.j,2))),
+                   dist_C(sqrt(pow(C.i - intersec.i,2) + pow(C.j - intersec.j,2))),
+                   dist_D(sqrt(pow(D.i - intersec.i,2) + pow(D.j - intersec.j,2))),
+                   gap, offset;
+            if(dist_A > dist_D)
+            {
+                gap = sqrt(1.0 - pow(A_CD, 2));
+                offset = sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2) - pow(A_CD, 2)) + lengthAB;
+                interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            else
+            {
+                gap = sqrt(1.0 - pow(D_AB, 2));
+                offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
+                interval = {sec.g2 + offset - gap, sec.g2 + offset + gap};
+            }
+            if(min(dist_B,dist_C)*2>span)
+                return {sec.g1 + dist_C + dist_B - span, interval.second};
+            else if(dist_B<dist_C)
+            {
+                gap = sqrt(1.0 - pow(B_CD, 2));
+                offset = sqrt(pow(B.i - C.i,2) + pow(B.j - C.j, 2) - pow(B_CD, 2));
+                interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            else
+            {
+                gap = sqrt(1 - pow(C_AB, 2));
+                offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
+                interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+        }
+        else if(classAB == 4 && classCD == 3)
+        {
+            double dist_A(sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2))),
+                   dist_B(sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2))),
+                   dist_C(sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2))),
+                   dist_D(sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2))),
+                   gap, offset;
+            if(dist_B > dist_C)
+            {
+                gap = sqrt(1.0 - pow(B_CD, 2));
+                offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(B_CD, 2));
+                interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            else
+            {
+                gap = sqrt(1.0 - pow(C_AB, 2));
+                offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
+                interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            if(min(dist_A, dist_D)*2 > span)
+                return {interval.first, sec.g1 - dist_C - dist_B + span};//not checked
+            else if(dist_A < dist_D)
+            {
+                gap = sqrt(1.0 - pow(A_CD, 2));
+                offset = sqrt(pow(dist(A, C), 2) - pow(A_CD, 2)) + lengthAB;
+                interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            else
+            {
+                gap = sqrt(1.0 - pow(D_AB, 2));
+                offset = sqrt(pow(dist(B, D), 2) - pow(D_AB, 2));
+                interval2 = {sec.g2 + offset - gap, sec.g2 + offset + gap};
+            }
+        }
+        else if(classAB==3 && classCD==3)//intersection point is before both sections
+        {
+            double dist_A(sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2))),
+                   dist_B(sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2))),
+                   dist_C(sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2))),
+                   dist_D(sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2))),
+                   gap, offset;
+            if(dist_A>dist_C)
+            {
+                gap = sqrt(1.0 - pow(A_CD, 2));
+                offset = sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2) - pow(A_CD, 2)) + lengthAB;
+                interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            else
+            {
+                gap = sqrt(1.0 - pow(C_AB, 2));
+                offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
+                interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            if(min(dist_B, dist_D)*2 > span)
+                return {sec.g1 - dist_C + dist_B - span, interval.second};
+            else if(dist_B < dist_D)
+            {
+                gap = sqrt(1.0 - pow(B_CD, 2));
+                offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(B_CD, 2));
+                interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            else
+            {
+                gap = sqrt(1.0 - pow(D_AB, 2));
+                offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
+                interval2 = {sec.g2 + offset - gap, sec.g2 + offset + gap};
+            }
+        }
+        else if(classAB == 4 && classCD == 4)//intersection point is beyond both sections
+        {
+            double dist_A(sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2))),
+                   dist_B(sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2))),
+                   dist_C(sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2))),
+                   dist_D(sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2))),
+                   gap, offset;
+            if(dist_B > dist_D)
+            {
+                gap = sqrt(1.0 - pow(B_CD, 2));
+                offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(B_CD, 2));
+                interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            else
+            {
+                gap = sqrt(1.0 - pow(D_AB, 2));
+                offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
+                interval = {sec.g2 + offset - gap, sec.g2 + offset + gap};
+            }
+            if(min(dist_A, dist_C)*2>span)
+                return {sec.g2 + dist_D - dist_B - span, interval.second};
+            else if(dist_A < dist_C)
+            {
+                gap = sqrt(1.0 - pow(A_CD, 2));
+                offset = sqrt(pow(A.i - C.i, 2) +pow(A.j - C.j, 2) - pow(A_CD, 2)) + lengthAB;
+                interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+            else
+            {
+                gap = sqrt(1 - pow(C_AB, 2));
+                offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
+                interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            }
+        }
+        else if(classAB == 4)//BEYOND (AFTER B)
+        {
+            double gap = sqrt(1.0 - pow(B_CD, 2));
+            double offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(B_CD, 2));
+            interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+
+            if((span - sqrt(2.0)) < CN_EPSILON)
+            {
+                double dist_A = sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2));
+                double dist_C = sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2));
+                if(min(dist_A, dist_C)*2 > span)
+                    return {interval.first, sec.g1 + dist_C - dist(B, intersec) + span};
+                else if(dist_A < dist_C)
+                {
+                    gap = sqrt(1.0 - pow(A_CD, 2));
+                    offset = sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2) - pow(A_CD, 2)) + lengthAB;
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+                else
+                {
+                    gap = sqrt(1 - pow(C_AB, 2));
+                    offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+            }
+            else
+            {
+                double dist_A = sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2));
+                double dist_D = sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2));
+                if(min(dist_A, dist_D)*2 > span)
+                    return {interval.first, sec.g1 + dist(C, intersec) - dist(B, intersec) + span};//not checked, mb +dist(B,intersec) is needed
+                else if(dist_A < dist_D)
+                {
+                    gap = sqrt(1.0 - pow(A_CD, 2));
+                    offset = sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2) - pow(A_CD, 2)) + lengthAB;
+                    interval2 = {sec.g1 + offset - gap,sec.g1 + offset + gap};
+                }
+                else
+                {
+                    gap = sqrt(1.0 - pow(D_AB, 2));
+                    offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
+                    interval2 = {sec.g2 + offset - gap,sec.g2 + offset + gap};
+                }
+            }
+
+        }
+        else if(classAB == 3)//BEHIND (BEFORE A)
+        {
+            double gap = sqrt(1.0 - pow(A_CD, 2));
+            double offset = sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2) - pow(A_CD, 2)) + lengthAB;
+            interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            if((span - sqrt(2.0)) < CN_EPSILON)
+            {
+                double dist_B = sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2));
+                double dist_D = sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2));
+                if(min(dist_B, dist_D)*2 > span)
+                    return {sec.g1 - dist(C, intersec) + dist_B - span, interval.second};//changed
+                else if(dist_B < dist_D)
+                {
+                    gap = sqrt(1.0 - pow(B_CD, 2));
+                    offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(B_CD, 2));
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+                else
+                {
+                    gap = sqrt(1.0 - pow(D_AB, 2));
+                    offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
+                    interval2 = {sec.g2 + offset - gap, sec.g2 + offset + gap};
+                }
+            }
+            else
+            {
+                double dist_B = sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2));
+                double dist_C = sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2));
+                if(min(dist_B, dist_C)*2 > span)//checked
+                    return {sec.g1 + dist_C + dist_B - span, interval.second};
+                else if(dist_B < dist_C)
+                {
+                    gap = sqrt(1.0 - pow(B_CD, 2));
+                    offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(B_CD, 2));
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+                else
+                {
+                    gap = sqrt(1.0 - pow(C_AB, 2));
+                    offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+            }
+        }
+        else if(classCD == 4)//BEYOND (AFTER D)
+        {
+            double gap = sqrt(1.0 - pow(D_AB, 2));
+            double offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
+            interval = {sec.g2 + offset - gap, sec.g2 + offset + gap};
+
+            if((span - sqrt(2.0)) < CN_EPSILON)
+            {
+                double dist_A = sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2));
+                double dist_C = sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2));
+                if(min(dist_A, dist_C)*2 > span)
+                    return {sec.g2 + dist(D, intersec) + dist(B, intersec) - span, interval.second};//agree
+                else if(dist_A < dist_C)
+                {
+                    gap = sqrt(1.0 - pow(A_CD, 2));
+                    offset = sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2) - pow(A_CD, 2)) + lengthAB;
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+                else
+                {
+                    gap = sqrt(1.0 - pow(C_AB, 2));
+                    offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+            }
+            else
+            {
+                double dist_B = sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2));
+                double dist_C = sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2));
+                if(min(dist_B, dist_C)*2 > span)//checked
+                    return {sec.g2 + dist(D, intersec) + dist_B - span, interval.second};
+                else if(dist_B < dist_C)
+                {
+                    gap = sqrt(1.0 - pow(B_CD, 2));
+                    offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(B_CD, 2));
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+                else
+                {
+                    gap = sqrt(1.0 - pow(C_AB, 2));
+                    offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+            }
+        }
+        else if(classCD == 3)//BEHIND (BEFORE C)
+        {
+            double gap = sqrt(1.0 - pow(C_AB, 2));
+            double offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
+            interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+            if((span - sqrt(2.0)) < CN_EPSILON)//if sections are co-directional
+            {
+                double dist_B = sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2));
+                double dist_D = sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2));
+                if(min(dist_B, dist_D)*2 > span)//checked
+                    return {interval.first, sec.g1 - dist(C, intersec) + dist_B + span};
+                else if(dist_B < dist_D)
+                {
+                    gap = sqrt(1.0 - pow(B_CD, 2));
+                    offset = sqrt(pow(B.i - C.i,2) + pow(B.j - C.j, 2) - pow(B_CD, 2));
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+                else
+                {
+                    gap = sqrt(1.0 - pow(D_AB, 2));
+                    offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
+                    interval2 = {sec.g2 + offset - gap, sec.g2 + offset + gap};
+                }
+            }
+            else//checked
+            {
+                double dist_A = sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2));
+                double dist_D = sqrt(pow(D.i - intersec.i,2) + pow(D.j - intersec.j, 2));
+                if(min(dist_A, dist_D)*2 > span)
+                    return {interval.first, sec.g1 - dist(C, intersec) + dist(B, intersec) + span};
+                else if(dist_A<dist_D)
+                {
+                    gap = sqrt(1.0 - pow(A_CD, 2));
+                    offset = sqrt(pow(A.i - C.i,2) + pow(A.j - C.j, 2) - pow(A_CD, 2)) + lengthAB;
+                    interval2 = {sec.g1 + offset - gap, sec.g1 + offset + gap};
+                }
+                else
+                {
+                    gap = sqrt(1.0 - pow(D_AB, 2));
+                    offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
+                    interval2 = {sec.g2 + offset - gap, sec.g2 + offset + gap};
+                }
+            }
+        }
+        return {min(interval.first, interval2.first), max(interval.second, interval2.second)};
+    }
+    else//have intersection point
+    {
+
+        double dist_A(sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2))),
+               dist_B(sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2))),
+               dist_C(sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2))),
+               dist_D(sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2))),
+               span = sqrt(2.0/((A1*A2 + B1*B2)/(sqrt(A1*A1 + B1*B1)*sqrt(A2*A2 + B2*B2)) + 1.0)),
+               dist;
+        std::pair<double,double> interval(sec.g1 + dist_C + dist_B - span, sec.g1 + dist_C + dist_B + span);
+        if((span - sqrt(2.0)) < CN_EPSILON)
+        {
+            if(min(dist_A, dist_C)*2 < span)
+            {
+                if(dist_A < dist_C)
+                {
+                    dist = ((C.i - D.i)*A.j + (D.j - C.j)*A.i + (C.j*D.i - D.j*C.i))/lengthCD;
+                    interval.second = sec.g1 + sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2) - pow(dist, 2)) + lengthAB + sqrt(1.0 - pow(dist, 2));
+                }
+                else
+                {
+                    dist = ((A.i - B.i)*C.j + (B.j - A.j)*C.i + (A.j*B.i - A.i*B.j))/lengthAB;
+                    interval.first = sec.g1 + sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(dist, 2)) - sqrt(1.0 - pow(dist, 2));
+                }
+            }
+            if(min(dist_B, dist_D)*2 < span)
+            {
+                if(dist_B < dist_D)
+                {
+                    dist = ((C.i - D.i)*B.j + (D.j - C.j)*B.i + (C.j*D.i - D.j*C.i))/lengthCD;
+                    interval.first = sec.g1 + sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(dist, 2)) - sqrt(1.0 - pow(dist, 2));
+                }
+                else
+                {
+                    dist = ((A.i - B.i)*D.j + (B.j - A.j)*D.i + (A.j*B.i - A.i*B.j))/lengthAB;
+                    interval.second = sec.g2 + sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(dist, 2)) + sqrt(1.0 - pow(dist, 2));
+                }
+            }
+        }
+        else
+        {
+            if(min(dist_A, dist_D)*2 < span)
+            {
+                if(dist_A < dist_D)
+                {
+                    dist = ((C.i - D.i)*A.j + (D.j - C.j)*A.i + (C.j*D.i - D.j*C.i))/lengthCD;
+                    interval.second = sec.g1 + sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2) - pow(dist, 2)) + lengthAB + sqrt(1.0 - pow(dist, 2));
+                }
+                else
+                {
+                    dist = ((A.i - B.i)*D.j + (B.j - A.j)*D.i + (A.j*B.i - A.i*B.j))/lengthAB;
+                    interval.second = sec.g2 + sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(dist, 2)) + sqrt(1.0 - pow(dist, 2));
+                }
+            }
+            if(min(dist_B, dist_C)*2 < span)
+            {
+                if(dist_B < dist_C)
+                    dist = ((C.i - D.i)*B.j + (D.j - C.j)*B.i + (C.j*D.i - D.j*C.i))/lengthCD;
+                else
+                    dist = ((A.i - B.i)*C.j + (B.j - A.j)*C.i + (A.j*B.i - A.i*B.j))/lengthAB;
+                interval.first = sec.g1 + sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(dist, 2)) - sqrt(1.0 - pow(dist, 2));
+            }
+        }
+        return interval;
+    }
+}

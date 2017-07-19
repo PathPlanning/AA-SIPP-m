@@ -9,7 +9,7 @@ class AA_SIPP : public cSearch
 
 public:
 
-    AA_SIPP(double weight, bool breakingties);
+    AA_SIPP(double weight, bool breakingties, int constraints_type);
     ~AA_SIPP();
     SearchResult startSearch(cLogger *Log, cMap &Map);
 
@@ -30,6 +30,7 @@ private:
     std::vector<conflict> CheckConflicts();//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
     double weight;
     bool breakingties;
+    int constraints_type;
     unsigned int closeSize, openSize;
     std::list<Node> lppath;
     std::vector<std::list<Node>> open;

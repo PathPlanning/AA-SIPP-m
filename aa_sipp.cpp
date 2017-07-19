@@ -1,10 +1,11 @@
 #include "aa_sipp.h"
 
 
-AA_SIPP::AA_SIPP(double weight, bool breakingties)
+AA_SIPP::AA_SIPP(double weight, bool breakingties, int constraints_type)
 {
     this->weight = weight;
     this->breakingties = breakingties;
+    this->constraints_type = constraints_type;
     closeSize = 0;
     openSize = 0;
 }
@@ -35,11 +36,17 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
     {
         for(int j = -1; j <= +1; j++)
         {
-            if((i+j) != 0 && i*j == 0 && Map.CellOnGrid(curNode.i + i, curNode.j + j) && Map.CellIsTraversable(curNode.i + i, curNode.j + j))
+            if((i != 0 || j != 0) && Map.CellOnGrid(curNode.i + i, curNode.j + j) && Map.CellIsTraversable(curNode.i + i, curNode.j + j))
             {
+                if(i*j != 0)
+                    if(Map.CellIsObstacle(curNode.i, curNode.j + j) || Map.CellIsObstacle(curNode.i + i, curNode.j))
+                        continue;
                 newNode.i = curNode.i + i;
                 newNode.j = curNode.j + j;
-                newNode.g = curNode.g + 1.0;
+                if(i!=0 && j!=0)
+                    newNode.g = curNode.g + sqrt(2);
+                else
+                    newNode.g = curNode.g + 1.0;
                 newNode.Parent = parent;
                 h_value = weight*calculateDistanceFromCellToCell(newNode.i, newNode.j, Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
                 intervals = constraints->findIntervals(newNode, EAT, close, Map.width);
@@ -231,12 +238,15 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
     QueryPerformanceCounter(&begin);
     QueryPerformanceFrequency(&freq);
 #endif
+    if(constraints_type == CN_CT_POINT)
+        constraints = new PointConstraints(Map.width, Map.height);
+    else if(constraints_type == CN_CT_VELOCITY)
+        constraints = new VelocityConstraints(Map.width, Map.height);
+    else
+        constraints = new SectionConstraints(Map.width, Map.height);
     sresult.pathInfo.resize(0);
     sresult.agents = Map.agents;
     sresult.agentsSolved = 0;
-    constraints = new VelocityConstraints(Map.width, Map.height);
-    //constraints = new PointConstraints(Map.width, Map.height);
-
     for(int i = 0; i < Map.agents; i++)
     {
         Map.addConstraint(Map.start_i[i], Map.start_j[i]);
