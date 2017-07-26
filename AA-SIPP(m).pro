@@ -18,7 +18,8 @@ SOURCES += main.cpp \
     cConfig.cpp \
     sipp.cpp \
     aa_sipp.cpp \
-    constraints.cpp
+    constraints.cpp \
+    comboconstraints.cpp
 
 HEADERS += \
     tinyxml.h \
@@ -35,4 +36,5 @@ HEADERS += \
     aa_sipp.h \
     structs.h \
     Vector2D.h \
-    constraints.h
+    constraints.h \
+    comboconstraints.h

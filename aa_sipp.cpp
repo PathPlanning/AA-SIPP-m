@@ -238,12 +238,13 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
     QueryPerformanceCounter(&begin);
     QueryPerformanceFrequency(&freq);
 #endif
-    if(constraints_type == CN_CT_POINT)
+    /*if(constraints_type == CN_CT_POINT)
         constraints = new PointConstraints(Map.width, Map.height);
     else if(constraints_type == CN_CT_VELOCITY)
         constraints = new VelocityConstraints(Map.width, Map.height);
     else
-        constraints = new SectionConstraints(Map.width, Map.height);
+        constraints = new SectionConstraints(Map.width, Map.height);*/
+    constraints = new ComboConstraints(Map.width, Map.height);
     sresult.pathInfo.resize(0);
     sresult.agents = Map.agents;
     sresult.agentsSolved = 0;
@@ -252,25 +253,22 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
         Map.addConstraint(Map.start_i[i], Map.start_j[i]);
         Map.addConstraint(Map.goal_i[i], Map.goal_j[i]);
     }
+    constraints->setAgent(1);
     for(int numOfCurAgent = 0; numOfCurAgent < Map.agents; numOfCurAgent++)
     {
         Map.removeConstraint(Map.start_i[numOfCurAgent], Map.start_j[numOfCurAgent]);
         Map.removeConstraint(Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
-
-
-        /*if(numOfCurAgent+1 == Map.agents)
+        if(numOfCurAgent+1 == Map.agents)
         {
-            constraints->setAgent(false);
-            findPath(numOfCurAgent, Map);
-            close.clear();
-            for(int i = 0; i< Map.height; i++)
-                open[i].clear();
-            open.clear();
-            constraints->setAgent(true);
+            if(constraints_type == CN_CT_POINT)
+                constraints->setAgent(0);
+            else if(constraints_type == CN_CT_VELOCITY)
+                constraints->setAgent(1);
+            else if(constraints_type == CN_CT_SECTION)
+                constraints->setAgent(2);
             findPath(numOfCurAgent, Map);
         }
-        else*/
-            if(findPath(numOfCurAgent, Map))
+        else if(findPath(numOfCurAgent, Map))
             constraints->addConstraints(sresult.pathInfo.back().sections);
         close.clear();
         for(int i = 0; i< Map.height; i++)
@@ -285,6 +283,8 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
     sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
 #endif
     std::vector<conflict> confs = CheckConflicts();
+    if(confs.size()>0)
+        sresult.pathInfo.back().pathlength=-1;
     for(int i = 0; i < confs.size(); i++)
         std::cout<<confs[i].i<<" "<<confs[i].j<<" "<<confs[i].g<<" "<<confs[i].agent1<<" "<<confs[i].agent2<<"\n";
     return sresult;

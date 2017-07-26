@@ -114,12 +114,17 @@ void cXmlLogger::writeToLogSummary(const SearchResult &sresult)
         relPathfound = (float)numof_pathfound / num_of_path;
         relAgentSolved = (float)num_of_agents_solved / num_of_agents;
 
-        element->SetDoubleAttribute(CNS_TAG_ATTR_AGENTSSOLVED, relAgentSolved);
-        element->SetAttribute(CNS_TAG_ATTR_MAXNODESCR, maxnodes);
-        element->SetAttribute(CNS_TAG_ATTR_NODESCREATED, totalnodes);
-        element->SetDoubleAttribute(CNS_TAG_ATTR_SUMLENGTH, pathlenght);
-        element->SetDoubleAttribute(CNS_TAG_ATTR_AVGLENGTH, pathlenght/num_of_agents_solved);
-        element->SetDoubleAttribute(CNS_TAG_ATTR_TIME, sresult.time);
+//        element->SetDoubleAttribute(CNS_TAG_ATTR_AGENTSSOLVED, sresult.pathfound);
+//        element->SetAttribute(CNS_TAG_ATTR_MAXNODESCR, maxnodes);
+//        element->SetAttribute(CNS_TAG_ATTR_NODESCREATED, totalnodes);
+//        element->SetDoubleAttribute(CNS_TAG_ATTR_SUMLENGTH, pathlenght);
+//        element->SetDoubleAttribute(CNS_TAG_ATTR_AVGLENGTH, pathlenght/num_of_agents_solved);
+//        element->SetDoubleAttribute(CNS_TAG_ATTR_TIME, sresult.time);
+
+        element->SetAttribute("numberofsteps", sresult.pathInfo.back().numberofsteps);
+        element->SetAttribute("nodescreated", sresult.pathInfo.back().nodescreated);
+        element->SetDoubleAttribute("length", sresult.pathInfo.back().pathlength);
+        element->SetDoubleAttribute("time", sresult.pathInfo.back().time);
 }
 
 void cXmlLogger::writeToLogPath(const SearchResult &sresult)

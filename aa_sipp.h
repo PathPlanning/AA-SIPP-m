@@ -3,6 +3,7 @@
 
 #include "cSearch.h"
 #include "constraints.h"
+#include "comboconstraints.h"
 
 class AA_SIPP : public cSearch
 {

@@ -20,10 +20,10 @@ public:
     std::vector<std::pair<double, double> > getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w);
     virtual void addConstraints(const std::vector<Node> &sections) = 0;
     virtual std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w) = 0;
-    void setAgent(bool last){lastAgent = last;}
+    void setAgent(int last){lastAgent = last;}
 protected:
     std::vector<std::vector<std::vector<std::pair<double,double>>>> safe_intervals;
-    bool lastAgent;
+    int lastAgent;
 
 };
 
@@ -38,6 +38,7 @@ private:
     std::vector<std::vector<std::vector<constraint>>> constraints;
     double gap;
 };
+
 
 class VelocityConstraints : public Constraints
 {
