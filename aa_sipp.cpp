@@ -256,21 +256,7 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
     {
         Map.removeConstraint(Map.start_i[numOfCurAgent], Map.start_j[numOfCurAgent]);
         Map.removeConstraint(Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
-
-
-        /*if(numOfCurAgent+1 == Map.agents)
-        {
-            constraints->setAgent(false);
-            findPath(numOfCurAgent, Map);
-            close.clear();
-            for(int i = 0; i< Map.height; i++)
-                open[i].clear();
-            open.clear();
-            constraints->setAgent(true);
-            findPath(numOfCurAgent, Map);
-        }
-        else*/
-            if(findPath(numOfCurAgent, Map))
+        if(findPath(numOfCurAgent, Map))
             constraints->addConstraints(sresult.pathInfo.back().sections);
         close.clear();
         for(int i = 0; i< Map.height; i++)
