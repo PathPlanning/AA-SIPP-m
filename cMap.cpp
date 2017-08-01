@@ -57,12 +57,6 @@ bool cMap::getMap(const char* FileName)
     TiXmlElement *element = 0;
 
     int agentNumber = 0;
-
-    start_j = new int[agents];
-    start_i = new int[agents];
-    goal_j = new int[agents];
-    goal_i = new int[agents];
-
     node = map->FirstChild();
 
     while(node)

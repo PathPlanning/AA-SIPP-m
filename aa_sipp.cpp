@@ -36,6 +36,7 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
     {
         for(int j = -1; j <= +1; j++)
         {
+            //if(((i == 0 && j != 0) || (i != 0 && j == 0)) && Map.CellOnGrid(curNode.i + i, curNode.j + j) && Map.CellIsTraversable(curNode.i + i, curNode.j + j))
             if((i != 0 || j != 0) && Map.CellOnGrid(curNode.i + i, curNode.j + j) && Map.CellIsTraversable(curNode.i + i, curNode.j + j))
             {
                 if(i*j != 0)
@@ -279,9 +280,14 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
 
 Node AA_SIPP::resetParent(Node current, Node Parent, const cMap &Map)
 {
-    if(Parent.Parent == NULL || (current.i == Parent.Parent->i && current.j == Parent.Parent->j))
+    if(Parent.Parent == nullptr || (current.i == Parent.Parent->i && current.j == Parent.Parent->j))
         return current;
-
+    /*if(Parent.Parent == nullptr
+            || (abs(current.i - Parent.Parent->i)<=abs(Parent.i - Parent.Parent->i)
+                && abs(current.j - Parent.Parent->j)<abs(Parent.j - Parent.Parent->j))
+            || (abs(current.i - Parent.Parent->i)<abs(Parent.i - Parent.Parent->i)
+                && abs(current.j - Parent.Parent->j)<=abs(Parent.j - Parent.Parent->j)))
+        return current;*/ //pruning rule, that allows to speed up search process, but can change a bit the result
     if(lineOfSight(Parent.Parent->i, Parent.Parent->j, current.i, current.j, Map))
     {
         current.g = Parent.Parent->g + calculateDistanceFromCellToCell(Parent.Parent->i, Parent.Parent->j, current.i, current.j);
@@ -308,7 +314,7 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
 
     Node curNode(Map.start_i[numOfCurAgent], Map.start_j[numOfCurAgent], 0, 0);
     curNode.F = weight * calculateDistanceFromCellToCell(curNode.i, curNode.j, Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
-    curNode.interval = {0, CN_INFINITY};
+    curNode.interval = constraints->getSafeInterval(curNode.i,curNode.j,0);
     bool pathFound = false;
     open[curNode.i].push_back(curNode);
     openSize++;

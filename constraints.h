@@ -20,6 +20,7 @@ public:
     std::vector<std::pair<double, double> > getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w);
     virtual void addConstraints(const std::vector<Node> &sections) = 0;
     virtual std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w) = 0;
+    std::pair<double,double> getSafeInterval(int i, int j, int n) {return safe_intervals[i][j][n];}
 protected:
     std::vector<std::vector<std::vector<std::pair<double,double>>>> safe_intervals;
 };

@@ -64,12 +64,14 @@ void Constraints::updateSafeIntervals(const std::vector<std::pair<int, int> > &c
             {
                 if(safe_intervals[i2][j2][j].first == interval.first)
                 {
-                    if(safe_intervals[i2][j2][j].second <= interval.second)
+                    safe_intervals[i2][j2].insert(safe_intervals[i2][j2].begin() + j, {safe_intervals[i2][j2][j].first,safe_intervals[i2][j2][j].first});
+                    j++;
+                    if(safe_intervals[i2][j2][j].second < interval.second)
                         safe_intervals[i2][j2].erase(safe_intervals[i2][j2].begin() + j);
                     else
                         safe_intervals[i2][j2][j].first = interval.second;
                 }
-                else if(safe_intervals[i2][j2][j].second <= interval.second)
+                else if(safe_intervals[i2][j2][j].second < interval.second)
                     safe_intervals[i2][j2][j].second = interval.first;
                 else
                 {
@@ -82,15 +84,18 @@ void Constraints::updateSafeIntervals(const std::vector<std::pair<int, int> > &c
                     safe_intervals[i2][j2].insert(safe_intervals[i2][j2].begin() + j, new2);
                     safe_intervals[i2][j2].insert(safe_intervals[i2][j2].begin() + j, new1);
                 }
-                break;
             }
             else if(safe_intervals[i2][j2][j].first >= interval.first && safe_intervals[i2][j2][j].first < interval.second)
             {
-                if(safe_intervals[i2][j2][j].second <= interval.second)
+                if(safe_intervals[i2][j2][j].first == interval.first)
+                {
+                    safe_intervals[i2][j2].insert(safe_intervals[i2][j2].begin() + j, {safe_intervals[i2][j2][j].first,safe_intervals[i2][j2][j].first});
+                    j++;
+                }
+                if(safe_intervals[i2][j2][j].second < interval.second)
                     safe_intervals[i2][j2].erase(safe_intervals[i2][j2].begin() + j);
                 else
                     safe_intervals[i2][j2][j].first = interval.second;
-                break;
             }
         }
     }
@@ -106,7 +111,7 @@ std::vector<std::pair<double, double> > Constraints::getSafeIntervals(Node curNo
         {
             bool has = false;
             for(auto it = range.first; it != range.second; it++)
-                if(it->second.interval.first == safe_intervals[curNode.i][curNode.j][i].first)
+                if(it->second.interval.first == safe_intervals[curNode.i][curNode.j][i].first && curNode.g >= it->second.g)
                 {
                     has = true;
                     break;
@@ -243,6 +248,7 @@ std::vector<std::pair<double,double>> VelocityConstraints::findIntervals(Node cu
             if(std::find(sections.begin(), sections.end(), sec) == sections.end())
                 sections.push_back(sec);
         }
+    auto range = close.equal_range(curNode.i*w + curNode.j);
     for(int i=0; i<curNodeIntervals.size(); i++)
     {
         std::pair<double,double> cur_interval(curNodeIntervals[i]);
@@ -272,7 +278,19 @@ std::vector<std::pair<double,double>> VelocityConstraints::findIntervals(Node cu
                 j++;
         }
         if(j == sections.size())
-            EAT.push_back(cur_interval.first);
+        {
+            bool has=false;
+            for(auto rit = range.first; rit != range.second; rit++)
+                if(rit->second.interval.first == curNodeIntervals[i].first && cur_interval.first >= rit->second.g)
+                {
+                    has = true;
+                    curNodeIntervals.erase(curNodeIntervals.begin()+i);
+                    i--;
+                    break;
+                }
+            if(!has)
+                EAT.push_back(cur_interval.first);
+        }
     }
     return curNodeIntervals;
 }
@@ -314,7 +332,7 @@ bool VelocityConstraints::hasCollision(const Node &curNode, double startTimeA, c
     double b(w*v);
 
     double dscr(b*b - a*c);
-    if(fleq(dscr,0))
+    if(dscr <= 0)
         return false;
 
     double ctime = (b - sqrt(dscr))/a;
@@ -500,9 +518,9 @@ std::vector<std::pair<double,double>> PointConstraints::findIntervals(Node curNo
     {
         for(int i = 0; i < badIntervals.size(); i++)
             for(int j = 0; j < curNodeIntervals.size(); j++)
-                if(badIntervals[i].first <= EAT[j])
+                if(badIntervals[i].first < EAT[j])
                 {
-                    if(badIntervals[i].second >= curNodeIntervals[j].second)
+                    if(badIntervals[i].second > curNodeIntervals[j].second)
                     {
                         curNodeIntervals.erase(curNodeIntervals.begin() + j);
                         EAT.erase(EAT.begin() + j);
@@ -520,6 +538,18 @@ std::vector<std::pair<double,double>> PointConstraints::findIntervals(Node curNo
                 i--;
             }
     }
+    auto range = close.equal_range(curNode.i*w + curNode.j);
+    bool has=false;
+    for(int i=0; i<curNodeIntervals.size(); i++)
+        for(auto rit = range.first; rit != range.second; rit++)
+            if(rit->second.interval.first == curNodeIntervals[i].first && EAT[i] >= rit->second.g)
+            {
+                has = true;
+                curNodeIntervals.erase(curNodeIntervals.begin()+i);
+                EAT.erase(EAT.begin() + i);
+                i--;
+                break;
+            }
     return curNodeIntervals;
 }
 
@@ -599,9 +629,9 @@ std::vector<std::pair<double,double>> SectionConstraints::findIntervals(Node cur
     {
         for(int i = 0; i < badIntervals.size(); i++)
             for(int j = 0; j < curNodeIntervals.size(); j++)
-                if(badIntervals[i].first <= EAT[j])
+                if(badIntervals[i].first < EAT[j])
                 {
-                    if(badIntervals[i].second >= curNodeIntervals[j].second)
+                    if(badIntervals[i].second > curNodeIntervals[j].second)
                     {
                         curNodeIntervals.erase(curNodeIntervals.begin() + j);
                         EAT.erase(EAT.begin() + j);
@@ -619,6 +649,18 @@ std::vector<std::pair<double,double>> SectionConstraints::findIntervals(Node cur
                 i--;
             }
     }
+    auto range = close.equal_range(curNode.i*w + curNode.j);
+    bool has=false;
+    for(int i=0; i<curNodeIntervals.size(); i++)
+        for(auto rit = range.first; rit != range.second; rit++)
+            if(rit->second.interval.first == curNodeIntervals[i].first && EAT[i] >= rit->second.g)
+            {
+                has = true;
+                curNodeIntervals.erase(curNodeIntervals.begin()+i);
+                EAT.erase(EAT.begin() + i);
+                i--;
+                break;
+            }
     return curNodeIntervals;
 }
 
