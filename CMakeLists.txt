@@ -19,7 +19,8 @@ set( SOURCE_FILES
      cLogger.cpp 
      cConfig.cpp 
      sipp.cpp 
-     aa_sipp.cpp )
+     aa_sipp.cpp
+     constraints.cpp )
 
 set( HEADER_FILES 
      tinyxml.h
@@ -34,6 +35,8 @@ set( HEADER_FILES
      cConfig.h 
      sipp.h 
      aa_sipp.h 
-     structs.h )
+     structs.h
+     Vector2D.h
+     constraints.h )
 
 add_executable( AA-SIPP ${SOURCE_FILES} ${HEADER_FILES} )
