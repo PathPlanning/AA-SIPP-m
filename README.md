@@ -4,3 +4,5 @@ It's a prioritized planner, e.g. all agents are assigned unique priorities and p
 Videos folder contains a few video demonstrations of how AA-SIPP(m) works.
 
 Instances.zip contains all the tasks on which the results of the experimental evaluation were obtained in the ICAPS-2017 paper, which is publically available at https://arxiv.org/pdf/1703.04159.pdf
+
+[![Build Status](https://travis-ci.org/PathPlanning/AA-SIPP-m.svg?branch=master)](https://travis-ci.org/PathPlanning/AA-SIPP-m)
