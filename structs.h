@@ -36,38 +36,8 @@ struct Node
     double   g;
     Node*   Parent;
     std::pair<double,double> interval;
-
-    Node()
-    {
-        i = -1;
-        j = -1;
-        F = -1;
-        g = -1;
-        Parent = NULL;
-    }
-
-    Node(int i, int j)
-    {
-        this->i=i;
-        this->j=j;
-        F=-1;
-        g=-1;
-        Parent=NULL;
-    }
-
-    Node(int x, int y, double f, double G)
-    {
-        i = x;
-        j = y;
-        F = f;
-        g = G;
-        Parent = NULL;
-    }
-
-    ~Node()
-    {
-        Parent = NULL;
-    }
+    Node(int i=-1, int j=-1, double g=-1, double F=-1, double size=0.5):i(i),j(j),g(g),F(F),size(size),Parent(nullptr){}
+    ~Node(){Parent = nullptr;}
 };
 
 struct section
@@ -78,28 +48,10 @@ struct section
     int j2;
     double g1;
     double g2;//is needed for goal and wait actions
-
-    bool operator== (const section &comp)   const{return (i1==comp.i1 && j1==comp.j1 && g1==comp.g1);}
-
-    section()
-    {
-        i1=-1;
-        j1=-1;
-        i2=-1;
-        j2=-1;
-        g1=-1;
-        g2=-1;
-    }
-
-    section(const Node &a, const Node &b)
-    {
-        i1=a.i;
-        j1=a.j;
-        g1=a.g;
-        i2=b.i;
-        j2=b.j;
-        g2 = b.g;
-    }
+    bool operator == (const section &comp) const {return (i1 == comp.i1 && j1 == comp.j1 && g1 == comp.g1);}
+    section(int i1=-1, int j1=-1, int i2=-1, int j2=-1, double g1=-1, double g2=-1)
+        :i1(i1),j1(j1),i2(i2),j2(j2),g1(g1),g2(g2){}
+    section(const Node &a, const Node &b):i1(a.i),j1(a.j),i2(b.i),j2(b.j),g1(a.g),g2(b.g){}
 };
 
 class Point {

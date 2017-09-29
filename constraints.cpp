@@ -29,8 +29,10 @@ void Constraints::updateSafeIntervals(const std::vector<std::pair<int, int> > &c
         std::pair<double,double> ps, pg, interval;
         ps = {i0, j0};
         pg = {i1, j1};
-        double dist = ((ps.first - pg.first)*j2 + (pg.second - ps.second)*i2 + (ps.second*pg.first - ps.first*pg.second))
+        double dist = fabs((ps.first - pg.first)*j2 + (pg.second - ps.second)*i2 + (ps.second*pg.first - ps.first*pg.second))
                 /sqrt(pow(ps.first - pg.first, 2) + pow(ps.second - pg.second, 2));
+        if(dist>=1.0)
+            continue;
         int da = (i0 - i2)*(i0 - i2) + (j0 - j2)*(j0 - j2);
         int db = (i1 - i2)*(i1 - i2) + (j1 - j2)*(j1 - j2);
         double ha = sqrt(da - dist*dist);
@@ -106,7 +108,7 @@ std::vector<std::pair<double, double> > Constraints::getSafeIntervals(Node curNo
     std::vector<std::pair<double, double> > intervals(0);
     auto range = close.equal_range(curNode.i*w + curNode.j);
     for(int i = 0; i < safe_intervals[curNode.i][curNode.j].size(); i++)
-        if(safe_intervals[curNode.i][curNode.j][i].second > curNode.g
+        if(safe_intervals[curNode.i][curNode.j][i].second >= curNode.g
                 && safe_intervals[curNode.i][curNode.j][i].first <= (curNode.Parent->interval.second + curNode.g - curNode.Parent->g))
         {
             bool has = false;
@@ -674,6 +676,8 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
     if(A2 == 0 && B2 == 0)//if we collide with a section, that represents wait action (or goal)
     {
         double dist_to_AB = (B1*D.j - A1*D.i + A.j*B.i - A.i*B.j)/lengthAB;
+        if(dist_to_AB >= 1.0)
+            return {-1,-1};
         double gap = sqrt(1.0 - pow(dist_to_AB, 2));
         double offset = sqrt(pow(dist(B, C), 2) - pow(dist_to_AB, 2));
         return {sec.g1 + offset - gap, sec.g2 + offset + gap};
