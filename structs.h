@@ -36,7 +36,7 @@ struct Node
     double   g;
     Node*   Parent;
     std::pair<double,double> interval;
-    Node(int i=-1, int j=-1, double g=-1, double F=-1, double size=0.5):i(i),j(j),g(g),F(F),size(size),Parent(nullptr){}
+    Node(int i=-1, int j=-1, double g=-1, double F=-1, double size=0.5):i(i),j(j),g(g),F(F),Parent(nullptr){}
     ~Node(){Parent = nullptr;}
 };
 
