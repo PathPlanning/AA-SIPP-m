@@ -13,11 +13,11 @@ set( SOURCE_FILES
      tinyxmlerror.cpp 
      tinyxml.cpp 
      tinystr.cpp 
-     cXmlLogger.cpp 
-     cMission.cpp 
-     cMap.cpp 
-     cLogger.cpp 
-     cConfig.cpp 
+     xmlLogger.cpp 
+     mission.cpp 
+     map.cpp 
+     logger.cpp 
+     config.cpp 
      sipp.cpp 
      aa_sipp.cpp
      constraints.cpp )
@@ -27,16 +27,16 @@ set( HEADER_FILES
      tinystr.h 
      searchresult.h 
      gl_const.h 
-     cXmlLogger.h 
-     cSearch.h 
-     cMission.h 
-     cMap.h 
-     cLogger.h 
-     cConfig.h 
+     xmlLogger.h 
+     search.h 
+     mission.h 
+     map.h 
+     logger.h 
+     config.h 
      sipp.h 
      aa_sipp.h 
      structs.h
-     Vector2D.h
+     vector2D.h
      constraints.h )
 
 add_executable( AA-SIPP ${SOURCE_FILES} ${HEADER_FILES} )

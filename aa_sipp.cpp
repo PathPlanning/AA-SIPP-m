@@ -28,22 +28,22 @@ bool AA_SIPP::stopCriterion()
     return false;
 }
 
-void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node> &succs, int numOfCurAgent)
+void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs, int numOfCurAgent)
 {
     Node newNode;
     std::vector<double> EAT;
     std::vector<std::pair<double, double>> intervals;
     double h_value;
-    auto parent = &(close.find(curNode.i*Map.width + curNode.j)->second);
+    auto parent = &(close.find(curNode.i*map.width + curNode.j)->second);
     for(int i = -1; i <= +1; i++)
     {
         for(int j = -1; j <= +1; j++)
         {
-            //if(((i == 0 && j != 0) || (i != 0 && j == 0)) && Map.CellOnGrid(curNode.i + i, curNode.j + j) && Map.CellIsTraversable(curNode.i + i, curNode.j + j))
-            if((i != 0 || j != 0) && Map.CellOnGrid(curNode.i + i, curNode.j + j) && Map.CellIsTraversable(curNode.i + i, curNode.j + j))
+            //if(((i == 0 && j != 0) || (i != 0 && j == 0)) && map.CellOnGrid(curNode.i + i, curNode.j + j) && map.CellIsTraversable(curNode.i + i, curNode.j + j))
+            if((i != 0 || j != 0) && map.CellOnGrid(curNode.i + i, curNode.j + j) && map.CellIsTraversable(curNode.i + i, curNode.j + j))
             {
                 if(i*j != 0)
-                    if(Map.CellIsObstacle(curNode.i, curNode.j + j) || Map.CellIsObstacle(curNode.i + i, curNode.j))
+                    if(map.CellIsObstacle(curNode.i, curNode.j + j) || map.CellIsObstacle(curNode.i + i, curNode.j))
                         continue;
                 newNode.i = curNode.i + i;
                 newNode.j = curNode.j + j;
@@ -52,8 +52,8 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
                 else
                     newNode.g = curNode.g + 1.0;
                 newNode.Parent = parent;
-                h_value = weight*calculateDistanceFromCellToCell(newNode.i, newNode.j, Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
-                intervals = constraints->findIntervals(newNode, EAT, close, Map.width);
+                h_value = weight*calculateDistanceFromCellToCell(newNode.i, newNode.j, map.goal_i[numOfCurAgent], map.goal_j[numOfCurAgent]);
+                intervals = constraints->findIntervals(newNode, EAT, close, map.width);
                 for(int k = 0; k < intervals.size(); k++)
                 {
                     newNode.interval = intervals[k];
@@ -61,10 +61,10 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
                     newNode.F = newNode.g + h_value;
                     succs.push_front(newNode);
                 }
-                newNode = resetParent(newNode, curNode, Map);
+                newNode = resetParent(newNode, curNode, map);
                 if(newNode.Parent->i != parent->i || newNode.Parent->j != parent->j)
                 {
-                    intervals = constraints->findIntervals(newNode, EAT, close, Map.width);
+                    intervals = constraints->findIntervals(newNode, EAT, close, map.width);
                     for(int k = 0; k < intervals.size(); k++)
                     {
                         newNode.interval = intervals[k];
@@ -78,7 +78,7 @@ void AA_SIPP::findSuccessors(const Node curNode, const cMap &Map, std::list<Node
     }
 }
 
-bool AA_SIPP::lineOfSight(int i1, int j1, int i2, int j2, const cMap &map)
+bool AA_SIPP::lineOfSight(int i1, int j1, int i2, int j2, const Map &map)
 {
     int delta_i = std::abs(i1 - i2);
     int delta_j = std::abs(j1 - j2);
@@ -231,19 +231,19 @@ void AA_SIPP::addOpen(Node &newNode)
     open[newNode.i].insert(pos, newNode);
 }
 
-void AA_SIPP::setPriorities(const cMap& Map)
+void AA_SIPP::setPriorities(const Map& map)
 {
     current_priorities.clear();
-    current_priorities.resize(Map.agents,-1);
+    current_priorities.resize(map.agents, -1);
     if(prioritization == CN_IP_FIFO)
-        for(int i = 0; i < Map.agents; i++)
+        for(int i = 0; i < map.agents; i++)
         current_priorities[i] = i;
     else  if(prioritization != CN_IP_RANDOM)
     {
-        std::vector<double> dists(Map.agents, -1);
-        for(int i = 0; i < Map.agents; i++)
-            dists[i] = sqrt(pow(Map.start_i[i] - Map.goal_i[i],2)+pow(Map.start_j[i]-Map.goal_j[i],2));
-        int k = Map.agents - 1;
+        std::vector<double> dists(map.agents, -1);
+        for(int i = 0; i < map.agents; i++)
+            dists[i] = sqrt(pow(map.start_i[i] - map.goal_i[i], 2) + pow(map.start_j[i] - map.goal_j[i], 2));
+        int k = map.agents - 1;
         while(k >= 0)
         {
             double mindist = CN_INFINITY;
@@ -257,7 +257,7 @@ void AA_SIPP::setPriorities(const cMap& Map)
             if(prioritization == CN_IP_LONGESTF)
                 current_priorities[k] = min_i;
             else
-                current_priorities[Map.agents - k - 1] = min_i;
+                current_priorities[map.agents - k - 1] = min_i;
             dists[min_i] = CN_INFINITY;
             k--;
         }
@@ -265,7 +265,7 @@ void AA_SIPP::setPriorities(const cMap& Map)
     else //random
     {
         std::mt19937 g(rand());
-        std::shuffle(current_priorities.begin(),current_priorities.end(), g);
+        std::shuffle(current_priorities.begin(), current_priorities.end(), g);
     }
 }
 
@@ -326,7 +326,7 @@ bool AA_SIPP::changePriorities(int bad_i)
     }
 }
 
-SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
+SearchResult AA_SIPP::startSearch(Logger *log, Map &map)
 {
 #ifdef __linux__
     timeval begin, end;
@@ -341,42 +341,42 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
     int tries(0), bad_i(0);
     double timespent(0);
     priorities.clear();
-    open.resize(Map.height);
-    setPriorities(Map);
+    open.resize(map.height);
+    setPriorities(map);
     do
     {
         if(constraints_type == CN_CT_POINT)
-            constraints = new PointConstraints(Map.width, Map.height);
+            constraints = new PointConstraints(map.width, map.height);
         else if(constraints_type == CN_CT_VELOCITY)
-            constraints = new VelocityConstraints(Map.width, Map.height);
+            constraints = new VelocityConstraints(map.width, map.height);
         else
-            constraints = new SectionConstraints(Map.width, Map.height);
+            constraints = new SectionConstraints(map.width, map.height);
         sresult.pathInfo.clear();
-        sresult.agents = Map.agents;
+        sresult.agents = map.agents;
         sresult.agentsSolved = 0;
         sresult.pathlength = 0;
         sresult.makespan = 0;
 
         if(startsafeinterval > 0 && startsafeinterval < CN_INFINITY)
-            for(int i = 0; i < Map.agents; i++)
-                constraints->addStartConstraint(Map.start_i[i], Map.start_j[i], startsafeinterval);
+            for(int i = 0; i < map.agents; i++)
+                constraints->addStartConstraint(map.start_i[i], map.start_j[i], startsafeinterval);
         else if(startsafeinterval != 0)
-            for(int i = 0; i < Map.agents; i++)
-                Map.addConstraint(Map.start_i[i], Map.start_j[i]);
-        for(int numOfCurAgent = 0; numOfCurAgent < Map.agents; numOfCurAgent++)
+            for(int i = 0; i < map.agents; i++)
+                map.addConstraint(map.start_i[i], map.start_j[i]);
+        for(int numOfCurAgent = 0; numOfCurAgent < map.agents; numOfCurAgent++)
         {
             if(startsafeinterval > 0 && startsafeinterval < CN_INFINITY)
-                constraints->removeStartConstraint(Map.start_i[current_priorities[numOfCurAgent]], Map.start_j[current_priorities[numOfCurAgent]]);
+                constraints->removeStartConstraint(map.start_i[current_priorities[numOfCurAgent]], map.start_j[current_priorities[numOfCurAgent]]);
             else if(startsafeinterval != 0)
-                Map.removeConstraint(Map.start_i[current_priorities[numOfCurAgent]], Map.start_j[current_priorities[numOfCurAgent]]);
-            if(findPath(current_priorities[numOfCurAgent], Map))
+                map.removeConstraint(map.start_i[current_priorities[numOfCurAgent]], map.start_j[current_priorities[numOfCurAgent]]);
+            if(findPath(current_priorities[numOfCurAgent], map))
                 constraints->addConstraints(sresult.pathInfo.back().sections);
             else
             {
                 bad_i = numOfCurAgent;
                 break;
             }
-            if(numOfCurAgent + 1 == Map.agents)
+            if(numOfCurAgent + 1 == map.agents)
                 solution_found = true;
         }
         delete constraints;
@@ -406,11 +406,11 @@ SearchResult AA_SIPP::startSearch(cLogger *Log, cMap &Map)
 }
 
 
-Node AA_SIPP::resetParent(Node current, Node Parent, const cMap &Map)
+Node AA_SIPP::resetParent(Node current, Node Parent, const Map &map)
 {
     if(Parent.Parent == nullptr || (current.i == Parent.Parent->i && current.j == Parent.Parent->j))
         return current;
-    if(lineOfSight(Parent.Parent->i, Parent.Parent->j, current.i, current.j, Map))
+    if(lineOfSight(Parent.Parent->i, Parent.Parent->j, current.i, current.j, map))
     {
         current.g = Parent.Parent->g + calculateDistanceFromCellToCell(Parent.Parent->i, Parent.Parent->j, current.i, current.j);
         current.Parent = Parent.Parent;
@@ -418,7 +418,7 @@ Node AA_SIPP::resetParent(Node current, Node Parent, const cMap &Map)
     return current;
 }
 
-bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
+bool AA_SIPP::findPath(int numOfCurAgent, const Map &map)
 {
 
 #ifdef __linux__
@@ -436,27 +436,27 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
     openSize = 0;
     closeSize = 0;
 
-    Node curNode(Map.start_i[numOfCurAgent], Map.start_j[numOfCurAgent], 0, 0);
-    curNode.F = weight * calculateDistanceFromCellToCell(curNode.i, curNode.j, Map.goal_i[numOfCurAgent], Map.goal_j[numOfCurAgent]);
+    Node curNode(map.start_i[numOfCurAgent], map.start_j[numOfCurAgent], 0, 0);
+    curNode.F = weight * calculateDistanceFromCellToCell(curNode.i, curNode.j, map.goal_i[numOfCurAgent], map.goal_j[numOfCurAgent]);
     curNode.interval = constraints->getSafeInterval(curNode.i,curNode.j,0);
     bool pathFound = false;
     open[curNode.i].push_back(curNode);
     openSize++;
     while(!stopCriterion())
     {
-        curNode = findMin(Map.height);
+        curNode = findMin(map.height);
         open[curNode.i].pop_front();
         openSize--;
-        close.insert({curNode.i * Map.width + curNode.j, curNode});
+        close.insert({curNode.i * map.width + curNode.j, curNode});
         closeSize++;
-        if(curNode.i == Map.goal_i[numOfCurAgent] && curNode.j == Map.goal_j[numOfCurAgent] && curNode.interval.second == CN_INFINITY)
+        if(curNode.i == map.goal_i[numOfCurAgent] && curNode.j == map.goal_j[numOfCurAgent] && curNode.interval.second == CN_INFINITY)
         {
             pathFound = true;
             break;
         }
         std::list<Node> successors;
         successors.clear();
-        findSuccessors(curNode, Map, successors, numOfCurAgent);
+        findSuccessors(curNode, map, successors, numOfCurAgent);
         for(auto it = successors.begin(); it != successors.end(); it++)
             addOpen(*it);
     }
@@ -469,7 +469,7 @@ bool AA_SIPP::findPath(int numOfCurAgent, const cMap &Map)
                 Node add = hppath[i - 1];
                 add.Parent = hppath[i].Parent;
                 add.g = hppath[i].g - calculateDistanceFromCellToCell(hppath[i].i, hppath[i].j, hppath[i - 1].i,hppath[i - 1].j);
-                auto parent = (close.insert({add.i*Map.width + add.j, add}));
+                auto parent = (close.insert({add.i*map.width + add.j, add}));
                 hppath[i].Parent = &(*parent).second;
                 hppath.emplace(hppath.begin() + i, add);
                 i++;

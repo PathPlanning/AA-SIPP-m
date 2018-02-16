@@ -1,17 +1,17 @@
-#include"cMission.h"
+#include"mission.h"
 #include <iostream>
 
 int main(int argc, char* argv[])
 {
     if (argc==2)
     {
-        cMission Mission(argv[1]);
-        if (!Mission.getConfig())
+        Mission mission(argv[1]);
+        if (!mission.getConfig())
             return 0;
         else
             std::cout<<"CONFIG LOADED\n";
 
-        if (!Mission.getMap())
+        if (!mission.getMap())
         {
             std::cout<<"Program terminated.\n";
             return 0;
@@ -19,11 +19,11 @@ int main(int argc, char* argv[])
         else
             std::cout<<"MAP LOADED\n";
 
-        Mission.createSearch();
-        Mission.createLog();
-        Mission.startSearch();
-        Mission.printSearchResultsToConsole();
-        Mission.saveSearchResultsToLog();
+        mission.createSearch();
+        mission.createLog();
+        mission.startSearch();
+        mission.printSearchResultsToConsole();
+        mission.saveSearchResultsToLog();
     }
     return 1;
 }

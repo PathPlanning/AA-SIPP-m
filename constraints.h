@@ -5,7 +5,7 @@
 #include <math.h>
 #include <unordered_map>
 #include "gl_const.h"
-#include "Vector2D.h"
+#include "vector2D.h"
 #include "structs.h"
 #include <algorithm>
 #include <iostream>

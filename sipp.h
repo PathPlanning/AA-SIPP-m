@@ -1,21 +1,21 @@
 #ifndef SIPP_H
 #define SIPP_H
 
-#include "cSearch.h"
+#include "search.h"
 
-class SIPP : public cSearch
+class SIPP : public Search
 {
 
 public:
 
     SIPP(double weight, int metrictype);
     ~SIPP();
-    SearchResult startSearch(cLogger *Log, cMap &Map);
+    SearchResult startSearch(Logger *log, Map &map);
 
 private:
 
-    bool findPath(int numOfCurAgent, const cMap &Map);
-    void findSuccessors(const Node curNode, const cMap &Map, std::list<Node> &succs, int numOfCurAgent);
+    bool findPath(int numOfCurAgent, const Map &map);
+    void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs, int numOfCurAgent);
     void addOpen(Node &newNode);
     Node findMin(int size);
     double countHValue(int i, int j, int goal_i, int goal_j);
