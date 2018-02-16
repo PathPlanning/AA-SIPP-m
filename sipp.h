@@ -8,7 +8,7 @@ class SIPP : public cSearch
 
 public:
 
-    SIPP(double weight, int metrictype, bool breakingties);
+    SIPP(double weight, int metrictype);
     ~SIPP();
     SearchResult startSearch(cLogger *Log, cMap &Map);
 
@@ -27,7 +27,6 @@ private:
 
     double weight;
     int metrictype;
-    bool breakingties;
     unsigned int closeSize, openSize;
     std::unordered_multimap<int, Node> close;
     std::list<Node> *open, lppath;

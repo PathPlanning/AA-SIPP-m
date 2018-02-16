@@ -1,4 +1,4 @@
-TARGET = AA-SIPP
+TARGET = AA-SIPP-m
 CONFIG   += console
 CONFIG   -= app_bundle
 QMAKE_CXXFLAGS += -std=c++0x

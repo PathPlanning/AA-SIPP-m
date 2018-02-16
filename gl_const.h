@@ -10,11 +10,14 @@
 #define CN_PT_LOGLVL    0   // loglevel
 #define CN_PT_WEIGHT    1   // weight
 #define CN_PT_MT        2   // metrictype
-#define CN_PT_BT        3   // breaking ties
-#define CN_PT_AA        4   // allow any-angle
-#define CN_PT_CT        5   // constraints type
+#define CN_PT_AA        3   // allow any-angle
+#define CN_PT_CT        4   // constraints type
+#define CN_PT_TL        5   // time limit
+#define CN_PT_RE        6   // rescheduling
+#define CN_PT_IP        7   // initial prioritization
+#define CN_PT_SSF       8   // start safe interval
 
-#define CN_PT_NUM       6   //number of parameters
+#define CN_PT_NUM       9   //number of parameters
 
 
 //Obstacle
@@ -48,6 +51,26 @@
 #define CNS_CT_VELOCITY  "velocity"
 #define CNS_CT_SECTION   "section"
 
+//initial prioritization
+#define CN_IP_SHORTESTF  1
+#define CN_IP_LONGESTF   2
+#define CN_IP_RANDOM     3
+#define CN_IP_FIFO       4
+
+#define CNS_IP_SHORTESTF "shortest_first"
+#define CNS_IP_LONGESTF  "longest_first"
+#define CNS_IP_RANDOM    "random"
+#define CNS_IP_FIFO      "fifo"
+
+//rescheduling
+#define CN_RE_NO         1
+#define CN_RE_RULED      2
+#define CN_RE_RANDOM     3
+
+#define CNS_RE_NO        "no"
+#define CNS_RE_RULED     "rulebased"
+#define CNS_RE_RANDOM    "random"
+
 /*
  * XML file tags ---------------------------------------------------------------
  */
@@ -64,8 +87,12 @@
     #define CNS_TAG_GRID            "grid"
         #define CNS_TAG_ROW         "row"
     #define CNS_TAG_WEIGHT          "weight"
+    #define CNS_TAG_HWEIGHT         "hweight"
     #define CNS_TAG_ALLOW_AA        "allowanyangle"
-    #define CNS_TAG_BT              "breakingties"
+    #define CNS_TAG_PRIORITIZATION  "prioritization"
+    #define CNS_TAG_RESCHEDULING    "rescheduling"
+    #define CNS_TAG_STARTSAFEINTERVAL "startsafeinterval"
+    #define CNS_TAG_TIMELIMIT       "timelimit"
     #define CNS_TAG_METRICTYPE      "metrictype"
     #define CNS_TAG_CONSTRAINTSTYPE "constraints_type"
     #define CNS_TAG_OPTIONS         "options"
@@ -113,12 +140,14 @@
     #define CNS_TAG_ATTR_SOLVED         "solved"
         #define CNS_TAG_ATTR_TRUE       "true"
         #define CNS_TAG_ATTR_FALSE      "false"
+    #define CNS_TAG_ATTR_TRIES          "tries"
     #define CNS_TAG_ATTR_AGENTSSOLVED   "agentssolved"
     #define CNS_TAG_ATTR_PATHSFOUND     "pathsfound"
     #define CNS_TAG_ATTR_PATHFOUND      "pathfound"
     #define CNS_TAG_ATTR_MAXNODESCR     "maxnodescreated"
     #define CNS_TAG_ATTR_SUMLENGTH      "sumlength"
     #define CNS_TAG_ATTR_AVGLENGTH      "avglength"
+    #define CNS_TAG_ATTR_MAKESPAN       "makespan"
 
 
 

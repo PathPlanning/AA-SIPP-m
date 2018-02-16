@@ -3,8 +3,8 @@
 cMission::cMission(const char* fName)
 {
     m_fileName = fName;
-    m_pSearch = 0;
-    m_pLogger = 0;
+    m_pSearch = nullptr;
+    m_pLogger = nullptr;
 }
 cMission::~cMission()
 {
@@ -29,10 +29,11 @@ void cMission::createSearch()
         delete m_pSearch;
         delete m_pLogger;
     }
-    if(m_config.searchParams[CN_PT_AA]==0)
-        m_pSearch = new SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_MT], m_config.searchParams[CN_PT_BT]);
+    if(m_config.searchParams[CN_PT_AA] == 0)
+        m_pSearch = new SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_MT]);
     else
-        m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_BT], m_config.searchParams[CN_PT_CT]);
+        m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_CT], m_config.searchParams[CN_PT_RE],
+                                m_config.searchParams[CN_PT_TL], m_config.searchParams[CN_PT_IP], m_config.searchParams[CN_PT_SSF]);
 }
 
 bool cMission::createLog()
@@ -56,25 +57,26 @@ bool cMission::createLog()
 
 void cMission::startSearch()
 {
-    std::cout<<"SEARCH STARTED\n";
+    //std::cout<<"SEARCH STARTED\n";
     sr = m_pSearch->startSearch(m_pLogger, m_map);
 }
 
 void cMission::printSearchResultsToConsole()
 {
-    std::cout<<"Solved:"<<(float)sr.agentsSolved*100/sr.agents<<"%  Time:"<<sr.time<<"s Pathlength:"<<sr.pathlength<<"\n";
+    //std::cout<<"Solved: "<<(float)sr.agentsSolved*100/sr.agents<<"% Expansions: "<<sr.numberofsteps<<" Time: "<<sr.time<<" Pathlength: "<<sr.pathlength<<"\n";
+    std::cout<<sr.tries<<" "<<int(sr.agentsSolved/sr.agents)<<" "<<(float)sr.agentsSolved*100/sr.agents<<"% "<<sr.time<<" "<<sr.makespan<<" "<<sr.pathlength<<" ";
 }
 
 void cMission::saveSearchResultsToLog()
 {
-    std::cout<<"LOG STARTED\n";
+    //std::cout<<"LOG STARTED\n";
     m_pLogger->writeToLogSummary(sr);
-    if (sr.pathfound)
+    if(sr.pathfound)
     {
         m_pLogger->writeToLogPath(sr);
         m_pLogger->writeToLogMap(m_map,sr);
     }
     m_pLogger->saveLog();
-    std::cout<<"LOG SAVED\n";
+    //std::cout<<"LOG SAVED\n";
 }
 

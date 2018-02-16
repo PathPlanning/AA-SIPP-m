@@ -114,11 +114,13 @@ void cXmlLogger::writeToLogSummary(const SearchResult &sresult)
         relPathfound = (float)numof_pathfound / num_of_path;
         relAgentSolved = (float)num_of_agents_solved / num_of_agents;
 
+        element->SetAttribute(CNS_TAG_ATTR_TRIES, sresult.tries);
         element->SetDoubleAttribute(CNS_TAG_ATTR_AGENTSSOLVED, relAgentSolved);
         element->SetAttribute(CNS_TAG_ATTR_MAXNODESCR, maxnodes);
         element->SetAttribute(CNS_TAG_ATTR_NODESCREATED, totalnodes);
         element->SetDoubleAttribute(CNS_TAG_ATTR_SUMLENGTH, pathlenght);
         element->SetDoubleAttribute(CNS_TAG_ATTR_AVGLENGTH, pathlenght/num_of_agents_solved);
+        element->SetDoubleAttribute(CNS_TAG_ATTR_MAKESPAN, sresult.makespan);
         element->SetDoubleAttribute(CNS_TAG_ATTR_TIME, sresult.time);
 }
 

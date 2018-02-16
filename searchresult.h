@@ -31,11 +31,13 @@ struct SearchResult
 {
     bool pathfound;
     double pathlength;
+    double makespan;
     unsigned int nodescreated;
     unsigned int numberofsteps;
     double time;
     unsigned int agents;
     int agentsSolved;
+    int tries;
     std::vector<ResultPathInfo> pathInfo;
 
     SearchResult() : pathInfo(1)
