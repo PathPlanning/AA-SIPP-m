@@ -1,4 +1,4 @@
-#include "cMap.h"
+#include "map.h"
 
 cMap::cMap()
 {
