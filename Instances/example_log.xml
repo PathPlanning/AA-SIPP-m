@@ -1,0 +1,313 @@
+<root>
+    <map>
+        <width>35</width>
+        <height>21</height>
+        <agents>16</agents>
+        <startx>32</startx>
+        <starty>19</starty>
+        <finishx>28</finishx>
+        <finishy>20</finishy>
+        <startx>17</startx>
+        <starty>6</starty>
+        <finishx>24</finishx>
+        <finishy>17</finishy>
+        <startx>10</startx>
+        <starty>15</starty>
+        <finishx>19</finishx>
+        <finishy>3</finishy>
+        <startx>10</startx>
+        <starty>11</starty>
+        <finishx>6</finishx>
+        <finishy>1</finishy>
+        <startx>28</startx>
+        <starty>2</starty>
+        <finishx>33</finishx>
+        <finishy>6</finishy>
+        <startx>15</startx>
+        <starty>5</starty>
+        <finishx>28</finishx>
+        <finishy>8</finishy>
+        <startx>19</startx>
+        <starty>8</starty>
+        <finishx>22</finishx>
+        <finishy>7</finishy>
+        <startx>33</startx>
+        <starty>5</starty>
+        <finishx>13</finishx>
+        <finishy>20</finishy>
+        <startx>3</startx>
+        <starty>3</starty>
+        <finishx>27</finishx>
+        <finishy>13</finishy>
+        <startx>29</startx>
+        <starty>3</starty>
+        <finishx>25</finishx>
+        <finishy>16</finishy>
+        <startx>12</startx>
+        <starty>16</starty>
+        <finishx>7</finishx>
+        <finishy>15</finishy>
+        <startx>34</startx>
+        <starty>4</starty>
+        <finishx>1</finishx>
+        <finishy>4</finishy>
+        <startx>17</startx>
+        <starty>15</starty>
+        <finishx>34</finishx>
+        <finishy>10</finishy>
+        <startx>26</startx>
+        <starty>9</starty>
+        <finishx>3</finishx>
+        <finishy>8</finishy>
+        <startx>1</startx>
+        <starty>7</starty>
+        <finishx>18</finishx>
+        <finishy>8</finishy>
+        <startx>19</startx>
+        <starty>3</starty>
+        <finishx>1</finishx>
+        <finishy>9</finishy>
+        <grid>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+            <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
+        </grid>
+    </map>
+    <algorithm>
+        <allowanyangle>true</allowanyangle>
+        <metrictype>euclid</metrictype>
+        <hweight>1</hweight>
+        <constraints_type>section</constraints_type>
+        <timelimit>300</timelimit>
+        <startsafeinterval>0</startsafeinterval>
+        <prioritization>fifo</prioritization>
+        <rescheduling>no</rescheduling>
+    </algorithm>
+    <options>
+        <loglevel>1</loglevel>
+        <logpath />
+        <logfilename />
+    </options>
+    <log>
+        <mapfilename>D:\Users\andreychuk\Documents\GitHub\AA-SIPP-m\Examples\example.xml</mapfilename>
+        <summary tries="1" agentssolved="1.000000" maxnodescreated="276" totalnodescreated="1765" sumlength="282.241119" avglength="17.640070" makespan="33.178940" time="0.014624" />
+        <path>
+            <row number="0">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </row>
+            <row number="1">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </row>
+            <row number="2">0 0 0 0 0 0 * 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 * 0 0 0 0 0 0 </row>
+            <row number="3">0 0 0 * 0 0 * 0 0 0 0 0 0 0 0 0 * * * * * * * * * * * * * * * * * 0 0 </row>
+            <row number="4">0 0 * * * * * * * * * * * * * * 0 0 * 0 0 0 0 0 0 0 0 0 0 * * * 0 * * </row>
+            <row number="5">0 0 0 0 * 0 * * * * 0 0 0 0 0 * * * 0 0 0 0 0 0 0 0 0 0 0 * 0 0 * * 0 </row>
+            <row number="6">0 0 0 0 0 * * 1 1 1 1 1 1 1 1 1 1 * 1 1 1 1 1 1 1 1 1 1 0 * 0 0 0 * 0 </row>
+            <row number="7">0 * * * * * * * * * * * * * 0 0 * * * * * * * 0 0 0 0 0 0 * 0 0 * 0 0 </row>
+            <row number="8">0 0 * 0 * * * * 0 * * * * * * * * * * * * 0 0 * * * * * 0 * 0 0 * 0 0 </row>
+            <row number="9">0 0 0 0 0 0 * 0 0 0 0 * * * * * * * 0 0 0 * * * * * * 0 0 * 0 * 0 0 0 </row>
+            <row number="10">0 0 0 0 0 0 * 1 1 1 1 1 1 1 1 1 1 * 1 1 1 1 1 1 1 1 1 1 0 * 0 * * * 0 </row>
+            <row number="11">0 0 0 0 0 0 * * * * * 0 0 0 0 0 0 * * * 0 0 0 0 0 0 * * * * * * 0 0 0 </row>
+            <row number="12">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 * 0 0 * * * * * * 0 0 0 * * 0 0 0 0 </row>
+            <row number="13">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 * * * 0 0 0 0 0 * * 0 0 * 0 0 0 0 0 </row>
+            <row number="14">0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 * 1 1 1 1 1 1 1 1 1 1 0 * 0 0 0 0 0 </row>
+            <row number="15">0 0 0 0 0 0 0 0 0 0 * * * * * * * * * 0 0 0 0 0 0 0 * * * 0 0 0 0 0 0 </row>
+            <row number="16">0 0 0 0 0 0 0 0 * * * * * 0 0 0 0 0 0 * * * * * * * * 0 0 0 0 0 0 0 0 </row>
+            <row number="17">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 * * * 0 0 0 * 0 0 0 0 0 0 0 0 0 0 0 </row>
+            <row number="18">0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 * 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 </row>
+            <row number="19">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 * * * 0 0 0 0 0 0 0 0 0 0 0 0 * * * 0 0 </row>
+            <row number="20">0 0 0 0 0 0 0 0 0 0 0 0 0 0 * 0 0 0 0 0 0 0 0 0 0 0 0 0 0 * 0 0 0 0 0 </row>
+        </path>
+        <agent number="0">
+            <summary solved="true" pathsfound="1" maxnodescreated="16" sumlength="4.123106" avglength="4.123106" time="0.000068" />
+            <path number="0" pathfound="true" length="4.123106" totalnodescreated="16" time="0.000068">
+                <hplevel>
+                    <section number="0" start.x="32" start.y="19" finish.x="32" finish.y="19" length="0.000000" />
+                    <section number="1" start.x="32" start.y="19" finish.x="28" finish.y="20" length="4.123106" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="1">
+            <summary solved="true" pathsfound="1" maxnodescreated="104" sumlength="16.280109" avglength="16.280109" time="0.000467" />
+            <path number="0" pathfound="true" length="16.280109" totalnodescreated="104" time="0.000467">
+                <hplevel>
+                    <section number="0" start.x="17" start.y="6" finish.x="17" finish.y="6" length="0.000000" />
+                    <section number="1" start.x="17" start.y="6" finish.x="17" finish.y="7" length="1.000000" />
+                    <section number="2" start.x="17" start.y="7" finish.x="17" finish.y="11" length="4.000000" />
+                    <section number="3" start.x="17" start.y="11" finish.x="17" finish.y="15" length="4.000000" />
+                    <section number="4" start.x="17" start.y="15" finish.x="24" finish.y="17" length="7.280110" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="2">
+            <summary solved="true" pathsfound="1" maxnodescreated="122" sumlength="22.838186" avglength="22.838186" time="0.000624" />
+            <path number="0" pathfound="true" length="22.838186" totalnodescreated="122" time="0.000624">
+                <hplevel>
+                    <section number="0" start.x="10" start.y="15" finish.x="10" finish.y="15" length="0.000000" />
+                    <section number="1" start.x="10" start.y="15" finish.x="10" finish.y="15" length="3.009760" />
+                    <section number="2" start.x="10" start.y="15" finish.x="17" finish.y="15" length="7.000000" />
+                    <section number="3" start.x="17" start.y="15" finish.x="17" finish.y="5" length="10.000000" />
+                    <section number="4" start.x="17" start.y="5" finish.x="19" finish.y="3" length="2.828427" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="3">
+            <summary solved="true" pathsfound="1" maxnodescreated="50" sumlength="14.000000" avglength="14.000000" time="0.000152" />
+            <path number="0" pathfound="true" length="14.000000" totalnodescreated="50" time="0.000152">
+                <hplevel>
+                    <section number="0" start.x="10" start.y="11" finish.x="10" finish.y="11" length="0.000000" />
+                    <section number="1" start.x="10" start.y="11" finish.x="6" finish.y="11" length="4.000000" />
+                    <section number="2" start.x="6" start.y="11" finish.x="6" finish.y="1" length="10.000000" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="4">
+            <summary solved="true" pathsfound="1" maxnodescreated="24" sumlength="6.403124" avglength="6.403124" time="0.000054" />
+            <path number="0" pathfound="true" length="6.403124" totalnodescreated="24" time="0.000054">
+                <hplevel>
+                    <section number="0" start.x="28" start.y="2" finish.x="28" finish.y="2" length="0.000000" />
+                    <section number="1" start.x="28" start.y="2" finish.x="33" finish.y="6" length="6.403124" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="5">
+            <summary solved="true" pathsfound="1" maxnodescreated="84" sumlength="15.045361" avglength="15.045361" time="0.000572" />
+            <path number="0" pathfound="true" length="15.045361" totalnodescreated="84" time="0.000572">
+                <hplevel>
+                    <section number="0" start.x="15" start.y="5" finish.x="15" finish.y="5" length="0.000000" />
+                    <section number="1" start.x="15" start.y="5" finish.x="17" finish.y="5" length="2.000000" />
+                    <section number="2" start.x="17" start.y="5" finish.x="17" finish.y="7" length="2.000000" />
+                    <section number="3" start.x="17" start.y="7" finish.x="28" finish.y="8" length="11.045361" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="6">
+            <summary solved="true" pathsfound="1" maxnodescreated="57" sumlength="10.001028" avglength="10.001028" time="0.000553" />
+            <path number="0" pathfound="true" length="10.001028" totalnodescreated="57" time="0.000553">
+                <hplevel>
+                    <section number="0" start.x="19" start.y="8" finish.x="19" finish.y="8" length="0.000000" />
+                    <section number="1" start.x="19" start.y="8" finish.x="18" finish.y="7" length="1.414214" />
+                    <section number="2" start.x="18" start.y="7" finish.x="16" finish.y="7" length="2.000000" />
+                    <section number="3" start.x="16" start.y="7" finish.x="16" finish.y="7" length="0.586815" />
+                    <section number="4" start.x="16" start.y="7" finish.x="22" finish.y="7" length="6.000000" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="7">
+            <summary solved="true" pathsfound="1" maxnodescreated="276" sumlength="28.483786" avglength="28.483786" time="0.002282" />
+            <path number="0" pathfound="true" length="28.483786" totalnodescreated="276" time="0.002282">
+                <hplevel>
+                    <section number="0" start.x="33" start.y="5" finish.x="33" finish.y="5" length="0.000000" />
+                    <section number="1" start.x="33" start.y="5" finish.x="28" finish.y="15" length="11.180340" />
+                    <section number="2" start.x="28" start.y="15" finish.x="17" finish.y="17" length="11.180340" />
+                    <section number="3" start.x="17" start.y="17" finish.x="17" finish.y="19" length="2.000000" />
+                    <section number="4" start.x="17" start.y="19" finish.x="13" finish.y="20" length="4.123106" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="8">
+            <summary solved="true" pathsfound="1" maxnodescreated="258" sumlength="29.622013" avglength="29.622013" time="0.002211" />
+            <path number="0" pathfound="true" length="29.622013" totalnodescreated="258" time="0.002211">
+                <hplevel>
+                    <section number="0" start.x="3" start.y="3" finish.x="3" finish.y="3" length="0.000000" />
+                    <section number="1" start.x="3" start.y="3" finish.x="6" finish.y="7" length="5.000000" />
+                    <section number="2" start.x="6" start.y="7" finish.x="16" finish.y="9" length="10.198039" />
+                    <section number="3" start.x="16" start.y="9" finish.x="16" finish.y="9" length="1.225935" />
+                    <section number="4" start.x="16" start.y="9" finish.x="17" finish.y="9" length="1.000000" />
+                    <section number="5" start.x="17" start.y="9" finish.x="17" finish.y="11" length="2.000000" />
+                    <section number="6" start.x="17" start.y="11" finish.x="27" finish.y="13" length="10.198039" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="9">
+            <summary solved="true" pathsfound="1" maxnodescreated="123" sumlength="15.576491" avglength="15.576491" time="0.000958" />
+            <path number="0" pathfound="true" length="15.576491" totalnodescreated="123" time="0.000958">
+                <hplevel>
+                    <section number="0" start.x="29" start.y="3" finish.x="29" finish.y="3" length="0.000000" />
+                    <section number="1" start.x="29" start.y="3" finish.x="29" finish.y="14" length="11.000000" />
+                    <section number="2" start.x="29" start.y="14" finish.x="28" finish.y="15" length="1.414214" />
+                    <section number="3" start.x="28" start.y="15" finish.x="25" finish.y="16" length="3.162278" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="10">
+            <summary solved="true" pathsfound="1" maxnodescreated="23" sumlength="5.236068" avglength="5.236068" time="0.000070" />
+            <path number="0" pathfound="true" length="5.236068" totalnodescreated="23" time="0.000070">
+                <hplevel>
+                    <section number="0" start.x="12" start.y="16" finish.x="12" finish.y="16" length="0.000000" />
+                    <section number="1" start.x="12" start.y="16" finish.x="9" finish.y="16" length="3.000000" />
+                    <section number="2" start.x="9" start.y="16" finish.x="7" finish.y="15" length="2.236068" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="11">
+            <summary solved="true" pathsfound="1" maxnodescreated="107" sumlength="33.178940" avglength="33.178940" time="0.000897" />
+            <path number="0" pathfound="true" length="33.178940" totalnodescreated="107" time="0.000897">
+                <hplevel>
+                    <section number="0" start.x="34" start.y="4" finish.x="34" finish.y="4" length="0.000000" />
+                    <section number="1" start.x="34" start.y="4" finish.x="31" finish.y="3" length="3.162278" />
+                    <section number="2" start.x="31" start.y="3" finish.x="1" finish.y="4" length="30.016662" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="12">
+            <summary solved="true" pathsfound="1" maxnodescreated="123" sumlength="19.262676" avglength="19.262676" time="0.001125" />
+            <path number="0" pathfound="true" length="19.262676" totalnodescreated="123" time="0.001125">
+                <hplevel>
+                    <section number="0" start.x="17" start.y="15" finish.x="17" finish.y="15" length="0.000000" />
+                    <section number="1" start.x="17" start.y="15" finish.x="17" finish.y="13" length="2.000000" />
+                    <section number="2" start.x="17" start.y="13" finish.x="34" finish.y="10" length="17.262677" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="13">
+            <summary solved="true" pathsfound="1" maxnodescreated="93" sumlength="23.331305" avglength="23.331305" time="0.000883" />
+            <path number="0" pathfound="true" length="23.331305" totalnodescreated="93" time="0.000883">
+                <hplevel>
+                    <section number="0" start.x="26" start.y="9" finish.x="26" finish.y="9" length="0.000000" />
+                    <section number="1" start.x="26" start.y="9" finish.x="15" finish.y="8" length="11.045361" />
+                    <section number="2" start.x="15" start.y="8" finish.x="13" finish.y="7" length="2.236068" />
+                    <section number="3" start.x="13" start.y="7" finish.x="3" finish.y="8" length="10.049876" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="14">
+            <summary solved="true" pathsfound="1" maxnodescreated="217" sumlength="19.302849" avglength="19.302849" time="0.002489" />
+            <path number="0" pathfound="true" length="19.302849" totalnodescreated="217" time="0.002489">
+                <hplevel>
+                    <section number="0" start.x="1" start.y="7" finish.x="1" finish.y="7" length="0.000000" />
+                    <section number="1" start.x="1" start.y="7" finish.x="1" finish.y="7" length="1.004890" />
+                    <section number="2" start.x="1" start.y="7" finish.x="7" finish.y="7" length="6.000000" />
+                    <section number="3" start.x="7" start.y="7" finish.x="12" finish.y="9" length="5.385165" />
+                    <section number="4" start.x="12" start.y="9" finish.x="12" finish.y="9" length="0.813774" />
+                    <section number="5" start.x="12" start.y="9" finish.x="17" finish.y="8" length="5.099020" />
+                    <section number="6" start.x="17" start.y="8" finish.x="18" finish.y="8" length="1.000000" />
+                </hplevel>
+            </path>
+        </agent>
+        <agent number="15">
+            <summary solved="true" pathsfound="1" maxnodescreated="88" sumlength="19.556070" avglength="19.556070" time="0.000628" />
+            <path number="0" pathfound="true" length="19.556070" totalnodescreated="88" time="0.000628">
+                <hplevel>
+                    <section number="0" start.x="19" start.y="3" finish.x="19" finish.y="3" length="0.000000" />
+                    <section number="1" start.x="19" start.y="3" finish.x="6" finish.y="5" length="13.152946" />
+                    <section number="2" start.x="6" start.y="5" finish.x="1" finish.y="9" length="6.403124" />
+                </hplevel>
+            </path>
+        </agent>
+    </log>
+</root>
