@@ -13,7 +13,7 @@
 class Constraints
 {
 public:
-    Constraints(int width, int height);
+    Constraints(int width, int height, double tweight);
     virtual ~Constraints(){}
     std::vector<std::pair<int,int>> findConflictCells(Node cur);
     void updateSafeIntervals(const std::vector<std::pair<int,int>> &cells, section sec, bool goal);
@@ -26,39 +26,66 @@ public:
 
 protected:
     std::vector<std::vector<std::vector<std::pair<double,double>>>> safe_intervals;
+    double tweight;
 };
 
 class PointConstraints : public Constraints
 {
 public:
-    PointConstraints(int width, int height);
+    PointConstraints(int width, int height, double tweight);
     void addConstraints(const std::vector<Node> &sections);
     std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w);
 private:
     std::vector<std::vector<std::vector<constraint>>> constraints;
     double gap;
-    void removeStartConstraint(int i, int j){}
-    void addStartConstraint(int i, int j, int size){}
+    void addStartConstraint(int i, int j, int size)
+    {
+        constraint con;
+        con.i = i;
+        con.j = j;
+        con.goal = false;
+        for(int k=0; k<5; k++)
+        {
+            con.g=k;
+            constraints[i][j].insert(constraints[i][j].begin(), con);
+        }
+        return;
+    }
+    void removeStartConstraint(int i, int j)
+    {
+        for(int k=0; k<5; k++)
+            constraints[i][j].erase(constraints[i][j].begin());
+        return;
+    }
 };
 
 class VelocityConstraints : public Constraints
 {
 public:
-    VelocityConstraints(int width, int height);
+    VelocityConstraints(int width, int height, double tweight);
     void addConstraints(const std::vector<Node> &sections);
     std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w);
 private:
     bool hasCollision(const Node &curNode, double startTimeA, const section &constraint, bool &goal_collision);
 protected:
     std::vector<std::vector<std::vector<section>>> constraints;
-    void removeStartConstraint(int i, int j){}
-    void addStartConstraint(int i, int j, int size){}
+    void addStartConstraint(int i, int j, int size)
+    {
+        section sec(i,j,i,j,0,size);
+        constraints[i][j].insert(constraints[i][j].begin(),sec);
+        return;
+    }
+    void removeStartConstraint(int i, int j)
+    {
+        constraints[i][j].erase(constraints[i][j].begin());
+        return;
+    }
 };
 
 class SectionConstraints : public VelocityConstraints
 {
 public:
-    SectionConstraints(int width, int height):VelocityConstraints(width,height){}
+    SectionConstraints(int width, int height, double tweight):VelocityConstraints(width, height, tweight){}
     std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w);
     std::pair<double,double> countInterval(section sec, Node curNode);
     void addStartConstraint(int i, int j, int size)

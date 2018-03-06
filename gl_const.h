@@ -16,8 +16,9 @@
 #define CN_PT_RE        6   // rescheduling
 #define CN_PT_IP        7   // initial prioritization
 #define CN_PT_SSF       8   // start safe interval
+#define CN_PT_TW        9   // turning weight
 
-#define CN_PT_NUM       9   //number of parameters
+#define CN_PT_NUM       10   //number of parameters
 
 
 //Obstacle
@@ -95,6 +96,7 @@
     #define CNS_TAG_TIMELIMIT       "timelimit"
     #define CNS_TAG_METRICTYPE      "metrictype"
     #define CNS_TAG_CONSTRAINTSTYPE "constraints_type"
+    #define CNS_TAG_TURNINGWEIGHT   "turningweight"
     #define CNS_TAG_OPTIONS         "options"
     #define CNS_TAG_LOGLVL          "loglevel"
     #define CNS_TAG_LOG             "log"

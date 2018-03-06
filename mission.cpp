@@ -33,7 +33,8 @@ void Mission::createSearch()
         m_pSearch = new SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_MT]);
     else
         m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_CT], m_config.searchParams[CN_PT_RE],
-                                m_config.searchParams[CN_PT_TL], m_config.searchParams[CN_PT_IP], m_config.searchParams[CN_PT_SSF]);
+                                m_config.searchParams[CN_PT_TL], m_config.searchParams[CN_PT_IP], m_config.searchParams[CN_PT_SSF],
+                                m_config.searchParams[CN_PT_TW]);
 }
 
 bool Mission::createLog()
@@ -57,19 +58,18 @@ bool Mission::createLog()
 
 void Mission::startSearch()
 {
-    //std::cout<<"SEARCH STARTED\n";
+    std::cout<<"SEARCH STARTED\n";
     sr = m_pSearch->startSearch(m_pLogger, m_map);
 }
 
 void Mission::printSearchResultsToConsole()
 {
-    //std::cout<<"Solved: "<<(float)sr.agentsSolved*100/sr.agents<<"% Expansions: "<<sr.numberofsteps<<" Time: "<<sr.time<<" Pathlength: "<<sr.pathlength<<"\n";
-    std::cout<<sr.tries<<" "<<int(sr.agentsSolved/sr.agents)<<" "<<(float)sr.agentsSolved*100/sr.agents<<"% "<<sr.time<<" "<<sr.makespan<<" "<<sr.pathlength<<" ";
+    std::cout<<sr.tries<<" "<<int(sr.agentsSolved/sr.agents)<<" "<<(float)sr.agentsSolved*100/sr.agents<<"% "<<sr.time<<" "<<sr.makespan<<" "<<sr.pathlength<<"\n";
 }
 
 void Mission::saveSearchResultsToLog()
 {
-    //std::cout<<"LOG STARTED\n";
+    std::cout<<"LOG STARTED\n";
     m_pLogger->writeToLogSummary(sr);
     if(sr.pathfound)
     {
@@ -77,6 +77,6 @@ void Mission::saveSearchResultsToLog()
         m_pLogger->writeToLogMap(m_map,sr);
     }
     m_pLogger->saveLog();
-    //std::cout<<"LOG SAVED\n";
+    std::cout<<"LOG SAVED\n";
 }
 

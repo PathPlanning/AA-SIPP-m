@@ -161,7 +161,7 @@ bool Config::getConfig(const char* FileName)
             searchParams[CN_PT_IP] = CN_IP_RANDOM;
         else
         {
-            std::cout << "Warning! Wrong '"<<CNS_TAG_STARTSAFEINTERVAL<<"' value. It's compared to 'fifo'."<<std::endl;
+            std::cout << "Warning! Wrong '"<<CNS_TAG_PRIORITIZATION<<"' value. It's compared to 'fifo'."<<std::endl;
             searchParams[CN_PT_IP] = CN_IP_FIFO;
         }
     }
@@ -209,7 +209,7 @@ bool Config::getConfig(const char* FileName)
         element = algorithm->FirstChildElement(CNS_TAG_HWEIGHT);
         if (!element)
         {
-            std::cout << "Error! No '"<<CNS_TAG_WEIGHT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to "<< 1 <<"."<<std::endl;
+            std::cout << "Warning! No '"<<CNS_TAG_WEIGHT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to "<< 1 <<"."<<std::endl;
             weight = 1;
         }
         else
@@ -236,6 +236,21 @@ bool Config::getConfig(const char* FileName)
         weight = 1;
     }
     searchParams[CN_PT_WEIGHT] = weight;
+
+    element = algorithm->FirstChildElement(CNS_TAG_TURNINGWEIGHT);
+    if (!element)
+    {
+        std::cout << "Warning! No '"<<CNS_TAG_TURNINGWEIGHT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 0."<<std::endl;
+        searchParams[CN_PT_TW] = 0;
+    }
+    else
+    {
+        value = element->GetText();
+        stream<<value;
+        stream>>searchParams[CN_PT_TW];
+        stream.clear();
+        stream.str("");
+    }
 
     TiXmlElement *options = root->FirstChildElement(CNS_TAG_OPTIONS);
     if(!options)

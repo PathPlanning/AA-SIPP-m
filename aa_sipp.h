@@ -10,7 +10,7 @@ class AA_SIPP : public Search
 
 public:
 
-    AA_SIPP(double weight, int constraints_type, int rescheduling, int timelimit, int prioritization, int startsafeinterval);
+    AA_SIPP(double weight, int constraints_type, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight);
     ~AA_SIPP();
     SearchResult startSearch(Logger *log, Map &map);
 
@@ -19,7 +19,8 @@ private:
     void addOpen(Node &newNode);
     Node findMin(int size);
     bool stopCriterion();
-    double calculateDistanceFromCellToCell(double start_i, double start_j, double fin_i, double fin_j);
+    double getCost(int a_i, int a_j, int b_i, int b_j);
+    double calcHeading(const Node &node, const Node &son);
     bool lineOfSight(int i1, int j1, int i2, int j2, const Map &map);
     void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs, int numOfCurAgent);
     void makePrimaryPath(Node curNode);
@@ -38,6 +39,7 @@ private:
     int timelimit;
     int prioritization;
     int startsafeinterval;
+    double tweight;
     unsigned int closeSize, openSize;
     std::list<Node> lppath;
     std::vector<std::list<Node>> open;
@@ -45,8 +47,6 @@ private:
     std::vector<Node> hppath;
     std::vector<std::vector<int>> priorities;
     std::vector<int> current_priorities;
-
-
 
     Constraints *constraints;
 };

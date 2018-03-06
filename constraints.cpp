@@ -1,6 +1,6 @@
 #include "constraints.h"
 
-Constraints::Constraints(int width, int height)
+Constraints::Constraints(int width, int height, double tweight)
 {
     safe_intervals.resize(height);
     for(int i = 0; i < height; i++)
@@ -12,6 +12,7 @@ Constraints::Constraints(int width, int height)
             safe_intervals[i][j].push_back({0,CN_INFINITY});
         }
     }
+    this->tweight = tweight;
 }
 
 bool sort_function(std::pair<double, double> a, std::pair<double, double> b)
@@ -113,7 +114,8 @@ std::vector<std::pair<double, double> > Constraints::getSafeIntervals(Node curNo
         {
             bool has = false;
             for(auto it = range.first; it != range.second; it++)
-                if(it->second.interval.first == safe_intervals[curNode.i][curNode.j][i].first && curNode.g >= it->second.g)
+                if(it->second.interval.first == safe_intervals[curNode.i][curNode.j][i].first)
+                if((it->second.g + fabs(curNode.heading - it->second.heading)*tweight/180) - curNode.g < CN_EPSILON)
                 {
                     has = true;
                     break;
@@ -188,7 +190,7 @@ std::vector<std::pair<int,int>> Constraints::findConflictCells(Node cur)
 }
 
 
-PointConstraints::PointConstraints(int width, int height):Constraints(width, height)
+PointConstraints::PointConstraints(int width, int height, double tweight):Constraints(width, height, tweight)
 {
     gap = 2.0;
     constraints.resize(height);
@@ -200,7 +202,7 @@ PointConstraints::PointConstraints(int width, int height):Constraints(width, hei
     }
 }
 
-VelocityConstraints::VelocityConstraints(int width, int height):Constraints(width, height)
+VelocityConstraints::VelocityConstraints(int width, int height, double tweight):Constraints(width, height, tweight)
 {
     constraints.resize(height);
     for(int i = 0; i < height; i++)
@@ -283,13 +285,14 @@ std::vector<std::pair<double,double>> VelocityConstraints::findIntervals(Node cu
         {
             bool has=false;
             for(auto rit = range.first; rit != range.second; rit++)
-                if(rit->second.interval.first == curNodeIntervals[i].first && cur_interval.first >= rit->second.g)
-                {
-                    has = true;
-                    curNodeIntervals.erase(curNodeIntervals.begin()+i);
-                    i--;
-                    break;
-                }
+                if(rit->second.interval.first == curNodeIntervals[i].first)
+                    if((rit->second.g + fabs(curNode.heading - rit->second.heading)*tweight/180 - cur_interval.first) < CN_EPSILON)
+                    {
+                        has = true;
+                        curNodeIntervals.erase(curNodeIntervals.begin()+i);
+                        i--;
+                        break;
+                    }
             if(!has)
                 EAT.push_back(cur_interval.first);
         }
@@ -533,7 +536,7 @@ std::vector<std::pair<double,double>> PointConstraints::findIntervals(Node curNo
                         EAT[j] = badIntervals[i].second;
                 }
         for(int i = 0; i < curNodeIntervals.size(); i++)
-            if(EAT[i] > curNode.Parent->interval.second + ab || curNodeIntervals[i].second < curNode.g)
+            if(EAT[i] > curNode.Parent->interval.second + ab || curNodeIntervals[i].second < curNode.g || EAT[i] == CN_INFINITY)
             {
                 curNodeIntervals.erase(curNodeIntervals.begin() + i);
                 EAT.erase(EAT.begin() + i);
@@ -541,17 +544,18 @@ std::vector<std::pair<double,double>> PointConstraints::findIntervals(Node curNo
             }
     }
     auto range = close.equal_range(curNode.i*w + curNode.j);
-    bool has=false;
-    for(int i=0; i<curNodeIntervals.size(); i++)
+    bool has(false);
+    for(int i = 0; i < curNodeIntervals.size(); i++)
         for(auto rit = range.first; rit != range.second; rit++)
-            if(rit->second.interval.first == curNodeIntervals[i].first && EAT[i] >= rit->second.g)
-            {
-                has = true;
-                curNodeIntervals.erase(curNodeIntervals.begin()+i);
-                EAT.erase(EAT.begin() + i);
-                i--;
-                break;
-            }
+            if(rit->second.interval.first == curNodeIntervals[i].first)
+                if((rit->second.g + fabs(curNode.heading - rit->second.heading)*tweight/180 - EAT[i]) < CN_EPSILON)
+                {
+                    has = true;
+                    curNodeIntervals.erase(curNodeIntervals.begin()+i);
+                    EAT.erase(EAT.begin() + i);
+                    i--;
+                    break;
+                }
     return curNodeIntervals;
 }
 
@@ -652,17 +656,18 @@ std::vector<std::pair<double,double>> SectionConstraints::findIntervals(Node cur
             }
     }
     auto range = close.equal_range(curNode.i*w + curNode.j);
-    bool has=false;
-    for(int i=0; i<curNodeIntervals.size(); i++)
+    bool has(false);
+    for(int i = 0; i<curNodeIntervals.size(); i++)
         for(auto rit = range.first; rit != range.second; rit++)
-            if(rit->second.interval.first == curNodeIntervals[i].first && EAT[i] >= rit->second.g)
-            {
-                has = true;
-                curNodeIntervals.erase(curNodeIntervals.begin()+i);
-                EAT.erase(EAT.begin() + i);
-                i--;
-                break;
-            }
+            if(rit->second.interval.first == curNodeIntervals[i].first)
+                if((rit->second.g + fabs(curNode.heading - rit->second.heading)*tweight/180 - EAT[i]) < CN_EPSILON)
+                {
+                    has = true;
+                    curNodeIntervals.erase(curNodeIntervals.begin()+i);
+                    EAT.erase(EAT.begin() + i);
+                    i--;
+                    break;
+                }
     return curNodeIntervals;
 }
 
