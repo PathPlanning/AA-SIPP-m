@@ -8,11 +8,8 @@ set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -Wall -Wextra" )
 set( CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++" )
 
 set( SOURCE_FILES 
-     main.cpp 
-     tinyxmlparser.cpp 
-     tinyxmlerror.cpp 
-     tinyxml.cpp 
-     tinystr.cpp 
+     main.cpp  
+     tinyxml2.cpp
      xmlLogger.cpp 
      mission.cpp 
      map.cpp 
@@ -23,8 +20,7 @@ set( SOURCE_FILES
      constraints.cpp )
 
 set( HEADER_FILES 
-     tinyxml.h
-     tinystr.h 
+     tinyxml2.h
      searchresult.h 
      gl_const.h 
      xmlLogger.h 
@@ -36,7 +32,6 @@ set( HEADER_FILES
      sipp.h 
      aa_sipp.h 
      structs.h
-     vector2D.h
      constraints.h )
 
 add_executable( AA-SIPP ${SOURCE_FILES} ${HEADER_FILES} )
