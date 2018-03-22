@@ -59,7 +59,7 @@ void Mission::startSearch()
 
 void Mission::printSearchResultsToConsole()
 {
-    std::cout<<sr.tries<<" "<<int(sr.agentsSolved/sr.agents)<<" "<<(float)sr.agentsSolved*100/sr.agents<<"% "<<sr.time<<" "<<sr.makespan<<" "<<sr.pathlength<<"\n";
+    std::cout<<"Results:\nTask solved: "<<bool(sr.agentsSolved/sr.agents)<<" \nTries: "<<sr.tries<<" \nPaths found: "<<(float)sr.agentsSolved*100/sr.agents<<"% \nTime: "<<sr.time<<" \nMakespan: "<<sr.makespan<<" \nFlowtime: "<<sr.pathlength<<"\n";
 }
 
 void Mission::saveSearchResultsToLog()

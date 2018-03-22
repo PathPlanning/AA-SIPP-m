@@ -92,10 +92,10 @@ void XmlLogger::writeToLogSummary(const SearchResult &sresult)
         }
 
     element->SetAttribute(CNS_TAG_ATTR_TRIES, sresult.tries);
-    element->SetAttribute(CNS_TAG_ATTR_AGENTSSOLVED, float(sresult.agentsSolved)/sresult.agents);
+    element->SetAttribute(CNS_TAG_ATTR_AGENTSSOLVED, (std::to_string(float(sresult.agentsSolved*100)/sresult.agents)+"%").c_str());
     element->SetAttribute(CNS_TAG_ATTR_MAXNODESCR, maxnodes);
-    element->SetAttribute(CNS_TAG_ATTR_NODESCREATED, totalnodes);
-    element->SetAttribute(CNS_TAG_ATTR_SUMLENGTH, pathlenght);
+    element->SetAttribute(CNS_TAG_ATTR_TOTALNODES, totalnodes);
+    element->SetAttribute(CNS_TAG_ATTR_FLOWTIME, pathlenght);
     element->SetAttribute(CNS_TAG_ATTR_AVGLENGTH, pathlenght/sresult.agentsSolved);
     element->SetAttribute(CNS_TAG_ATTR_MAKESPAN, sresult.makespan);
     element->SetAttribute(CNS_TAG_ATTR_TIME, sresult.time);
@@ -107,31 +107,14 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
         return;
     XMLElement *element=doc->FirstChildElement(CNS_TAG_ROOT);
     element = element->FirstChildElement(CNS_TAG_LOG);
-
-    XMLElement *agent, *summary, *path, *lplevel, *hplevel, *node;
+    XMLElement *agent, *path;
 
     for(int i = 0; i < sresult.agents; i++)
     {
         agent = doc->NewElement(CNS_TAG_AGENT);
         agent->SetAttribute(CNS_TAG_ATTR_NUM,i);
         element->LinkEndChild(agent);
-        std::list<Node>::const_iterator iterNode;
-
-        summary = doc->NewElement(CNS_TAG_SUM);
-        if (sresult.pathInfo[i].pathfound)
-            summary->SetAttribute(CNS_TAG_ATTR_SOLVED,CNS_TAG_ATTR_TRUE);
-        else
-            summary->SetAttribute(CNS_TAG_ATTR_SOLVED,CNS_TAG_ATTR_FALSE);
-        summary->SetAttribute(CNS_TAG_ATTR_PATHSFOUND, sresult.pathInfo[i].pathfound);
-        summary->SetAttribute(CNS_TAG_ATTR_MAXNODESCR, sresult.pathInfo[i].nodescreated);
-        summary->SetAttribute(CNS_TAG_ATTR_SUMLENGTH, sresult.pathInfo[i].pathlength);
-        summary->SetAttribute(CNS_TAG_ATTR_AVGLENGTH, sresult.pathInfo[i].pathlength);
-        summary->SetAttribute(CNS_TAG_ATTR_TIME,sresult.pathInfo[i].time);
-
-        agent->LinkEndChild(summary);
-
         path = doc->NewElement(CNS_TAG_PATH);
-        path->SetAttribute(CNS_TAG_ATTR_NUM,0);
 
         if(sresult.pathInfo[i].pathfound)
         {
@@ -143,16 +126,12 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
             path->SetAttribute(CNS_TAG_ATTR_PATHFOUND, CNS_TAG_ATTR_FALSE);
             path->SetAttribute(CNS_TAG_ATTR_LENGTH, 0);
         }
-        path->SetAttribute(CNS_TAG_ATTR_NODESCREATED, sresult.pathInfo[i].nodescreated);
+        path->SetAttribute(CNS_TAG_ATTR_NODES, sresult.pathInfo[i].nodescreated);
         path->SetAttribute(CNS_TAG_ATTR_TIME, sresult.pathInfo[i].time);
         agent->LinkEndChild(path);
 
-        if (loglevel >= 1 &&  sresult.pathInfo[i].pathfound)
+        if (sresult.pathInfo[i].pathfound)
         {
-            int k = 0;
-            hplevel = doc->NewElement(CNS_TAG_HPLEVEL);
-            path->LinkEndChild(hplevel);
-            k = 0;
             auto iter = sresult.pathInfo[i].sections.begin();
             auto it = sresult.pathInfo[i].sections.begin();
             int partnumber(0);
@@ -164,7 +143,7 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
             part->SetAttribute(CNS_TAG_ATTR_FX, iter->j);
             part->SetAttribute(CNS_TAG_ATTR_FY, iter->i);
             part->SetAttribute(CNS_TAG_ATTR_LENGTH, iter->g);
-            hplevel->LinkEndChild(part);
+            path->LinkEndChild(part);
             partnumber++;
             while(iter != --sresult.pathInfo[i].sections.end())
             {
@@ -176,7 +155,7 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
                 part->SetAttribute(CNS_TAG_ATTR_FX, iter->j);
                 part->SetAttribute(CNS_TAG_ATTR_FY, iter->i);
                 part->SetAttribute(CNS_TAG_ATTR_LENGTH, iter->g - it->g);
-                hplevel->LinkEndChild(part);
+                path->LinkEndChild(part);
                 it++;
                 partnumber++;
             }

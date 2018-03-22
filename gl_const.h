@@ -120,7 +120,8 @@
  * XML files tag's attributes --------------------------------------------------
  */
     #define CNS_TAG_ATTR_NUMOFSTEPS     "numberofsteps"
-    #define CNS_TAG_ATTR_NODESCREATED   "totalnodescreated"
+    #define CNS_TAG_ATTR_TOTALNODES     "totalnodescreated"
+    #define CNS_TAG_ATTR_NODES          "nodescreated"
     #define CNS_TAG_ATTR_LENGTH         "length"
     #define CNS_TAG_ATTR_PATHLENGTH     "pathlength"
     #define CNS_TAG_ATTR_TIME           "time"
@@ -145,7 +146,7 @@
     #define CNS_TAG_ATTR_PATHSFOUND     "pathsfound"
     #define CNS_TAG_ATTR_PATHFOUND      "pathfound"
     #define CNS_TAG_ATTR_MAXNODESCR     "maxnodescreated"
-    #define CNS_TAG_ATTR_SUMLENGTH      "sumlength"
+    #define CNS_TAG_ATTR_FLOWTIME       "flowtime"
     #define CNS_TAG_ATTR_AVGLENGTH      "avglength"
     #define CNS_TAG_ATTR_MAKESPAN       "makespan"
 
