@@ -13,7 +13,7 @@ set( SOURCE_FILES
      xmlLogger.cpp 
      mission.cpp 
      map.cpp 
-     logger.cpp 
+     config.cpp 
      sipp.cpp 
      aa_sipp.cpp
      constraints.cpp )
