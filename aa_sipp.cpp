@@ -5,7 +5,10 @@ AA_SIPP::AA_SIPP(double weight, int constraints_type, int rescheduling, int time
     this->weight = weight;
     this->constraints_type = constraints_type;
     this->rescheduling = rescheduling;
-    this->timelimit = timelimit;
+    if(timelimit > 0)
+        this->timelimit = timelimit;
+    else
+        this->timelimit = CN_INFINITY;
     this->prioritization = prioritization;
     this->startsafeinterval = startsafeinterval;
     this->tweight = tweight;
@@ -22,7 +25,7 @@ bool AA_SIPP::stopCriterion()
 {
     if(openSize == 0)
     {
-        std::cout << "OPEN list is empty! " << std::endl;
+        std::cout << "OPEN list is empty! ";
         return true;
     }
     return false;
@@ -315,7 +318,7 @@ bool AA_SIPP::changePriorities(int bad_i)
                 if(j + 1 == priorities[i].size())
                     return false;
                 if(current_priorities[j] != priorities[i][j])
-                    j = priorities[i].size();
+                    break;
             }
         return true;
     }
@@ -402,12 +405,13 @@ SearchResult AA_SIPP::startSearch(Map &map)
                 constraints->addConstraints(sresult.pathInfo.back().sections);
             else
             {
-                bad_i = numOfCurAgent;
+                bad_i = current_priorities[numOfCurAgent];
                 break;
             }
             if(numOfCurAgent + 1 == map.agents)
                 solution_found = true;
         }
+
         delete constraints;
         tries++;
 #ifdef __linux__
@@ -419,7 +423,7 @@ SearchResult AA_SIPP::startSearch(Map &map)
 #endif
         if(timespent > timelimit)
             break;
-    } while(!changePriorities(bad_i) && !solution_found);
+    } while(changePriorities(bad_i) && !solution_found);
 #ifdef __linux__
     gettimeofday(&end, NULL);
     sresult.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
@@ -545,7 +549,7 @@ bool AA_SIPP::findPath(int numOfCurAgent, const Map &map)
         QueryPerformanceCounter(&end);
         resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
 #endif
-        std::cout<<numOfCurAgent<<" PATH NOT FOUND!\n";
+        std::cout<<"Path for agent "<<numOfCurAgent<<" not found!\n";
         sresult.pathfound = false;
         sresult.nodescreated += closeSize;
         sresult.numberofsteps += closeSize;
