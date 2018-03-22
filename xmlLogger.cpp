@@ -82,7 +82,7 @@ void XmlLogger::writeToLogSummary(const SearchResult &sresult)
 
     float pathlenght(0);
     unsigned int maxnodes(0), totalnodes(0);
-    for(int k = 0; k < sresult.pathInfo.size(); k++)
+    for(unsigned int k = 0; k < sresult.pathInfo.size(); k++)
         if(sresult.pathInfo[k].pathfound)
         {
             pathlenght += sresult.pathInfo[k].pathlength;
@@ -109,7 +109,7 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
     element = element->FirstChildElement(CNS_TAG_LOG);
     XMLElement *agent, *path;
 
-    for(int i = 0; i < sresult.agents; i++)
+    for(unsigned int i = 0; i < sresult.agents; i++)
     {
         agent = doc->NewElement(CNS_TAG_AGENT);
         agent->SetAttribute(CNS_TAG_ATTR_NUM,i);
@@ -178,7 +178,7 @@ void XmlLogger::writeToLogMap(const Map &map, const SearchResult &sresult)
         msg->SetAttribute(CNS_TAG_ATTR_NUM, i);
         text.clear();
         std::list<Node>::const_iterator iter;
-        for(int k = 0; k < sresult.agents; k++)
+        for(unsigned int k = 0; k < sresult.agents; k++)
             for(iter = sresult.pathInfo[k].path.begin(); iter != sresult.pathInfo[k].path.end(); iter++)
                 if((*iter).i == i)
                     curLine[(*iter).j] = 1;

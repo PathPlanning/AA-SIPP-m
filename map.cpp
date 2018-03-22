@@ -212,7 +212,7 @@ bool Map::getMap(const char* FileName)
                 }
 
                 grid = element->GetText();
-                int k = 0;
+                unsigned int k = 0;
                 text = "";
                 int j = 0;
 

@@ -37,22 +37,24 @@ public:
 private:
     std::vector<std::vector<std::vector<constraint>>> constraints;
     double gap;
+    int size;
     void addStartConstraint(int i, int j, int size)
     {
         constraint con;
         con.i = i;
         con.j = j;
         con.goal = false;
-        for(int k=0; k<5; k++)
+        this->size = size;
+        for(int k = 0; k < size; k++)
         {
-            con.g=k;
+            con.g = k;
             constraints[i][j].insert(constraints[i][j].begin(), con);
         }
         return;
     }
     void removeStartConstraint(int i, int j)
     {
-        for(int k=0; k<5; k++)
+        for(int k = 0; k < size; k++)
             constraints[i][j].erase(constraints[i][j].begin());
         return;
     }
@@ -70,7 +72,7 @@ protected:
     std::vector<std::vector<std::vector<section>>> constraints;
     void addStartConstraint(int i, int j, int size)
     {
-        section sec(i,j,i,j,0,size);
+        section sec(i, j, i, j, 0, size);
         constraints[i][j].insert(constraints[i][j].begin(),sec);
         return;
     }

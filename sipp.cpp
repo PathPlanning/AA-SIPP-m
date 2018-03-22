@@ -24,11 +24,11 @@ bool SIPP::stopCriterion()
 
 double SIPP::countHValue(int i, int j, int goal_i, int goal_j)
 {
-    if(metrictype == CN_MT_DIAGONAL)
+    if(metrictype == CN_MT_EUCLID)
+            return sqrt((i - goal_i)*(i - goal_i) + (j - goal_j)*(j - goal_j));
+    else if(metrictype == CN_MT_DIAGONAL)
         return std::min(abs(i - goal_i),abs(j - goal_j))*sqrt(2)+abs(abs(i - goal_i) - abs(j - goal_j));
-    else if(metrictype == CN_MT_EUCLID)
-        return sqrt((i - goal_i)*(i - goal_i) + (j - goal_j)*(j - goal_j));
-    else if(metrictype == CN_MT_MANHATTAN)
+    else
         return abs(i - goal_i) + abs(j - goal_j);
 }
 
@@ -68,7 +68,7 @@ void SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node> &s
                         if(interval.second >= interval.first)
                             intervals.push_back(interval);
                     }
-                    for(int k = 0; k < ctable[newNode.i][newNode.j].size(); k++)
+                    for(unsigned int k = 0; k < ctable[newNode.i][newNode.j].size(); k++)
                     {
                         if(ctable[newNode.i][newNode.j][k].s_dir == CN_GOAL_DIR)
                             break;
@@ -92,7 +92,7 @@ void SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node> &s
                                 intervals.back().first++;
                         }
                     }
-                    for(int k = 0; k < intervals.size(); k++)
+                    for(unsigned int k = 0; k < intervals.size(); k++)
                     {
                         if(intervals[k].second < curNode.interval.first + 1)
                             continue;
@@ -239,7 +239,7 @@ SearchResult SIPP::startSearch(Map &map)
     sresult.time = static_cast<double>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
 #endif
     std::vector<conflict> conflicts = CheckConflicts();
-    for(int i = 0; i < conflicts.size(); i++)
+    for(unsigned int i = 0; i < conflicts.size(); i++)
         std::cout<< i << " " << conflicts[i].agent1 << " " << conflicts[i].agent2 << " " << conflicts[i].g << "\n";
     return sresult;
 }
@@ -277,10 +277,10 @@ std::vector<conflict> SIPP::CheckConflicts()
     std::vector<conflict> conflicts(0);
     conflict conf;
     Node cur, check, curnext, checknext;
-    for(int i = 0; i < sresult.agents; i++)
-        for(int j = i + 1; j < sresult.agents; j++)
-            for(int k = 0; k < sresult.pathInfo[i].sections.size(); k++)
-                for(int l = 0; l < sresult.pathInfo[j].sections.size(); l++)
+    for(unsigned int i = 0; i < sresult.agents; i++)
+        for(unsigned int j = i + 1; j < sresult.agents; j++)
+            for(unsigned int k = 0; k < sresult.pathInfo[i].sections.size(); k++)
+                for(unsigned int l = 0; l < sresult.pathInfo[j].sections.size(); l++)
                 {
 
                     cur = sresult.pathInfo[i].sections[k];
@@ -331,7 +331,7 @@ void SIPP::addConstraints()
 {
     Node cur;
     movement add;
-    for(int i = 0; i < sresult.pathInfo.back().sections.size() - 1; i++)
+    for(unsigned int i = 0; i < sresult.pathInfo.back().sections.size() - 1; i++)
     {
         cur = sresult.pathInfo.back().sections[i];
         add.g = cur.g;

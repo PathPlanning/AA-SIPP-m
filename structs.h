@@ -30,28 +30,29 @@ struct movement
 
 struct Node
 {
+    Node(int _i=-1, int _j=-1, double _g=-1, double _F=-1):i(_i),j(_j),g(_g),F(_F),Parent(nullptr){}
+    ~Node(){ Parent = nullptr; }
     int     i, j;
-    double  F;
     double  g;
+    double  F;
     double  heading;
     Node*   Parent;
     std::pair<double,double> interval;
-    Node(int i=-1, int j=-1, double g=-1, double F=-1):i(i),j(j),g(g),F(F),Parent(nullptr){}
-    ~Node(){ Parent = nullptr; }
 };
 
 struct section
 {
+    section(int _i1=-1, int _j1=-1, int _i2=-1, int _j2=-1, double _g1=-1, double _g2=-1)
+        :i1(_i1), j1(_j1), i2(_i2), j2(_j2), g1(_g1), g2(_g2){}
+    section(const Node &a, const Node &b):i1(a.i), j1(a.j), i2(b.i), j2(b.j), g1(a.g), g2(b.g){}
     int i1;
-    int i2;
     int j1;
+    int i2;
     int j2;
     double g1;
     double g2;//is needed for goal and wait actions
     bool operator == (const section &comp) const {return (i1 == comp.i1 && j1 == comp.j1 && g1 == comp.g1);}
-    section(int i1=-1, int j1=-1, int i2=-1, int j2=-1, double g1=-1, double g2=-1)
-        :i1(i1), j1(j1), i2(i2), j2(j2), g1(g1), g2(g2){}
-    section(const Node &a, const Node &b):i1(a.i), j1(a.j), i2(b.i), j2(b.j), g1(a.g), g2(b.g){}
+
 };
 
 class Vector2D {

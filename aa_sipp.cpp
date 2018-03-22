@@ -68,7 +68,7 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
                 if(angleNode.g <= angleNode.interval.second)
                 {
                     intervals = constraints->findIntervals(newNode, EAT, close, map.width);
-                    for(int k = 0; k < intervals.size(); k++)
+                    for(unsigned int k = 0; k < intervals.size(); k++)
                     {
                         newNode.interval = intervals[k];
                         newNode.Parent = parent;
@@ -88,7 +88,7 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
                     if(angleNode.g > angleNode.interval.second)
                         continue;
                     intervals = constraints->findIntervals(newNode, EAT, close, map.width);
-                    for(int k = 0; k < intervals.size(); k++)
+                    for(unsigned int k = 0; k < intervals.size(); k++)
                     {
                         newNode.interval = intervals[k];
                         newNode.Parent = parent->Parent;
@@ -274,7 +274,7 @@ void AA_SIPP::setPriorities(const Map& map)
         {
             double mindist = CN_INFINITY;
             int min_i = -1;
-            for(int i = 0; i < dists.size(); i++)
+            for(unsigned int i = 0; i < dists.size(); i++)
                 if(mindist > dists[i])
                 {
                     min_i = i;
@@ -312,8 +312,8 @@ bool AA_SIPP::changePriorities(int bad_i)
                 current_priorities.insert(current_priorities.begin(), bad_i);
                 break;
             }
-        for(int i = 0; i < priorities.size(); i++)
-            for(int j = 0; j < priorities[i].size(); j++)
+        for(unsigned int i = 0; i < priorities.size(); i++)
+            for(unsigned int j = 0; j < priorities[i].size(); j++)
             {
                 if(j + 1 == priorities[i].size())
                     return false;
@@ -328,14 +328,14 @@ bool AA_SIPP::changePriorities(int bad_i)
         std::shuffle(current_priorities.begin(),current_priorities.end(), g);
         bool unique = false;
         int maxtries(1), tries(0);
-        for(int i = 1; i <= current_priorities.size(); i++)
+        for(unsigned int i = 1; i <= current_priorities.size(); i++)
             maxtries *= i;
         while(!unique && tries < maxtries)
         {
             tries++;
-            for(int i = 0; i < priorities.size(); i++)
+            for(unsigned int i = 0; i < priorities.size(); i++)
             {
-                for(int j = 0; j < priorities[i].size(); j++)
+                for(unsigned int j = 0; j < priorities[i].size(); j++)
                 {
                     if(j + 1 == priorities[i].size())
                         unique = false;
@@ -435,7 +435,7 @@ SearchResult AA_SIPP::startSearch(Map &map)
     if(sresult.pathfound)
     {
         std::vector<conflict> confs = CheckConflicts();
-        for(int i = 0; i < confs.size(); i++)
+        for(unsigned int i = 0; i < confs.size(); i++)
             std::cout<<confs[i].i<<" "<<confs[i].j<<" "<<confs[i].g<<" "<<confs[i].agent1<<" "<<confs[i].agent2<<"\n";
     }
     return sresult;
@@ -466,7 +466,7 @@ bool AA_SIPP::findPath(int numOfCurAgent, const Map &map)
     QueryPerformanceFrequency(&freq);
 #endif
     close.clear();
-    for(int i = 0; i< open.size(); i++)
+    for(unsigned int i = 0; i< open.size(); i++)
         open[i].clear();
     ResultPathInfo resultPath;
     openSize = 0;
@@ -507,7 +507,7 @@ bool AA_SIPP::findPath(int numOfCurAgent, const Map &map)
     if(pathFound)
     {
         makePrimaryPath(curNode);
-        for(int i = 1; i < hppath.size(); i++)
+        for(unsigned int i = 1; i < hppath.size(); i++)
             if((hppath[i].g - (hppath[i - 1].g + getCost(hppath[i].i, hppath[i].j, hppath[i - 1].i, hppath[i - 1].j))) > CN_EPSILON)
             {
                 Node add = hppath[i - 1];
@@ -571,14 +571,14 @@ std::vector<conflict> AA_SIPP::CheckConflicts()
     Node cur, check;
     std::vector<std::vector<conflict>> positions;
     positions.resize(sresult.agents);
-    for(int i = 0; i < sresult.agents; i++)
+    for(unsigned int i = 0; i < sresult.agents; i++)
     {
         if(!sresult.pathInfo[i].pathfound)
             continue;
         positions[i].resize(0);
         int k = 0;
         double part = 1;
-        for(int j = 1; j<sresult.pathInfo[i].sections.size(); j++)
+        for(unsigned int j = 1; j < sresult.pathInfo[i].sections.size(); j++)
         {
             cur = sresult.pathInfo[i].sections[j];
             check = sresult.pathInfo[i].sections[j-1];
@@ -628,15 +628,15 @@ std::vector<conflict> AA_SIPP::CheckConflicts()
             positions[i].push_back(conf);
         }
     }
-    int max = 0;
-    for(int i = 0; i < positions.size(); i++)
+    unsigned int max = 0;
+    for(unsigned int i = 0; i < positions.size(); i++)
         if(positions[i].size() > max)
             max = positions[i].size();
-    for(int i = 0; i < sresult.agents; i++)
+    for(unsigned int i = 0; i < sresult.agents; i++)
     {
-        for(int k = 0; k < max; k++)
+        for(unsigned int k = 0; k < max; k++)
         {
-            for(int j = i + 1; j < sresult.agents; j++)
+            for(unsigned int j = i + 1; j < sresult.agents; j++)
             {
                 if(!sresult.pathInfo[j].pathfound || !sresult.pathInfo[i].pathfound)
                     continue;

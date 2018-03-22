@@ -40,15 +40,13 @@ void Mission::createSearch()
 bool Mission::createLog()
 {
     if(m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_HIGH)
-    {
         m_pLogger = new XmlLogger(m_config.searchParams[CN_PT_LOGLVL]);
-        return m_pLogger->getLog(m_fileName);
-    }
     else if(m_config.searchParams[CN_PT_LOGLVL] != CN_LOGLVL_NO)
     {
         std::cout<<"'loglevel' is not correctly specified in input XML-file.\n";
         return false;
     }
+    return m_pLogger->getLog(m_fileName);
 }
 
 void Mission::startSearch()
