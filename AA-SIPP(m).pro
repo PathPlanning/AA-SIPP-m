@@ -7,22 +7,17 @@ win32 {
 QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++
 }
 SOURCES += main.cpp \
-    tinyxmlparser.cpp \
-    tinyxmlerror.cpp \
-    tinyxml.cpp \
-    tinystr.cpp \
+    tinyxml2.cpp\
     xmlLogger.cpp \
     mission.cpp \
     map.cpp \
-    logger.cpp \
     config.cpp \
     sipp.cpp \
     aa_sipp.cpp \
     constraints.cpp
 
 HEADERS += \
-    tinyxml.h \
-    tinystr.h \
+    tinyxml2.h \
     searchresult.h \
     gl_const.h \
     xmlLogger.h \
@@ -34,5 +29,4 @@ HEADERS += \
     sipp.h \
     aa_sipp.h \
     structs.h \
-    vector2D.h \
     constraints.h

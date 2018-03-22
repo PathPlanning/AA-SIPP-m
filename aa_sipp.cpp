@@ -78,7 +78,7 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
                 if(newNode.Parent->i != parent->i || newNode.Parent->j != parent->j)
                 {
                     angleNode = *newNode.Parent;
-                    newNode.heading = calcHeading(*newNode.Parent, newNode);//new heading with respect ot new parent
+                    newNode.heading = calcHeading(*newNode.Parent, newNode);//new heading with respect to new parent
                     angleNode.g += fabs(angleNode.heading - newNode.heading)*tweight/180;//count new additional time required for rotation
                     newNode.g += fabs(angleNode.heading - newNode.heading)*tweight/180;
                     newNode.Parent = &angleNode;
@@ -351,8 +351,9 @@ bool AA_SIPP::changePriorities(int bad_i)
     }
 }
 
-SearchResult AA_SIPP::startSearch(Logger *log, Map &map)
+SearchResult AA_SIPP::startSearch(Map &map)
 {
+
 #ifdef __linux__
     timeval begin, end;
     gettimeofday(&begin, NULL);
@@ -427,10 +428,12 @@ SearchResult AA_SIPP::startSearch(Logger *log, Map &map)
     sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
 #endif
     sresult.tries = tries;
-
-    std::vector<conflict> confs = CheckConflicts();
-    for(int i = 0; i < confs.size(); i++)
-        std::cout<<confs[i].i<<" "<<confs[i].j<<" "<<confs[i].g<<" "<<confs[i].agent1<<" "<<confs[i].agent2<<"\n";
+    if(sresult.pathfound)
+    {
+        std::vector<conflict> confs = CheckConflicts();
+        for(int i = 0; i < confs.size(); i++)
+            std::cout<<confs[i].i<<" "<<confs[i].j<<" "<<confs[i].g<<" "<<confs[i].agent1<<" "<<confs[i].agent2<<"\n";
+    }
     return sresult;
 }
 

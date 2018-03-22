@@ -2,8 +2,7 @@
 #define CONFIG_H
 
 #include <iostream>
-#include "tinyxml.h"
-#include "tinystr.h"
+#include "tinyxml2.h"
 #include <string>
 #include "gl_const.h"
 #include <algorithm>

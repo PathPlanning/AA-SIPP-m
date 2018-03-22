@@ -193,7 +193,7 @@ void SIPP::addOpen(Node &newNode)
 }
 
 
-SearchResult SIPP::startSearch(Logger *log, Map &map)
+SearchResult SIPP::startSearch(Map &map)
 {
 #ifdef __linux__
     timeval begin, end;

@@ -27,13 +27,11 @@ public:
 private:
     Map    m_map;
     Config m_config;
-
     Search *m_pSearch;
     Logger *m_pLogger;
-
+    SearchResult sr;
     const char* m_fileName;
 
-    SearchResult sr;
 };
 
 #endif

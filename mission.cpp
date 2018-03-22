@@ -39,27 +39,22 @@ void Mission::createSearch()
 
 bool Mission::createLog()
 {
-    if(m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_LOW || m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_HIGH || m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_MED)
+    if(m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_HIGH)
     {
         m_pLogger = new XmlLogger(m_config.searchParams[CN_PT_LOGLVL]);
+        return m_pLogger->getLog(m_fileName);
     }
-    else if(m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_NO)
-    {
-        m_pLogger = new XmlLogger(m_config.searchParams[CN_PT_LOGLVL]);
-        return true;
-    }
-    else
+    else if(m_config.searchParams[CN_PT_LOGLVL] != CN_LOGLVL_NO)
     {
         std::cout<<"'loglevel' is not correctly specified in input XML-file.\n";
         return false;
     }
-    return m_pLogger->getLog(m_fileName);
 }
 
 void Mission::startSearch()
 {
     std::cout<<"SEARCH STARTED\n";
-    sr = m_pSearch->startSearch(m_pLogger, m_map);
+    sr = m_pSearch->startSearch(m_map);
 }
 
 void Mission::printSearchResultsToConsole()
@@ -69,6 +64,8 @@ void Mission::printSearchResultsToConsole()
 
 void Mission::saveSearchResultsToLog()
 {
+    if(m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_NO)
+        return;
     std::cout<<"LOG STARTED\n";
     m_pLogger->writeToLogSummary(sr);
     if(sr.pathfound)

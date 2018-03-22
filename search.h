@@ -7,7 +7,6 @@
 #include "gl_const.h"
 #include "searchresult.h"
 #include <math.h>
-#include "vector2D.h"
 #ifdef __linux__
     #include <sys/time.h>
 #else
@@ -18,10 +17,10 @@
 class Search
 {
 public:
-    Search(){};
-    virtual ~Search(){};
+    Search(){}
+    virtual ~Search(){}
     virtual void addOpen(Node& newNode) = 0;
-    virtual SearchResult startSearch(Logger *log, Map &map) = 0;
+    virtual SearchResult startSearch(Map &map) = 0;
     virtual bool findPath(int numOfCurAgent, const Map &map) = 0;
     virtual void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs, int numOfCurAgent) = 0;
     virtual Node findMin(int size) = 0;

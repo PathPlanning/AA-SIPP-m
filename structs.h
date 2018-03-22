@@ -1,6 +1,5 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
-#include <memory>
 #include "gl_const.h"
 
 struct conflict
@@ -37,8 +36,8 @@ struct Node
     double  heading;
     Node*   Parent;
     std::pair<double,double> interval;
-    Node(int i=-1, int j=-1, double g=-1, double F=-1, double size=0.5):i(i),j(j),g(g),F(F),Parent(nullptr){}
-    ~Node(){Parent = nullptr;}
+    Node(int i=-1, int j=-1, double g=-1, double F=-1):i(i),j(j),g(g),F(F),Parent(nullptr){}
+    ~Node(){ Parent = nullptr; }
 };
 
 struct section
@@ -51,8 +50,23 @@ struct section
     double g2;//is needed for goal and wait actions
     bool operator == (const section &comp) const {return (i1 == comp.i1 && j1 == comp.j1 && g1 == comp.g1);}
     section(int i1=-1, int j1=-1, int i2=-1, int j2=-1, double g1=-1, double g2=-1)
-        :i1(i1),j1(j1),i2(i2),j2(j2),g1(g1),g2(g2){}
-    section(const Node &a, const Node &b):i1(a.i),j1(a.j),i2(b.i),j2(b.j),g1(a.g),g2(b.g){}
+        :i1(i1), j1(j1), i2(i2), j2(j2), g1(g1), g2(g2){}
+    section(const Node &a, const Node &b):i1(a.i), j1(a.j), i2(b.i), j2(b.j), g1(a.g), g2(b.g){}
+};
+
+class Vector2D {
+  public:
+    Vector2D(double _i = 0.0, double _j = 0.0):i(_i),j(_j){}
+    double i, j;
+
+    inline Vector2D operator +(const Vector2D &vec) { return Vector2D(i + vec.i, j + vec.j); }
+    inline Vector2D operator -(const Vector2D &vec) { return Vector2D(i - vec.i, j - vec.j); }
+    inline Vector2D operator -() { return Vector2D(-i,-j); }
+    inline Vector2D operator /(const double &num) { return Vector2D(i/num, j/num); }
+    inline Vector2D operator *(const double &num) { return Vector2D(i*num, j*num); }
+    inline double operator *(const Vector2D &vec){ return i*vec.i + j*vec.j; }
+    inline void operator +=(const Vector2D &vec) { i += vec.i; j += vec.j; }
+    inline void operator -=(const Vector2D &vec) { i -= vec.i; j -= vec.j; }
 };
 
 class Point {
@@ -60,11 +74,10 @@ public:
     double i;
     double j;
 
-    Point(double _i = 0.0, double _j =0.0):i (_i), j (_j){}
-    //Point(std::pair<double, double> p){i=p.first; j=p.second;}
-    Point operator-(Point& p){return Point(i - p.i, j - p.j);}
-    int operator== (Point& p){return (i == p.i) && (j == p.j);}
-    int classify(Point&pO, Point&p1)
+    Point(double _i = 0.0, double _j = 0.0):i (_i), j (_j){}
+    Point operator-(Point &p){return Point(i - p.i, j - p.j);}
+    int operator== (Point &p){return (i == p.i) && (j == p.j);}
+    int classify(Point &pO, Point &p1)
     {
         Point p2 = *this;
         Point a = p1 - pO;

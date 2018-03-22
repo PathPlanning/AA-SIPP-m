@@ -6,7 +6,7 @@
 #define CN_INFINITY		1000000
 #define CN_LOG          "_log"
 
-//Parametrs Type
+//Parameters Type
 #define CN_PT_LOGLVL    0   // loglevel
 #define CN_PT_WEIGHT    1   // weight
 #define CN_PT_MT        2   // metrictype
@@ -27,8 +27,6 @@
 //loglevel
 #define CN_LOGLVL_NO	0
 #define CN_LOGLVL_HIGH	1
-#define CN_LOGLVL_MED	1.5
-#define CN_LOGLVL_LOW	2
 
 //breakingties
 #define CN_BT_G_MAX     1
@@ -76,43 +74,43 @@
  * XML file tags ---------------------------------------------------------------
  */
 #define CNS_TAG_ROOT "root"
-    #define CNS_TAG_ALGORITHM       "algorithm"
-    #define CNS_TAG_MAP             "map"
-    #define CNS_TAG_AGENTS          "agents"
-    #define CNS_TAG_HEIGHT          "height"
-    #define CNS_TAG_WIDTH           "width"
-    #define CNS_TAG_SX              "startx"
-    #define CNS_TAG_SY              "starty"
-    #define CNS_TAG_FX              "finishx"
-    #define CNS_TAG_FY              "finishy"
-    #define CNS_TAG_GRID            "grid"
-        #define CNS_TAG_ROW         "row"
-    #define CNS_TAG_WEIGHT          "weight"
-    #define CNS_TAG_HWEIGHT         "hweight"
-    #define CNS_TAG_ALLOW_AA        "allowanyangle"
-    #define CNS_TAG_PRIORITIZATION  "prioritization"
-    #define CNS_TAG_RESCHEDULING    "rescheduling"
-    #define CNS_TAG_STARTSAFEINTERVAL "startsafeinterval"
-    #define CNS_TAG_TIMELIMIT       "timelimit"
-    #define CNS_TAG_METRICTYPE      "metrictype"
-    #define CNS_TAG_CONSTRAINTSTYPE "constraints_type"
-    #define CNS_TAG_TURNINGWEIGHT   "turningweight"
-    #define CNS_TAG_OPTIONS         "options"
-    #define CNS_TAG_LOGLVL          "loglevel"
-    #define CNS_TAG_LOG             "log"
-        #define CNS_TAG_MAPFN       "mapfilename"
-        #define CNS_TAG_SUM         "summary"
-        #define CNS_TAG_PATH        "path"
-        #define CNS_TAG_ROW         "row"
-        #define CNS_TAG_LPLEVEL     "lplevel"
-        #define CNS_TAG_HPLEVEL     "hplevel"
-        #define CNS_TAG_AGENT       "agent"
-        #define CNS_TAG_LOWLEVEL    "lowlevel"
-            #define CNS_TAG_SECTION "section"
-            #define CNS_TAG_STEP    "step"
-            #define CNS_TAG_OPEN    "open"
-            #define CNS_TAG_NODE    "node"
-            #define CNS_TAG_CLOSE   "close"
+    #define CNS_TAG_ALGORITHM           "algorithm"
+    #define CNS_TAG_MAP                 "map"
+    #define CNS_TAG_AGENTS              "agents"
+    #define CNS_TAG_HEIGHT              "height"
+    #define CNS_TAG_WIDTH               "width"
+    #define CNS_TAG_SX                  "startx"
+    #define CNS_TAG_SY                  "starty"
+    #define CNS_TAG_FX                  "finishx"
+    #define CNS_TAG_FY                  "finishy"
+    #define CNS_TAG_GRID                "grid"
+        #define CNS_TAG_ROW             "row"
+    #define CNS_TAG_WEIGHT              "weight"
+    #define CNS_TAG_HWEIGHT             "hweight"
+    #define CNS_TAG_ALLOW_AA            "allowanyangle"
+    #define CNS_TAG_PRIORITIZATION      "prioritization"
+    #define CNS_TAG_RESCHEDULING        "rescheduling"
+    #define CNS_TAG_STARTSAFEINTERVAL   "startsafeinterval"
+    #define CNS_TAG_TIMELIMIT           "timelimit"
+    #define CNS_TAG_METRICTYPE          "metrictype"
+    #define CNS_TAG_CONSTRAINTSTYPE     "constraintstype"
+    #define CNS_TAG_TURNINGWEIGHT       "turningweight"
+    #define CNS_TAG_OPTIONS             "options"
+    #define CNS_TAG_LOGLVL              "loglevel"
+    #define CNS_TAG_LOG                 "log"
+        #define CNS_TAG_MAPFN           "mapfilename"
+        #define CNS_TAG_SUM             "summary"
+        #define CNS_TAG_PATH            "path"
+        #define CNS_TAG_ROW             "row"
+        #define CNS_TAG_LPLEVEL         "lplevel"
+        #define CNS_TAG_HPLEVEL         "hplevel"
+        #define CNS_TAG_AGENT           "agent"
+        #define CNS_TAG_LOWLEVEL        "lowlevel"
+            #define CNS_TAG_SECTION     "section"
+            #define CNS_TAG_STEP        "step"
+            #define CNS_TAG_OPEN        "open"
+            #define CNS_TAG_NODE        "node"
+            #define CNS_TAG_CLOSE       "close"
 
 /*
  * End of XML files tags -------------------------------------------------------
@@ -151,18 +149,16 @@
     #define CNS_TAG_ATTR_AVGLENGTH      "avglength"
     #define CNS_TAG_ATTR_MAKESPAN       "makespan"
 
-
-
 /*
  * End of XML files tag's attributes -------------------------------------------
  */
 
-    #define CN_NO_DIR        0
-    #define CN_LEFT_DIR      1
-    #define CN_UP_DIR        2
-    #define CN_RIGHT_DIR     3
-    #define CN_DOWN_DIR      4
-    #define CN_GOAL_DIR      5
+#define CN_NO_DIR        0
+#define CN_LEFT_DIR      1
+#define CN_UP_DIR        2
+#define CN_RIGHT_DIR     3
+#define CN_DOWN_DIR      4
+#define CN_GOAL_DIR      5
 
 #define CN_PARALLEL          1
 #define CN_COINCIDENT        2

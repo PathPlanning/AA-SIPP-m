@@ -17,9 +17,9 @@ struct ResultPathInfo
 
     ResultPathInfo()
     {
-        nodescreated=0;
-        numberofsteps=0;
-        time=0;
+        nodescreated = 0;
+        numberofsteps = 0;
+        time = 0;
         pathfound = false;
         pathlength = 0;
         path.clear();

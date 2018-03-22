@@ -1,4 +1,5 @@
 #include "config.h"
+using namespace tinyxml2;
 
 Config::Config()
 {
@@ -21,28 +22,28 @@ bool Config::getConfig(const char* FileName)
     float loglevel;
     std::stringstream stream;
 
-    TiXmlDocument doc(FileName);
-    if(!doc.LoadFile())
+    XMLDocument doc;
+    if(doc.LoadFile(FileName) != XMLError::XML_SUCCESS)
     {
         std::cout << "Error openning input XML file."<<std::endl;
         return false;
     }
 
-    TiXmlElement *root = doc.FirstChildElement(CNS_TAG_ROOT);
+    XMLElement *root = doc.FirstChildElement(CNS_TAG_ROOT);
     if (!root)
     {
         std::cout << "No 'root' element found in XML file."<<std::endl;
         return false;
     }
 
-    TiXmlElement *algorithm = root->FirstChildElement(CNS_TAG_ALGORITHM);
+    XMLElement *algorithm = root->FirstChildElement(CNS_TAG_ALGORITHM);
     if (!algorithm)
     {
         std::cout << "No 'algorithm' element found in XML file."<<std::endl;
         return false;
     }
 
-    TiXmlElement *element;
+    XMLElement *element;
 
     N = CN_PT_NUM;
     searchParams = new float[N];
@@ -252,7 +253,7 @@ bool Config::getConfig(const char* FileName)
         stream.str("");
     }
 
-    TiXmlElement *options = root->FirstChildElement(CNS_TAG_OPTIONS);
+    XMLElement *options = root->FirstChildElement(CNS_TAG_OPTIONS);
     if(!options)
     {
         std::cout << "No '"<<CNS_TAG_OPTIONS<<"' element found in XML file."<<std::endl;

@@ -6,8 +6,7 @@
 #include <algorithm>
 #include <sstream>
 #include <fstream>
-#include "tinyxml.h"
-#include "tinystr.h"
+#include "tinyxml2.h"
 #include "gl_const.h"
 
 class Map

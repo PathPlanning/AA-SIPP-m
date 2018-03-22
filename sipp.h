@@ -10,7 +10,7 @@ public:
 
     SIPP(double weight, int metrictype);
     ~SIPP();
-    SearchResult startSearch(Logger *log, Map &map);
+    SearchResult startSearch(Map &map);
 
 private:
 

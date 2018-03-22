@@ -3,11 +3,9 @@
 
 #include "logger.h"
 #include <iostream>
-#include "tinyxml.h"
-#include "tinystr.h"
+#include "tinyxml2.h"
 #include <string>
 #include "searchresult.h"
-#include <sstream>
 
 class XmlLogger:public Logger
 {
@@ -15,7 +13,7 @@ class XmlLogger:public Logger
 private:
 
     std::string LogFileName;
-    TiXmlDocument *doc;
+    tinyxml2::XMLDocument *doc;
 
 public:
 

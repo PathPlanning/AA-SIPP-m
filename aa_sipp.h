@@ -12,7 +12,7 @@ public:
 
     AA_SIPP(double weight, int constraints_type, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight);
     ~AA_SIPP();
-    SearchResult startSearch(Logger *log, Map &map);
+    SearchResult startSearch(Map &map);
 
 private:
 

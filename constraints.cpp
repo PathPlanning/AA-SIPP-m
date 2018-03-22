@@ -303,27 +303,27 @@ std::vector<std::pair<double,double>> VelocityConstraints::findIntervals(Node cu
 bool VelocityConstraints::hasCollision(const Node &curNode, double startTimeA, const section &constraint, bool &goal_collision)
 {
     double endTimeA(startTimeA + curNode.g - curNode.Parent->g), startTimeB(constraint.g1), endTimeB(constraint.g2);
-    if(fgreater(startTimeA,endTimeB) || fgreater(startTimeB,endTimeA))
+    if(startTimeA > endTimeB || startTimeB > endTimeA)
         return false;
     Vector2D A(curNode.Parent->i,curNode.Parent->j);
     Vector2D VA((curNode.i - curNode.Parent->i)/(curNode.g - curNode.Parent->g), (curNode.j - curNode.Parent->j)/(curNode.g - curNode.Parent->g));
     Vector2D B(constraint.i1, constraint.j1);
     Vector2D VB((constraint.i2 - constraint.i1)/(constraint.g2 - constraint.g1), (constraint.j2 - constraint.j1)/(constraint.g2 - constraint.g1));
-    if(fgreater(startTimeB,startTimeA))
+    if(startTimeB > startTimeA)
     {
       // Move A to the same time instant as B
-      A+=VA*(startTimeB-startTimeA);
+      A += VA*(startTimeB-startTimeA);
       startTimeA=startTimeB;
     }
-    else if(fless(startTimeB,startTimeA))
+    else if(startTimeB < startTimeA)
     {
-      B+=VB*(startTimeA-startTimeB);
-      startTimeB=startTimeA;
+      B += VB*(startTimeA - startTimeB);
+      startTimeB = startTimeA;
     }
 
     double r(1.0); // Combined radius
-    Vector2D w(B-A);
-    double c(w.sq() - r*r);
+    Vector2D w(B - A);
+    double c(w*w - r*r);
     if(c < 0)
     {
         if(constraint.g2 == CN_INFINITY)
@@ -332,8 +332,8 @@ bool VelocityConstraints::hasCollision(const Node &curNode, double startTimeA, c
     } // Agents are currently colliding
 
     // Use the quadratic formula to detect nearest collision (if any)
-    Vector2D v(VA-VB);
-    double a(v.sq());
+    Vector2D v(VA - VB);
+    double a(v*v);
     double b(w*v);
 
     double dscr(b*b - a*c);
@@ -341,7 +341,7 @@ bool VelocityConstraints::hasCollision(const Node &curNode, double startTimeA, c
         return false;
 
     double ctime = (b - sqrt(dscr))/a;
-    if(fgeq(ctime,0) && fleq(ctime, min(endTimeB,endTimeA) - startTimeA))
+    if(ctime > -CN_EPSILON && ctime < std::min(endTimeB,endTimeA) - startTimeA + CN_EPSILON)
     {
         if(constraint.g2 == CN_INFINITY)
             goal_collision = true;
@@ -714,7 +714,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
     else if(pos == CN_NONINTERSECTING)
     {
         double A_CD(minDist(A, C, D)), B_CD(minDist(B, C, D)), C_AB(minDist(C, A, B)), D_AB(minDist(D, A, B));
-        if(min(min(A_CD, B_CD), min(C_AB, D_AB)) >= 1.0)
+        if(std::min(std::min(A_CD, B_CD), std::min(C_AB, D_AB)) >= 1.0)
             return {-1,-1};
 
         intersec.i = ((C.i*D.j - C.j*D.i)*B1 - B2*(A.i*B.j - A.j*B.i))/((C.i - D.i)*(A.j - B.j) - (C.j - D.j)*(A.i - B.i));
@@ -742,9 +742,9 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
                 offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
                 interval = {sec.g2 + offset - gap, sec.g2 + offset + gap};
             }
-            if(min(dist_B,dist_C)*2>span)
+            if(std::min(dist_B,dist_C)*2>span)
             {
-                if(max(dist_A,dist_D)*2 < span)
+                if(std::max(dist_A,dist_D)*2 < span)
                     return {sec.g1 + dist_C + dist_B - span, interval.second};
                 else
                     return interval;
@@ -781,9 +781,9 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
                 offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
                 interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
             }
-            if(min(dist_A, dist_D)*2 > span)
+            if(std::min(dist_A, dist_D)*2 > span)
             {
-                if(max(dist_B, dist_C)*2 < span)
+                if(std::max(dist_B, dist_C)*2 < span)
                     return {interval.first, sec.g1 - dist_C - dist_B + span};
                 else
                     return interval;
@@ -820,9 +820,9 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
                 offset = sqrt(pow(B.i - C.i, 2) + pow(B.j - C.j, 2) - pow(C_AB, 2));
                 interval = {sec.g1 + offset - gap, sec.g1 + offset + gap};
             }
-            if(min(dist_B, dist_D)*2 > span)
+            if(std::min(dist_B, dist_D)*2 > span)
             {
-                if(max(dist_A, dist_C)*2 < span)
+                if(std::max(dist_A, dist_C)*2 < span)
                     return {sec.g1 - dist_C + dist_B - span, interval.second};
                 else
                     return interval;
@@ -859,9 +859,9 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
                 offset = sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(D_AB, 2));
                 interval = {sec.g2 + offset - gap, sec.g2 + offset + gap};
             }
-            if(min(dist_A, dist_C)*2 > span)
+            if(std::min(dist_A, dist_C)*2 > span)
             {
-                if(max(dist_B, dist_D)*2 < span)
+                if(std::max(dist_B, dist_D)*2 < span)
                     return {sec.g2 + dist_D - dist_B - span, interval.second};
                 else
                     return interval;
@@ -889,7 +889,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
             {
                 double dist_A(sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2)));
                 double dist_C(sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2)));
-                if(min(dist_A, dist_C)*2> span)
+                if(std::min(dist_A, dist_C)*2> span)
                 {
                     if(dist(B, intersec)*2 < span)
                         return {interval.first, sec.g1 + dist_C - dist(B, intersec) + span};
@@ -913,7 +913,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
             {
                 double dist_A(sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2)));
                 double dist_D(sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2)));
-                if(min(dist_A, dist_D)*2 > span)
+                if(std::min(dist_A, dist_D)*2 > span)
                 {
                     if(dist(B, intersec)*2 < span)
                         return {interval.first, sec.g1 + dist(C, intersec) - dist(B, intersec) + span};
@@ -944,7 +944,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
             {
                 double dist_B(sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2)));
                 double dist_D(sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2)));
-                if(min(dist_B, dist_D)*2 > span)
+                if(std::min(dist_B, dist_D)*2 > span)
                 {
                     if(dist(A, intersec)*2 < span)
                         return {sec.g1 + dist(C, intersec) + dist_B - span, interval.second};
@@ -969,7 +969,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
 
                 double dist_B(sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2)));
                 double dist_C(sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2)));
-                if(min(dist_B, dist_C)*2 > span)
+                if(std::min(dist_B, dist_C)*2 > span)
                 {
                     if(dist(A, intersec)*2 < span)
                         return {sec.g1 + dist_C + dist_B - span, interval.second};
@@ -1000,7 +1000,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
             {
                 double dist_A(sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2)));
                 double dist_C(sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2)));
-                if(min(dist_A, dist_C)*2 > span)
+                if(std::min(dist_A, dist_C)*2 > span)
                 {
                     if(dist(D, intersec)*2 < span)
                         return {sec.g2 + dist(D, intersec) + dist(B, intersec) - span, interval.second};
@@ -1024,7 +1024,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
             {
                 double dist_B(sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2)));
                 double dist_C(sqrt(pow(C.i - intersec.i, 2) + pow(C.j - intersec.j, 2)));
-                if(min(dist_B, dist_C)*2 > span)
+                if(std::min(dist_B, dist_C)*2 > span)
                 {
                     if(dist(D, intersec)*2 < span)
                         return {sec.g2 + dist(D, intersec) + dist_B - span, interval.second};
@@ -1054,7 +1054,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
             {
                 double dist_B(sqrt(pow(B.i - intersec.i, 2) + pow(B.j - intersec.j, 2)));
                 double dist_D(sqrt(pow(D.i - intersec.i, 2) + pow(D.j - intersec.j, 2)));
-                if(min(dist_B, dist_D)*2 > span)
+                if(std::min(dist_B, dist_D)*2 > span)
                 {
                     if(dist(C, intersec)*2 < span)
                         return {interval.first, sec.g1 - dist(C, intersec) + dist_B + span};
@@ -1078,7 +1078,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
             {
                 double dist_A(sqrt(pow(A.i - intersec.i, 2) + pow(A.j - intersec.j, 2)));
                 double dist_D(sqrt(pow(D.i - intersec.i,2) + pow(D.j - intersec.j, 2)));
-                if(min(dist_A, dist_D)*2 > span)
+                if(std::min(dist_A, dist_D)*2 > span)
                 {
                     if(dist(C, intersec)*2 < span)
                         return {interval.first, sec.g1 - dist(C, intersec) + dist(B, intersec) + span};
@@ -1100,7 +1100,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
             }
         }
         if(interval2.first != -1)
-            return {min(interval.first, interval2.first), max(interval.second, interval2.second)};
+            return {std::min(interval.first, interval2.first), std::max(interval.second, interval2.second)};
         else
             return interval;
     }
@@ -1114,7 +1114,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
                span = sqrt(2.0/((A1*A2 + B1*B2)/(sqrt(A1*A1 + B1*B1)*sqrt(A2*A2 + B2*B2)) + 1.0)),
                dist;
         std::pair<double,double> interval(sec.g1 + dist_C + dist_B - span, sec.g1 + dist_C + dist_B + span);
-        if(min(dist_A, dist_D)*2 < span)
+        if(std::min(dist_A, dist_D)*2 < span)
         {
             if(dist_A < dist_D)
             {
@@ -1127,7 +1127,7 @@ std::pair<double,double> SectionConstraints::countInterval(section sec, Node cur
                 interval.second = sec.g2 + sqrt(pow(B.i - D.i, 2) + pow(B.j - D.j, 2) - pow(dist, 2)) + sqrt(1.0 - pow(dist, 2));
             }
         }
-        if(min(dist_B, dist_C)*2 < span)
+        if(std::min(dist_B, dist_C)*2 < span)
         {
             if(dist_B < dist_C)
                 dist = ((C.i - D.i)*B.j + (D.j - C.j)*B.i + (C.j*D.i - D.j*C.i))/lengthCD;

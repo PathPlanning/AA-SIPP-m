@@ -1,4 +1,5 @@
 #include "map.h"
+using namespace tinyxml2;
 
 Map::Map()
 {
@@ -28,12 +29,12 @@ bool Map::getMap(const char* FileName)
 {
     const char* grid = 0;
     std::string value;
-    TiXmlElement *root = 0;
+    XMLElement *root = 0;
     std::string text = "";
     bool hasGrid = false;
     std::stringstream stream;
-    TiXmlDocument doc(FileName);
-    if(!doc.LoadFile())
+    XMLDocument doc;
+    if(doc.LoadFile(FileName) != XMLError::XML_SUCCESS)
     {
         std::cout << "Error openning input XML file."<<std::endl;
         return false;
@@ -46,15 +47,15 @@ bool Map::getMap(const char* FileName)
         return false;
     }
 
-    TiXmlElement *map = root->FirstChildElement(CNS_TAG_MAP);
+    XMLElement *map = root->FirstChildElement(CNS_TAG_MAP);
     if (!map)
     {
         std::cout << "No '"<<CNS_TAG_MAP<<"' element found in XML file."<<std::endl;
         return false;
     }
 
-    TiXmlNode *node = 0;
-    TiXmlElement *element = 0;
+    XMLNode *node = 0;
+    XMLElement *element = 0;
 
     int agentNumber = 0;
     node = map->FirstChild();
@@ -114,17 +115,17 @@ bool Map::getMap(const char* FileName)
                 return false;
             }
 
-            TiXmlNode *child;
-            int countsx=0, countsy=0, countgx=0, countgy=0;
-            for( child = map->FirstChild(CNS_TAG_SX); child; child = child->NextSibling(CNS_TAG_SX) )
+            XMLElement *child;
+            int countsx(0), countsy(0), countgx(0), countgy(0);
+            for(child = map->FirstChildElement(CNS_TAG_SX); child; child = child->NextSiblingElement(CNS_TAG_SX))
                 countsx++;
-            for( child = map->FirstChild(CNS_TAG_SY); child; child = child->NextSibling(CNS_TAG_SY) )
+            for(child = map->FirstChildElement(CNS_TAG_SY); child; child = child->NextSiblingElement(CNS_TAG_SY))
                 countsy++;
-            for( child = map->FirstChild(CNS_TAG_FX); child; child = child->NextSibling(CNS_TAG_FX) )
+            for(child = map->FirstChildElement(CNS_TAG_FX); child; child = child->NextSiblingElement(CNS_TAG_FX))
                 countgx++;
-            for( child = map->FirstChild(CNS_TAG_FY); child; child = child->NextSibling(CNS_TAG_FY) )
+            for(child = map->FirstChildElement(CNS_TAG_FY); child; child = child->NextSiblingElement(CNS_TAG_FY))
                 countgy++;
-            if(countsx<agents || countsy<agents || countgx<agents || countgy<agents)
+            if(countsx < agents || countsy < agents || countgx < agents || countgy < agents)
             {
                 std::cout<<"There is not enough information about "<< agents<<" agents!\n";
                 return false;
@@ -178,7 +179,7 @@ bool Map::getMap(const char* FileName)
         }
         else if(value == CNS_TAG_FY)
         {
-            text=element->GetText();
+            text = element->GetText();
             stream<<text;
             stream>>goal_i[agentNumber];
             stream.clear();
@@ -246,7 +247,7 @@ bool Map::getMap(const char* FileName)
                 element = element->NextSiblingElement();
             }
         }
-        node = map->IterateChildren(node);
+        node = node->NextSibling();
     }
     return true;
 }
