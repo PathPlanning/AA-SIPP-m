@@ -51,12 +51,13 @@ bool Mission::createLog()
 
 void Mission::startSearch()
 {
-    std::cout<<"SEARCH STARTED\n";
+    //std::cout<<"SEARCH STARTED\n";
     sr = m_pSearch->startSearch(m_map);
 }
 
 void Mission::printSearchResultsToConsole()
 {
+    //std::cout<<bool(sr.agentsSolved/sr.agents)<<" "<<sr.time<<" "<<sr.makespan<<" "<<sr.pathlength<<" "<<sr.flowlength<<"\n";
     std::cout<<"Results:\nTask solved: "<<bool(sr.agentsSolved/sr.agents)<<" \nTries: "<<sr.tries<<" \nPaths found: "<<(float)sr.agentsSolved*100/sr.agents<<"% \nTime: "<<sr.time<<" \nMakespan: "<<sr.makespan<<" \nFlowtime: "<<sr.pathlength<<"\n";
 }
 

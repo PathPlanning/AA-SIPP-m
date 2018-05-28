@@ -2,7 +2,7 @@
 #define GL_CONST_H
 
 #define PI              3.14159265359
-#define CN_EPSILON      1e-5
+#define CN_EPSILON      1e-6
 #define CN_INFINITY		1000000
 #define CN_LOG          "_log"
 
@@ -83,6 +83,7 @@
     #define CNS_TAG_SY                  "starty"
     #define CNS_TAG_FX                  "finishx"
     #define CNS_TAG_FY                  "finishy"
+    #define CNS_TAG_SIZE                "size"
     #define CNS_TAG_GRID                "grid"
         #define CNS_TAG_ROW             "row"
     #define CNS_TAG_WEIGHT              "weight"
@@ -155,11 +156,11 @@
  */
 
 #define CN_NO_DIR        0
-#define CN_LEFT_DIR      1
-#define CN_UP_DIR        2
-#define CN_RIGHT_DIR     3
-#define CN_DOWN_DIR      4
-#define CN_GOAL_DIR      5
+#define CN_LEFT_DIR      3
+#define CN_UP_DIR        4
+#define CN_RIGHT_DIR     5
+#define CN_DOWN_DIR      6
+#define CN_GOAL_DIR      9
 
 #define CN_PARALLEL          1
 #define CN_COINCIDENT        2

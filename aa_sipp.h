@@ -5,6 +5,8 @@
 #include "constraints.h"
 #include <random>
 #include <algorithm>
+#include "lineofsight.h"
+
 class AA_SIPP : public Search
 {
 
@@ -21,7 +23,6 @@ private:
     bool stopCriterion();
     double getCost(int a_i, int a_j, int b_i, int b_j);
     double calcHeading(const Node &node, const Node &son);
-    bool lineOfSight(int i1, int j1, int i2, int j2, const Map &map);
     void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs, int numOfCurAgent);
     void makePrimaryPath(Node curNode);
     void makeSecondaryPath(Node curNode);
@@ -29,7 +30,7 @@ private:
     void addConstraints(){}
     Node resetParent(Node current, Node Parent, const Map &map);
     bool findPath(int numOfCurAgent, const Map &map);
-    std::vector<conflict> CheckConflicts();//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
+    std::vector<conflict> CheckConflicts(const Map &map);//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
     void setPriorities(const Map& map);
     bool changePriorities(int bad_i);
     double weight;
@@ -47,7 +48,8 @@ private:
     std::vector<Node> hppath;
     std::vector<std::vector<int>> priorities;
     std::vector<int> current_priorities;
-
+    LineOfSight lineofsight;
+    agent curagent;
     Constraints *constraints;
 };
 

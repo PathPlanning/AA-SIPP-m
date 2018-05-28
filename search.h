@@ -28,7 +28,7 @@ public:
     virtual void makePrimaryPath(Node curNode) = 0;
     virtual void makeSecondaryPath(Node curNode) = 0;
     virtual void addConstraints() = 0;
-    virtual std::vector<conflict> CheckConflicts() = 0;
+    virtual std::vector<conflict> CheckConflicts(const Map &map) = 0;
     SearchResult sresult;
 };
 

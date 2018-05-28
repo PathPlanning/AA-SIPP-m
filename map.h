@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <sstream>
 #include <fstream>
+#include <vector>
+#include "structs.h"
 #include "tinyxml2.h"
 #include "gl_const.h"
 
@@ -16,7 +18,8 @@ public:
     int height, width;
     int *start_i, *start_j;
     int *goal_i, *goal_j;
-    int agents;
+    std::vector<agent> agents;
+    int num;
 
 public:
     Map();

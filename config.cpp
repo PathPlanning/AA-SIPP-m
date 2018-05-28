@@ -109,7 +109,7 @@ bool Config::getConfig(const char* FileName)
     element = algorithm->FirstChildElement(CNS_TAG_CONSTRAINTSTYPE);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_CONSTRAINTSTYPE<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'section'."<<std::endl;
+        //std::cout << "Warning! No '"<<CNS_TAG_CONSTRAINTSTYPE<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'section'."<<std::endl;
         searchParams[CN_PT_CT] = CN_CT_SECTION;
     }
     else
@@ -131,7 +131,7 @@ bool Config::getConfig(const char* FileName)
     element = algorithm->FirstChildElement(CNS_TAG_STARTSAFEINTERVAL);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_STARTSAFEINTERVAL<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 0."<<std::endl;
+        //std::cout << "Warning! No '"<<CNS_TAG_STARTSAFEINTERVAL<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 0."<<std::endl;
         searchParams[CN_PT_SSF] = 0;
     }
     else
@@ -146,7 +146,7 @@ bool Config::getConfig(const char* FileName)
     element = algorithm->FirstChildElement(CNS_TAG_PRIORITIZATION);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_PRIORITIZATION<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'fifo'."<<std::endl;
+        //std::cout << "Warning! No '"<<CNS_TAG_PRIORITIZATION<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'fifo'."<<std::endl;
         searchParams[CN_PT_IP] = CN_IP_FIFO;
     }
     else
@@ -170,7 +170,7 @@ bool Config::getConfig(const char* FileName)
     element = algorithm->FirstChildElement(CNS_TAG_TIMELIMIT);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_TIMELIMIT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to -1(no limit)."<<std::endl;
+        //std::cout << "Warning! No '"<<CNS_TAG_TIMELIMIT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to -1(no limit)."<<std::endl;
         searchParams[CN_PT_TL] = -1;
     }
     else
@@ -185,7 +185,7 @@ bool Config::getConfig(const char* FileName)
     element = algorithm->FirstChildElement(CNS_TAG_RESCHEDULING);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_RESCHEDULING<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'no'."<<std::endl;
+        //std::cout << "Warning! No '"<<CNS_TAG_RESCHEDULING<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'no'."<<std::endl;
         searchParams[CN_PT_RE] = CN_RE_NO;
     }
     else
@@ -241,7 +241,7 @@ bool Config::getConfig(const char* FileName)
     element = algorithm->FirstChildElement(CNS_TAG_TURNINGWEIGHT);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_TURNINGWEIGHT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 0."<<std::endl;
+        //std::cout << "Warning! No '"<<CNS_TAG_TURNINGWEIGHT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 0."<<std::endl;
         searchParams[CN_PT_TW] = 0;
     }
     else

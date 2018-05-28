@@ -23,7 +23,7 @@ private:
     void makePrimaryPath(Node curNode);
     void makeSecondaryPath(Node curNode);
     void addConstraints();
-    std::vector<conflict> CheckConflicts();
+    std::vector<conflict> CheckConflicts(const Map &map);
 
     double weight;
     int metrictype;
