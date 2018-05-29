@@ -11,14 +11,13 @@
 #define CN_PT_WEIGHT    1   // weight
 #define CN_PT_MT        2   // metrictype
 #define CN_PT_AA        3   // allow any-angle
-#define CN_PT_CT        4   // constraints type
-#define CN_PT_TL        5   // time limit
-#define CN_PT_RE        6   // rescheduling
-#define CN_PT_IP        7   // initial prioritization
-#define CN_PT_SSF       8   // start safe interval
-#define CN_PT_TW        9   // turning weight
+#define CN_PT_TL        4   // time limit
+#define CN_PT_RE        5   // rescheduling
+#define CN_PT_IP        6   // initial prioritization
+#define CN_PT_SSF       7   // start safe interval
+#define CN_PT_TW        8   // turning weight
 
-#define CN_PT_NUM       10   //number of parameters
+#define CN_PT_NUM       9   //number of parameters
 
 
 //Obstacle
@@ -40,15 +39,6 @@
 #define CNS_MT_EUCLID       "euclid"
 #define CNS_MT_DIAGONAL     "diagonal"
 #define CNS_MT_MANHATTAN    "manhattan"
-
-//constraints_type
-#define CN_CT_POINT     1
-#define CN_CT_VELOCITY  2
-#define CN_CT_SECTION   3
-
-#define CNS_CT_POINT     "point"
-#define CNS_CT_VELOCITY  "velocity"
-#define CNS_CT_SECTION   "section"
 
 //initial prioritization
 #define CN_IP_SHORTESTF  1

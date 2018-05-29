@@ -21,6 +21,17 @@ bool sort_function(std::pair<double, double> a, std::pair<double, double> b)
     return a.first < b.first;
 }
 
+double Constraints::minDist(Point A, Point C, Point D)
+{
+    int classA = A.classify(C, D);
+    if(classA == 3)
+        return sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2));
+    else if(classA == 4)
+        return sqrt(pow(A.i - D.i, 2) + pow(A.j - D.j, 2));
+    else
+        return fabs((C.i - D.i)*A.j + (D.j - C.j)*A.i + (C.j*D.i - D.j*C.i))/sqrt(pow(C.i - D.i, 2) + pow(C.j - D.j, 2));
+}
+
 void Constraints::resetSafeIntervals(int width, int height)
 {
     safe_intervals.resize(height);
@@ -37,7 +48,6 @@ void Constraints::resetSafeIntervals(int width, int height)
 
 void VelocityConstraints::updateCellSafeIntervals(std::pair<int, int> cell)
 {
-
     if(safe_intervals[cell.first][cell.second].size() > 1)
         return;
     LineOfSight los(agentsize);
@@ -47,6 +57,7 @@ void VelocityConstraints::updateCellSafeIntervals(std::pair<int, int> cell)
         for(int l = 0; l < constraints[cells[k].first][cells[k].second].size(); l++)
             if(std::find(secs.begin(), secs.end(), constraints[cells[k].first][cells[k].second][l]) == secs.end())
                 secs.push_back(constraints[cells[k].first][cells[k].second][l]);
+
     for(int k = 0; k < secs.size(); k++)
     {
         section sec = secs[k];
@@ -186,6 +197,22 @@ VelocityConstraints::VelocityConstraints(int width, int height, double tweight):
     }
 }
 
+void VelocityConstraints::addStartConstraint(int i, int j, int size, std::vector<std::pair<int, int> > cells, double agentsize)
+{
+    section sec(i, j, i, j, 0, size);
+    sec.size = agentsize;
+    for(auto cell: cells)
+        constraints[cell.first][cell.second].insert(constraints[cell.first][cell.second].begin(),sec);
+    return;
+}
+
+void VelocityConstraints::removeStartConstraint(std::vector<std::pair<int, int> > cells)
+{
+    for(auto cell: cells)
+        constraints[cell.first][cell.second].erase(constraints[cell.first][cell.second].begin());
+    return;
+}
+
 void VelocityConstraints::addConstraints(const std::vector<Node> &sections, double size)
 {
     std::vector<std::pair<int,int>> cells;
@@ -248,10 +275,12 @@ std::vector<std::pair<double,double>> VelocityConstraints::findIntervals(Node cu
         while(j < sections.size())
         {
             goal_collision = false;
+
             if(hasCollision(curNode, startTimeA, sections[j], goal_collision))
             {
-                startTimeA += 1.0;
-                cur_interval.first += 1.0;
+                double offset = 1.0;
+                startTimeA += offset;
+                cur_interval.first += offset;
                 j = 0;//start to check all constraints again, because time has changed
                 if(goal_collision || cur_interval.first > cur_interval.second || startTimeA > curNode.Parent->interval.second)
                 {
@@ -265,7 +294,7 @@ std::vector<std::pair<double,double>> VelocityConstraints::findIntervals(Node cu
         }
         if(j == sections.size())
         {
-            bool has=false;
+            bool has = false;
             for(auto rit = range.first; rit != range.second; rit++)
                 if(rit->second.interval.first == curNodeIntervals[i].first)
                 if((rit->second.g + fabs(curNode.heading - rit->second.heading)*tweight/180 - cur_interval.first) < CN_EPSILON)//take into account turning cost

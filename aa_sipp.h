@@ -12,7 +12,7 @@ class AA_SIPP : public Search
 
 public:
 
-    AA_SIPP(double weight, int constraints_type, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight);
+    AA_SIPP(double weight, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight);
     ~AA_SIPP();
     SearchResult startSearch(Map &map);
 
@@ -36,7 +36,6 @@ private:
     double weight;
     bool breakingties;
     int rescheduling;
-    int constraints_type;
     int timelimit;
     int prioritization;
     int startsafeinterval;

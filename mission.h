@@ -4,7 +4,6 @@
 #include "map.h"
 #include "config.h"
 #include "search.h"
-#include <string>
 #include "xmlLogger.h"
 #include "searchresult.h"
 #include "sipp.h"

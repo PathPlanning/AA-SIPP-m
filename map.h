@@ -5,7 +5,6 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
-#include <fstream>
 #include <vector>
 #include "structs.h"
 #include "tinyxml2.h"

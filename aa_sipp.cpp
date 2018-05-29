@@ -1,20 +1,20 @@
 #include "aa_sipp.h"
 
-AA_SIPP::AA_SIPP(double weight, int constraints_type, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight)
+AA_SIPP::AA_SIPP(double weight, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight)
 {
     this->weight = weight;
-    this->constraints_type = constraints_type;
     this->rescheduling = rescheduling;
-    if(timelimit > 0)
-        this->timelimit = timelimit;
-    else
-        this->timelimit = CN_INFINITY;
+    this->timelimit = timelimit;
     this->prioritization = prioritization;
     this->startsafeinterval = startsafeinterval;
     this->tweight = tweight;
     closeSize = 0;
     openSize = 0;
     constraints = nullptr;
+    if(timelimit == -1)
+        this->timelimit = CN_INFINITY;
+    if(startsafeinterval == -1)
+        this->startsafeinterval = CN_INFINITY;
 }
 
 AA_SIPP::~AA_SIPP()
@@ -293,12 +293,6 @@ SearchResult AA_SIPP::startSearch(Map &map)
     double timespent(0);
     priorities.clear();
     open.resize(map.height);
-    startsafeinterval = CN_INFINITY;
-    rescheduling = CN_RE_NO;
-    prioritization = CN_IP_SHORTESTF;
-    timelimit = 1000;
-    tweight = 0.0;
-
     setPriorities(map);
     do
     {
@@ -310,23 +304,24 @@ SearchResult AA_SIPP::startSearch(Map &map)
         sresult.pathlength = 0;
         sresult.makespan = 0;
         sresult.flowlength = 0;
-        for(int numOfCurAgent = 0; numOfCurAgent < map.agents.size(); numOfCurAgent++)
+        for(auto curagent:map.agents)
         {
-            lineofsight.setSize(map.agents[current_priorities[numOfCurAgent]].size);
+            lineofsight.setSize(curagent.size);
             if(startsafeinterval > 0)
             {
-                auto cells = lineofsight.getCells(map.agents[current_priorities[numOfCurAgent]].start_i,map.agents[current_priorities[numOfCurAgent]].start_j);
-                constraints->addStartConstraint(map.agents[numOfCurAgent].start_i, map.agents[numOfCurAgent].start_j, startsafeinterval, cells, map.agents[numOfCurAgent].size);
+                auto cells = lineofsight.getCells(curagent.start_i,curagent.start_j);
+                constraints->addStartConstraint(curagent.start_i, curagent.start_j, startsafeinterval, cells, curagent.size);
             }
         }
         for(int numOfCurAgent = 0; numOfCurAgent < map.agents.size(); numOfCurAgent++)
         {
-            constraints->setSize(map.agents[current_priorities[numOfCurAgent]].size);
-            lineofsight.setSize(map.agents[current_priorities[numOfCurAgent]].size);
+            curagent = map.agents[current_priorities[numOfCurAgent]];
+            constraints->setSize(curagent.size);
+            lineofsight.setSize(curagent.size);
             if(startsafeinterval > 0)
             {
-                auto cells = lineofsight.getCells(map.agents[current_priorities[numOfCurAgent]].start_i, map.agents[current_priorities[numOfCurAgent]].start_j);
-                constraints->removeStartConstraint(map.agents[current_priorities[numOfCurAgent]].start_i, map.agents[current_priorities[numOfCurAgent]].start_j, cells);
+                auto cells = lineofsight.getCells(curagent.start_i, curagent.start_j);
+                constraints->removeStartConstraint(cells);
             }
             if(findPath(current_priorities[numOfCurAgent], map))
                 constraints->addConstraints(sresult.pathInfo[current_priorities[numOfCurAgent]].sections, curagent.size);
@@ -400,7 +395,6 @@ bool AA_SIPP::findPath(int numOfCurAgent, const Map &map)
     ResultPathInfo resultPath;
     openSize = 0;
     closeSize = 0;
-    curagent = map.agents[numOfCurAgent];
     constraints->resetSafeIntervals(map.width, map.height);
     constraints->updateCellSafeIntervals({curagent.start_i, curagent.start_j});
     Node curNode(curagent.start_i, curagent.start_j, 0, 0);
