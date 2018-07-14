@@ -32,9 +32,8 @@ void Mission::createSearch()
     if(m_config.searchParams[CN_PT_AA] == 0)
         m_pSearch = new SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_MT]);
     else
-        m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_CT], m_config.searchParams[CN_PT_RE],
-                                m_config.searchParams[CN_PT_TL], m_config.searchParams[CN_PT_IP], m_config.searchParams[CN_PT_SSF],
-                                m_config.searchParams[CN_PT_TW]);
+        m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_RE],
+                                m_config.searchParams[CN_PT_TL], m_config.searchParams[CN_PT_IP]);
 }
 
 bool Mission::createLog()
@@ -57,7 +56,9 @@ void Mission::startSearch()
 
 void Mission::printSearchResultsToConsole()
 {
-    std::cout<<"Results:\nTask solved: "<<bool(sr.agentsSolved/sr.agents)<<" \nTries: "<<sr.tries<<" \nPaths found: "<<(float)sr.agentsSolved*100/sr.agents<<"% \nTime: "<<sr.time<<" \nMakespan: "<<sr.makespan<<" \nFlowtime: "<<sr.pathlength<<"\n";
+    std::cout<<"Task solved: "<<bool(sr.agentsSolved/sr.agents)<<" \nPlanning Time: "<<sr.time
+             <<" \nRepair Time: "<<sr.reptime<<" \nMakespan: "<<sr.makespan<<" \nFlowtime: "<<sr.pathlength
+             <<" \nSummary Distance: "<<sr.flowlength<<" \nMax Distance: "<<sr.maxdist<<"\n";
 }
 
 void Mission::saveSearchResultsToLog()
@@ -69,7 +70,7 @@ void Mission::saveSearchResultsToLog()
     if(sr.pathfound)
     {
         m_pLogger->writeToLogPath(sr);
-        m_pLogger->writeToLogMap(m_map,sr);
+        //m_pLogger->writeToLogMap(m_map,sr);
     }
     m_pLogger->saveLog();
     std::cout<<"LOG SAVED\n";

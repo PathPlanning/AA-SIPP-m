@@ -8,7 +8,7 @@
 struct ResultPathInfo
 {
     bool pathfound;
-    float pathlength;
+    double pathlength;
     unsigned int nodescreated;
     unsigned int numberofsteps;
     double time;
@@ -32,9 +32,12 @@ struct SearchResult
     bool pathfound;
     double pathlength;
     double makespan;
+    double flowlength;
+    double maxdist;
     unsigned int nodescreated;
     unsigned int numberofsteps;
     double time;
+    double reptime;
     unsigned int agents;
     int agentsSolved;
     int tries;
@@ -47,6 +50,7 @@ struct SearchResult
         nodescreated = 0;
         numberofsteps = 0;
         time = 0;
+        reptime = 0;
         agents = 0;
     }
 

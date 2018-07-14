@@ -22,16 +22,20 @@ private:
     bool stopCriterion();
     void makePrimaryPath(Node curNode);
     void makeSecondaryPath(Node curNode);
-    void addConstraints();
+    void addConstraints(){}
+    void addConstraints(std::vector<Node> sections);
     std::vector<conflict> CheckConflicts();
+    void repairPaths(const Map &map);
 
     double weight;
     int metrictype;
     unsigned int closeSize, openSize;
     std::unordered_multimap<int, Node> close;
-    std::list<Node> *open, lppath;
+    std::list<Node> lppath;
+    std::vector<std::list<Node>> open;
     std::vector<Node> hppath;
     std::vector<std::vector<std::vector<movement>>> ctable;
+    std::vector<int> current_priorities;
 };
 
 #endif // SIPP_H

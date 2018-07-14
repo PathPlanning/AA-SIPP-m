@@ -13,6 +13,15 @@ struct conflict
     double g;
 };
 
+struct agent
+{
+    int start_i;
+    int start_j;
+    int goal_i;
+    int goal_j;
+    double size;
+};
+
 struct constraint
 {
     double i;
@@ -30,9 +39,10 @@ struct movement
 
 struct Node
 {
-    Node(int _i=-1, int _j=-1, double _g=-1, double _F=-1):i(_i),j(_j),g(_g),F(_F),Parent(nullptr){}
+    Node(int _i=-1, int _j=-1, double _g=-1, double _F=-1):i(_i),j(_j),g(_g),F(_F),Parent(nullptr){interval.first = 0; interval.second = 0;}
     ~Node(){ Parent = nullptr; }
     int     i, j;
+    double  size;
     double  g;
     double  F;
     double  heading;
@@ -49,6 +59,7 @@ struct section
     int j1;
     int i2;
     int j2;
+    double size;
     double g1;
     double g2;//is needed for goal and wait actions
     bool operator == (const section &comp) const {return (i1 == comp.i1 && j1 == comp.j1 && g1 == comp.g1);}
@@ -84,14 +95,14 @@ public:
         Point a = p1 - pO;
         Point b = p2 - pO;
         double sa = a.i * b.j - b.i * a.j;
-        if ((a.i * b.i < 0.0) || (a.j * b.j < 0.0))
-            return 3;//BEHIND;
-        if ((a.i*a.i + a.j*a.j) < (b.i*b.i + b.j*b.j))
-            return 4;//BEYOND;
         if (sa > 0.0)
             return 1;//LEFT;
         if (sa < 0.0)
             return 2;//RIGHT;
+        if ((a.i * b.i < 0.0) || (a.j * b.j < 0.0))
+            return 3;//BEHIND;
+        if ((a.i*a.i + a.j*a.j) < (b.i*b.i + b.j*b.j))
+            return 4;//BEYOND;
         if (pO == p2)
             return 5;//ORIGIN;
         if (p1 == p2)

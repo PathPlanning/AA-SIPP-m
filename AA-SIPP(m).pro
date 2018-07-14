@@ -29,4 +29,5 @@ HEADERS += \
     sipp.h \
     aa_sipp.h \
     structs.h \
-    constraints.h
+    constraints.h \
+    lineofsight.h

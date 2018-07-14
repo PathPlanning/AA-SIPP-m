@@ -6,7 +6,8 @@ Map::Map()
     height = -1;
     width = -1;
     Grid = 0;
-    agents=1;
+    num = 1;
+    agents.resize(1);
 }
 Map::~Map()
 {	
@@ -19,10 +20,6 @@ Map::~Map()
 
         delete[] Grid;
     }
-    delete[] start_i;
-    delete[] start_j;
-    delete[] goal_i;
-    delete[] goal_j;
 }
 
 bool Map::getMap(const char* FileName)
@@ -105,11 +102,11 @@ bool Map::getMap(const char* FileName)
         {
             text = element->GetText();
             stream<<text;
-            stream>>agents;
+            stream>>num;
             stream.clear();
             stream.str("");
 
-            if (agents <= 0)
+            if (num <= 0)
             {
                 std::cout << "Wrong '"<<CNS_TAG_AGENTS<<"' value\n";
                 return false;
@@ -125,25 +122,22 @@ bool Map::getMap(const char* FileName)
                 countgx++;
             for(child = map->FirstChildElement(CNS_TAG_FY); child; child = child->NextSiblingElement(CNS_TAG_FY))
                 countgy++;
-            if(countsx < agents || countsy < agents || countgx < agents || countgy < agents)
+            if(countsx < num || countsy < num || countgx < num || countgy < num)
             {
-                std::cout<<"There is not enough information about "<< agents<<" agents!\n";
+                std::cout<<"There is not enough information about "<< num<<" agents!\n";
                 return false;
             }
-            start_j = new int[agents];
-            start_i = new int[agents];
-            goal_j = new int[agents];
-            goal_i = new int[agents];
+            agents.resize(num);
         }
         else if(value == CNS_TAG_SX)
         {
             text = element->GetText();
             stream<<text;
-            stream>>start_j[agentNumber];
+            stream>>agents[agentNumber].start_j;
             stream.clear();
             stream.str("");
 
-            if (start_j[agentNumber] < 0 || start_j[agentNumber] >= width)
+            if (agents[agentNumber].start_j < 0 || agents[agentNumber].start_j >= width)
             {
                 std::cout << "Wrong '"<<CNS_TAG_SX<<"' value."<<std::endl;
                 return false;
@@ -153,11 +147,11 @@ bool Map::getMap(const char* FileName)
         {
             text = element->GetText();
             stream<<text;
-            stream>>start_i[agentNumber];
+            stream>>agents[agentNumber].start_i;
             stream.clear();
             stream.str("");
 
-            if (start_i[agentNumber] < 0 || start_i[agentNumber] >= height)
+            if (agents[agentNumber].start_i < 0 || agents[agentNumber].start_i >= height)
             {
                 std::cout << "Wrong '"<<CNS_TAG_SY<<"' value."<<std::endl;
                 return false;
@@ -167,11 +161,11 @@ bool Map::getMap(const char* FileName)
         {
             text = element->GetText();
             stream<<text;
-            stream>>goal_j[agentNumber];
+            stream>>agents[agentNumber].goal_j;
             stream.clear();
             stream.str("");
 
-            if (goal_j[agentNumber] < 0 || goal_j[agentNumber] >= width)
+            if (agents[agentNumber].goal_j < 0 || agents[agentNumber].goal_j >= width)
             {
                 std::cout << "Wrong '"<<CNS_TAG_FX<<"' value."<<std::endl;
                 return false;
@@ -181,11 +175,11 @@ bool Map::getMap(const char* FileName)
         {
             text = element->GetText();
             stream<<text;
-            stream>>goal_i[agentNumber];
+            stream>>agents[agentNumber].goal_i;
             stream.clear();
             stream.str("");
 
-            if (goal_i[agentNumber] < 0 || goal_i[agentNumber] >= height)
+            if (agents[agentNumber].goal_i < 0 || agents[agentNumber].goal_i >= height)
             {
                 std::cout << "Wrong '"<<CNS_TAG_FY<<"' value."<<std::endl;
                 return false;
@@ -263,6 +257,11 @@ bool Map::CellIsObstacle(int i, int j) const
     return (Grid[i][j] != 0);
 }
 
+bool Map::CellIsStart(int i, int j) const
+{
+    return (Grid[i][j] == 2);
+}
+
 bool Map::CellOnGrid(int i, int j) const
 {
     return (i < height && i >= 0 && j < width && j >= 0);
@@ -282,7 +281,7 @@ int Map::getValue(int i, int j) const
 
 void Map::addConstraint(int i, int j)
 {
-    Grid[i][j]=CN_OBSTL;
+    Grid[i][j]=2;
 }
 
 void Map::removeConstraint(int i, int j)

@@ -91,14 +91,15 @@ void XmlLogger::writeToLogSummary(const SearchResult &sresult)
                 maxnodes = sresult.pathInfo[k].nodescreated;
         }
 
-    element->SetAttribute(CNS_TAG_ATTR_TRIES, sresult.tries);
-    element->SetAttribute(CNS_TAG_ATTR_AGENTSSOLVED, (std::to_string(float(sresult.agentsSolved*100)/sresult.agents)+"%").c_str());
+    element->SetAttribute("tasksolved", (std::to_string(int(sresult.agentsSolved/sresult.agents)).c_str()));
     element->SetAttribute(CNS_TAG_ATTR_MAXNODESCR, maxnodes);
     element->SetAttribute(CNS_TAG_ATTR_TOTALNODES, totalnodes);
-    element->SetAttribute(CNS_TAG_ATTR_FLOWTIME, pathlenght);
-    element->SetAttribute(CNS_TAG_ATTR_AVGLENGTH, pathlenght/sresult.agentsSolved);
+    element->SetAttribute(CNS_TAG_ATTR_FLOWTIME, sresult.pathlength);
     element->SetAttribute(CNS_TAG_ATTR_MAKESPAN, sresult.makespan);
-    element->SetAttribute(CNS_TAG_ATTR_TIME, sresult.time);
+    element->SetAttribute("sumdist", sresult.flowlength);
+    element->SetAttribute("maxdist", sresult.maxdist);
+    element->SetAttribute("plantime", sresult.time);
+    element->SetAttribute("repairtime", sresult.reptime);
 }
 
 void XmlLogger::writeToLogPath(const SearchResult &sresult)
@@ -129,7 +130,9 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
         path->SetAttribute(CNS_TAG_ATTR_NODES, sresult.pathInfo[i].nodescreated);
         path->SetAttribute(CNS_TAG_ATTR_TIME, sresult.pathInfo[i].time);
         agent->LinkEndChild(path);
-
+        XMLElement *hplevel;
+        hplevel = doc->NewElement(CNS_TAG_HPLEVEL);
+        path->LinkEndChild(hplevel);
         if (sresult.pathInfo[i].pathfound)
         {
             auto iter = sresult.pathInfo[i].sections.begin();
@@ -143,7 +146,7 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
             part->SetAttribute(CNS_TAG_ATTR_FX, iter->j);
             part->SetAttribute(CNS_TAG_ATTR_FY, iter->i);
             part->SetAttribute(CNS_TAG_ATTR_LENGTH, iter->g);
-            path->LinkEndChild(part);
+            hplevel->LinkEndChild(part);
             partnumber++;
             while(iter != --sresult.pathInfo[i].sections.end())
             {
@@ -155,7 +158,7 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
                 part->SetAttribute(CNS_TAG_ATTR_FX, iter->j);
                 part->SetAttribute(CNS_TAG_ATTR_FY, iter->i);
                 part->SetAttribute(CNS_TAG_ATTR_LENGTH, iter->g - it->g);
-                path->LinkEndChild(part);
+                hplevel->LinkEndChild(part);
                 it++;
                 partnumber++;
             }

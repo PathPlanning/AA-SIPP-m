@@ -24,97 +24,25 @@ bool SIPP::stopCriterion()
 
 double SIPP::countHValue(int i, int j, int goal_i, int goal_j)
 {
-    if(metrictype == CN_MT_EUCLID)
-            return sqrt((i - goal_i)*(i - goal_i) + (j - goal_j)*(j - goal_j));
-    else if(metrictype == CN_MT_DIAGONAL)
-        return std::min(abs(i - goal_i),abs(j - goal_j))*sqrt(2)+abs(abs(i - goal_i) - abs(j - goal_j));
-    else
-        return abs(i - goal_i) + abs(j - goal_j);
+    return abs(i - goal_i) + abs(j - goal_j);
 }
 
 void SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs, int numOfCurAgent)
 {
     Node newNode;
-    std::vector<std::pair<int,int>> intervals(0);
-    std::pair<int,int> interval(-1, -1);
 
     for(int i = -1; i <= +1; i++)
     {
         for(int j = -1; j <= +1; j++)
         {
-            if((i*j) == 0 && (i+j) != 0 && map.CellOnGrid(curNode.i + i, curNode.j + j) && (map.CellIsTraversable(curNode.i + i, curNode.j + j)))
+            if(abs(i+j) == 1 && map.CellOnGrid(curNode.i + i, curNode.j + j) && (map.CellIsTraversable(curNode.i + i, curNode.j + j)))
             {
                 newNode.i = curNode.i + i;
                 newNode.j = curNode.j + j;
                 newNode.g = curNode.g + 1;
-                int direction = CN_UP_DIR;
-                if(j == -1)
-                    direction = CN_LEFT_DIR;
-                else if(j == 1)
-                    direction = CN_RIGHT_DIR;
-                else if(i == 1)
-                    direction = CN_DOWN_DIR;
-                double h_value = weight*countHValue(newNode.i, newNode.j, map.goal_i[numOfCurAgent], map.goal_j[numOfCurAgent]);
-                if(ctable[newNode.i][newNode.j].size() != 0)
-                {
-                    intervals.clear();
-                    if(ctable[newNode.i][newNode.j][0].g - 1 >= newNode.g)
-                    {
-                        interval = {newNode.g,ctable[newNode.i][newNode.j][0].g - 1};
-                        if(ctable[newNode.i][newNode.j][0].g - 1 <= newNode.g)
-                            interval.first++;
-                        if(direction != ctable[newNode.i][newNode.j][0].s_dir)
-                            interval.second--;
-                        if(interval.second >= interval.first)
-                            intervals.push_back(interval);
-                    }
-                    for(unsigned int k = 0; k < ctable[newNode.i][newNode.j].size(); k++)
-                    {
-                        if(ctable[newNode.i][newNode.j][k].s_dir == CN_GOAL_DIR)
-                            break;
-                        if(k < ctable[newNode.i][newNode.j].size() - 1)
-                        {
-                            if(ctable[newNode.i][newNode.j][k].g + 1 <= ctable[newNode.i][newNode.j][k + 1].g - 1)
-                            {
-                                interval = {ctable[newNode.i][newNode.j][k].g + 1, ctable[newNode.i][newNode.j][k + 1].g - 1};
-                                if(direction != ctable[newNode.i][newNode.j][k].s_dir)
-                                    interval.first++;
-                                if(direction != ctable[newNode.i][newNode.j][k + 1].p_dir || direction != ctable[newNode.i][newNode.j][k + 1].s_dir)
-                                    interval.second--;
-                                if(interval.second >= interval.first)
-                                    intervals.push_back(interval);
-                            }
-                        }
-                        else
-                        {
-                            intervals.push_back({ctable[newNode.i][newNode.j][k].g + 1, CN_INFINITY});
-                            if(direction != ctable[newNode.i][newNode.j][k].s_dir)
-                                intervals.back().first++;
-                        }
-                    }
-                    for(unsigned int k = 0; k < intervals.size(); k++)
-                    {
-                        if(intervals[k].second < curNode.interval.first + 1)
-                            continue;
-                        if(intervals[k].first >= curNode.interval.second + 1)
-                            continue;
-                        newNode.interval = intervals[k];
-                        if(newNode.interval.first > newNode.g)
-                            newNode.g = newNode.interval.first;
-                        if(newNode.interval.second < newNode.g)
-                            continue;
-                        newNode.F = newNode.g + h_value;
-                        succs.push_back(newNode);
-                    }
-                }
-                else
-                {
-                    newNode.interval = {newNode.g, CN_INFINITY};
-                    newNode.F = newNode.g + h_value;
-                    if(newNode.interval.first >= curNode.interval.second + 1)
-                        continue;
-                    succs.push_back(newNode);
-                }
+                double h_value = weight*countHValue(newNode.i, newNode.j, map.agents[numOfCurAgent].goal_i, map.agents[numOfCurAgent].goal_j);
+                newNode.F = newNode.g + h_value;
+                succs.push_back(newNode);
             }
         }
     }
@@ -170,7 +98,7 @@ void SIPP::addOpen(Node &newNode)
                 posFound = true;
             }
         }
-        if (iter->i == newNode.i && iter->j == newNode.j && iter->interval.first == newNode.interval.first && iter->interval.second == newNode.interval.second)
+        if (iter->j == newNode.j)
         {
             if(newNode.F >= iter->F)
                 return;
@@ -204,33 +132,55 @@ SearchResult SIPP::startSearch(Map &map)
     QueryPerformanceFrequency(&freq);
 #endif
     sresult.pathInfo.resize(0);
-    sresult.agents = map.agents;
+    sresult.agents = map.agents.size();
     sresult.agentsSolved = 0;
+    sresult.flowlength = 0;
+    sresult.makespan = 0;
+    sresult.pathlength = 0;
+    sresult.maxdist = 0;
     ctable.resize(map.height);
+    std::vector<double> dists(map.agents.size(), -1);
+    for(int i = 0; i < map.agents.size(); i++)
+        dists[i] = sqrt(pow(map.agents[i].start_i - map.agents[i].goal_i, 2) + pow(map.agents[i].start_j - map.agents[i].goal_j, 2));
+    int k = map.agents.size() - 1;
+    current_priorities.resize(map.agents.size());
+    while(k >= 0)
+    {
+        double mindist = CN_INFINITY;
+        int min_i = -1;
+        for(unsigned int i = 0; i < dists.size(); i++)
+            if(mindist > dists[i])
+            {
+                min_i = i;
+                mindist = dists[i];
+            }
+        current_priorities[min_i] = min_i;
+        dists[min_i] = CN_INFINITY;
+        k--;
+    }
     for(int i = 0; i < map.height; i++)
     {
         ctable[i].resize(map.width);
         for(int j = 0; j < map.width; j++)
             ctable[i][j].resize(0);
     }
-    for(int i = 0; i < map.agents; i++)
+    for(int i = 0; i < map.agents.size(); i++)
     {
-        map.addConstraint(map.start_i[i], map.start_j[i]);
-        //Map.addConstraint(Map.goal_i[i], Map.goal_j[i]);
+        map.addConstraint(map.agents[i].start_i, map.agents[i].start_j);
+        map.addConstraint(map.agents[i].goal_i, map.agents[i].goal_j);
     }
-    for(int numOfCurAgent = 0; numOfCurAgent < map.agents; numOfCurAgent++)
+    for(int numOfCurAgent = 0; numOfCurAgent < map.agents.size(); numOfCurAgent++)
     {
-        //std::cout<<numOfCurAgent<<" ";
-        map.removeConstraint(map.start_i[numOfCurAgent], map.start_j[numOfCurAgent]);
-        map.removeConstraint(map.goal_i[numOfCurAgent], map.goal_j[numOfCurAgent]);
-        if(findPath(numOfCurAgent, map))
-            addConstraints();
-        close.clear();
+        map.removeConstraint(map.agents[current_priorities[numOfCurAgent]].start_i, map.agents[current_priorities[numOfCurAgent]].start_j);
+        map.removeConstraint(map.agents[current_priorities[numOfCurAgent]].goal_i, map.agents[current_priorities[numOfCurAgent]].goal_j);
+        findPath(current_priorities[numOfCurAgent], map);
+        map.addConstraint(map.agents[current_priorities[numOfCurAgent]].goal_i, map.agents[current_priorities[numOfCurAgent]].goal_j);
+        map.addConstraint(map.agents[current_priorities[numOfCurAgent]].start_i, map.agents[current_priorities[numOfCurAgent]].start_j);
         for(int i = 0; i < map.height; i++)
             open[i].clear();
-        delete [] open;
+        open.clear();
+        close.clear();
     }
-
 #ifdef __linux__
     gettimeofday(&end, NULL);
     sresult.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
@@ -238,9 +188,20 @@ SearchResult SIPP::startSearch(Map &map)
     QueryPerformanceCounter(&end);
     sresult.time = static_cast<double>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
 #endif
+
+    repairPaths(map);
+
+#ifdef __linux__
+    gettimeofday(&end, NULL);
+    sresult.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
+#else
+    QueryPerformanceCounter(&end);
+    sresult.reptime = static_cast<double>(end.QuadPart - begin.QuadPart)/freq.QuadPart - sresult.time;
+#endif
+
     std::vector<conflict> conflicts = CheckConflicts();
-    for(unsigned int i = 0; i < conflicts.size(); i++)
-        std::cout<< i << " " << conflicts[i].agent1 << " " << conflicts[i].agent2 << " " << conflicts[i].g << "\n";
+    //for(unsigned int i = 0; i < conflicts.size(); i++)
+    //    std::cout<< i << " " << conflicts[i].agent1 << " " << conflicts[i].agent2 << " " << conflicts[i].g << "\n";
     return sresult;
 }
 
@@ -285,7 +246,7 @@ std::vector<conflict> SIPP::CheckConflicts()
 
                     cur = sresult.pathInfo[i].sections[k];
                     check = sresult.pathInfo[j].sections[l];
-                    if(cur.i == check.i && cur.j == check.j && abs(cur.g-check.g)<=1)
+                    if(cur.i == check.i && cur.j == check.j && cur.g==check.g)
                     {
                         conf.agent1 = i;
                         conf.agent2 = j;
@@ -311,7 +272,9 @@ std::vector<conflict> SIPP::CheckConflicts()
                             conf.g = cur.g;
                             conflicts.push_back(conf);
                         }
-                        if(((cur.i == checknext.i && cur.j == checknext.j && cur.g==checknext.g) || (curnext.i == check.i && curnext.j == check.j && curnext.g == check.g)) && ((cur.i-curnext.i)!=(check.i-checknext.i) || (cur.j-curnext.j)!=(check.j-checknext.j)))
+                        /*if(((cur.i == checknext.i && cur.j == checknext.j && cur.g==checknext.g) ||
+                            (curnext.i == check.i && curnext.j == check.j && curnext.g == check.g)) &&
+                                ((cur.i-curnext.i)!=(check.i-checknext.i) || (cur.j-curnext.j)!=(check.j-checknext.j)))
                         {
                             conf.agent1 = i;
                             conf.agent2 = j;
@@ -321,29 +284,29 @@ std::vector<conflict> SIPP::CheckConflicts()
                             conf.j = cur.j;
                             conf.g = cur.g;
                             conflicts.push_back(conf);
-                        }
+                        }*/
                     }
                 }
     return conflicts;
 }
 
-void SIPP::addConstraints()
+void SIPP::addConstraints(std::vector<Node> sections)
 {
     Node cur;
     movement add;
-    for(unsigned int i = 0; i < sresult.pathInfo.back().sections.size() - 1; i++)
+    for(unsigned int i = 0; i < sections.size() - 1; i++)
     {
-        cur = sresult.pathInfo.back().sections[i];
+        cur = sections[i];
         add.g = cur.g;
         if(i != 0)
         {
-            if(sresult.pathInfo.back().sections[i - 1].i - 1 == cur.i)
+            if(sections[i - 1].i - 1 == cur.i)
                 add.p_dir = CN_UP_DIR;
-            else if(sresult.pathInfo.back().sections[i - 1].i + 1 == cur.i)
+            else if(sections[i - 1].i + 1 == cur.i)
                 add.p_dir = CN_DOWN_DIR;
-            else if(sresult.pathInfo.back().sections[i - 1].j - 1 == cur.j)
+            else if(sections[i - 1].j - 1 == cur.j)
                 add.p_dir = CN_LEFT_DIR;
-            else if(sresult.pathInfo.back().sections[i - 1].j + 1 == cur.j)
+            else if(sections[i - 1].j + 1 == cur.j)
                 add.p_dir = CN_RIGHT_DIR;
             else
                 add.p_dir = CN_NO_DIR;
@@ -351,13 +314,13 @@ void SIPP::addConstraints()
         else
             add.p_dir = CN_NO_DIR;
         
-        if(sresult.pathInfo.back().sections[i + 1].i + 1 == cur.i)
+        if(sections[i + 1].i + 1 == cur.i)
             add.s_dir = CN_DOWN_DIR;
-        else if(sresult.pathInfo.back().sections[i + 1].i - 1 == cur.i)
+        else if(sections[i + 1].i - 1 == cur.i)
             add.s_dir = CN_UP_DIR;
-        else if(sresult.pathInfo.back().sections[i + 1].j + 1 == cur.j)
+        else if(sections[i + 1].j + 1 == cur.j)
             add.s_dir = CN_RIGHT_DIR;
-        else if(sresult.pathInfo.back().sections[i + 1].j - 1 == cur.j)
+        else if(sections[i + 1].j - 1 == cur.j)
             add.s_dir = CN_LEFT_DIR;
         else
             add.s_dir = CN_NO_DIR;
@@ -378,7 +341,7 @@ void SIPP::addConstraints()
                 ctable[cur.i][cur.j].push_back(add);
         }
     }
-    cur = sresult.pathInfo.back().sections.back();
+    cur = sections.back();
     if(cur.Parent != NULL)
     {
         if(cur.Parent->i - 1 == cur.i)
@@ -395,9 +358,111 @@ void SIPP::addConstraints()
     else
         add.p_dir = CN_NO_DIR;
     add.s_dir = CN_GOAL_DIR;
-    add.g = sresult.pathInfo.back().sections.back().g;
+    add.g = sections.back().g;
     ctable[cur.i][cur.j].push_back(add);
 } 
+
+void SIPP::repairPaths(const Map &map)
+{
+
+    close.clear();
+    std::vector<Node> sections = sresult.pathInfo[0].sections;
+    addConstraints(sections);
+    sresult.makespan = 0;
+    sresult.flowlength = 0;
+    sresult.pathlength = 0;
+    for(int i=1; i<sresult.agents; i++)
+    {
+        sections = sresult.pathInfo[i].sections;
+        std::vector<Node> path;
+        path.push_back(sections[0]);
+        for(int k=1; k<sections.size(); k++)
+        {
+            Node cur = sections[k];
+            bool ok = true;
+            if(k != 0)
+            {
+                cur.g = std::max(cur.g, path.back().g+1);
+                int dir;
+                if(path.back().i - 1 == cur.i)
+                    dir = CN_DOWN_DIR;
+                else if(path.back().i + 1 == cur.i)
+                    dir = CN_UP_DIR;
+                else if(path.back().j - 1 == cur.j)
+                    dir = CN_RIGHT_DIR;
+                else if(path.back().j + 1 == cur.j)
+                    dir = CN_LEFT_DIR;
+                else
+                    dir = CN_NO_DIR;
+                for(int n = 0; n < ctable[cur.i][cur.j].size(); n++)
+                {
+                    if(fabs(ctable[cur.i][cur.j][n].g - cur.g) < 1.5)
+                    {
+                        if(ctable[cur.i][cur.j][n].g == cur.g)
+                        {
+                            sections[k-1].g+=1.0;
+                            path.pop_back();
+                            k-=2;
+                            ok=false;
+                            break;
+                        }
+                        else if(ctable[cur.i][cur.j][n].g - cur.g == 1.0)
+                        {
+                            if(abs(dir - ctable[cur.i][cur.j][n].p_dir) == 2)
+                            {
+                                sections[k-1].g+=1.0;
+                                path.pop_back();
+                                k-=2;
+                                ok=false;
+                                break;
+                            }
+                        }
+                        else if(ctable[cur.i][cur.j][n].g - cur.g == -1.0)
+                        {
+                            if(abs(dir - ctable[cur.i][cur.j][n].s_dir) == 2)
+                            {
+                                sections[k-1].g+=1.0;
+                                path.pop_back();
+                                k-=2;
+                                ok=false;
+                                break;
+                            }
+                        }
+                    }
+                    else if(ctable[cur.i][cur.j][n].g > cur.g + 1.0)
+                        break;
+                }
+            }
+            if(ok)
+                path.push_back(cur);
+        }
+        std::vector<Node> secs;
+        Node cur = path[0];
+        cur.g = 0;
+        if(path[0].g != 0)
+            path.insert(path.begin(),cur);
+        secs.push_back(cur);
+        for(int k=1; k<path.size(); k++)
+        {
+            if(path[k].g != path[k-1].g+1.0)
+            {
+                cur = path[k];
+                cur.g = path[k-1].g;
+                while(cur.g+1 < path[k].g)
+                {
+                    cur.g+=1.0;
+                    secs.push_back(cur);
+                }
+            }
+            secs.push_back(path[k]);
+        }
+        addConstraints(secs);
+        sresult.pathInfo[i].sections = secs;
+        sresult.makespan = std::max(sresult.makespan, secs.back().g);
+        sresult.pathlength += secs.back().g;
+        sresult.flowlength += abs(secs.begin()->i - secs.back().i) + abs(secs.begin()->j - secs.back().j);
+    }
+}
 
 bool SIPP::findPath(int numOfCurAgent, const Map &map)
 {
@@ -409,13 +474,13 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
     QueryPerformanceCounter(&begin);
     QueryPerformanceFrequency(&freq);
 #endif
-    open = new std::list<Node>[map.height];
+    open.resize(map.height);
 
     ResultPathInfo resultPath;
     openSize = 0;
     closeSize = 0;
 
-    Node curNode(map.start_i[numOfCurAgent], map.start_j[numOfCurAgent], 0, 0);
+    Node curNode(map.agents[numOfCurAgent].start_i, map.agents[numOfCurAgent].start_j, 0, 0);
     curNode.g = 0;
     if(ctable[curNode.i][curNode.j].empty())
         curNode.interval = {0, CN_INFINITY};
@@ -431,7 +496,7 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
         openSize--;
         close.insert({curNode.i * map.width + curNode.j, curNode});
         closeSize++;
-        if(curNode.i == map.goal_i[numOfCurAgent] && curNode.j == map.goal_j[numOfCurAgent])
+        if(curNode.i == map.agents[numOfCurAgent].goal_i && curNode.j == map.agents[numOfCurAgent].goal_j)
         {
             pathFound = true;
             break;
@@ -443,16 +508,8 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
         auto parent = &(close.find(curNode.i * map.width + curNode.j)->second);
         while(it != succs.end())
         {
-            bool has = false;
             it->Parent = parent;
-            auto range = close.equal_range(it->i * map.width + it->j);
-            for(auto i = range.first; i != range.second; i++)
-                if(i->second.interval.first <= it->interval.first && i->second.interval.second >= it->interval.second)
-                {
-                    has = true;
-                    break;
-                }
-            if(!has)
+            if(close.find(it->i*map.width + it->j) == close.end())
                 addOpen(*it);
             it++;
         }
@@ -483,9 +540,13 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
         QueryPerformanceCounter(&end);
         resultPath.time = static_cast<double long>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
 #endif
-
+        double length=0;
+        for(unsigned int i = 1; i < hppath.size(); i++)
+            length += countHValue(hppath[i].i, hppath[i].j, hppath[i-1].i, hppath[i-1].j);
+        sresult.flowlength += length;
+        sresult.maxdist = std::max(sresult.maxdist, length);
         resultPath.sections = hppath;
-        makeSecondaryPath(curNode);
+        //makeSecondaryPath(curNode);
         resultPath.nodescreated = openSize + closeSize;
         resultPath.pathfound = true;
         resultPath.path = lppath;
@@ -495,6 +556,7 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
         sresult.pathlength += curNode.g;
         sresult.nodescreated += openSize + closeSize;
         sresult.numberofsteps += closeSize;
+        sresult.makespan = std::max(sresult.makespan, resultPath.pathlength);
         sresult.pathInfo.push_back(resultPath);
         sresult.agentsSolved++;
     }

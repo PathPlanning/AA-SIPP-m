@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <sstream>
 #include <fstream>
+#include <vector>
+#include "structs.h"
 #include "tinyxml2.h"
 #include "gl_const.h"
 
@@ -16,7 +18,8 @@ public:
     int height, width;
     int *start_i, *start_j;
     int *goal_i, *goal_j;
-    int agents;
+    std::vector<agent> agents;
+    int num;
 
 public:
     Map();
@@ -25,6 +28,7 @@ public:
     bool CellIsTraversable (int i, int j) const;
     bool CellOnGrid (int i, int j) const;
     bool CellIsObstacle(int i, int j) const;
+    bool CellIsStart(int i, int j) const;
     int  getValue(int i, int j) const;
     void addConstraint(int i,int j);
     void removeConstraint(int i,int j);
