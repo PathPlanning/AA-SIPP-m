@@ -5,14 +5,16 @@
 #include "constraints.h"
 #include <random>
 #include <algorithm>
+#include "lineofsight.h"
+
 class AA_SIPP : public Search
 {
 
 public:
 
-    AA_SIPP(double weight, int constraints_type, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight);
+    AA_SIPP(double weight, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight);
     ~AA_SIPP();
-    SearchResult startSearch(Map &map);
+    SearchResult startSearch(Map &map, Task &task);
 
 private:
 
@@ -21,21 +23,19 @@ private:
     bool stopCriterion();
     double getCost(int a_i, int a_j, int b_i, int b_j);
     double calcHeading(const Node &node, const Node &son);
-    bool lineOfSight(int i1, int j1, int i2, int j2, const Map &map);
-    void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs, int numOfCurAgent);
+    void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs);
     void makePrimaryPath(Node curNode);
     void makeSecondaryPath(Node curNode);
     void calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal);
     void addConstraints(){}
     Node resetParent(Node current, Node Parent, const Map &map);
-    bool findPath(int numOfCurAgent, const Map &map);
-    std::vector<conflict> CheckConflicts();//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
-    void setPriorities(const Map& map);
+    bool findPath(unsigned int numOfCurAgent, const Map &map);
+    std::vector<conflict> CheckConflicts(const Task &task);//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
+    void setPriorities(const Task &task);
     bool changePriorities(int bad_i);
     double weight;
     bool breakingties;
     int rescheduling;
-    int constraints_type;
     int timelimit;
     int prioritization;
     int startsafeinterval;
@@ -47,7 +47,8 @@ private:
     std::vector<Node> hppath;
     std::vector<std::vector<int>> priorities;
     std::vector<int> current_priorities;
-
+    LineOfSight lineofsight;
+    agent curagent;
     Constraints *constraints;
 };
 

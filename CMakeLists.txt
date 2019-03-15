@@ -13,6 +13,7 @@ set( SOURCE_FILES
      xmlLogger.cpp 
      mission.cpp 
      map.cpp 
+	 task.cpp
      config.cpp 
      sipp.cpp 
      aa_sipp.cpp
@@ -26,6 +27,7 @@ set( HEADER_FILES
      search.h 
      mission.h 
      map.h 
+	 task.h
      logger.h 
      config.h 
      sipp.h 

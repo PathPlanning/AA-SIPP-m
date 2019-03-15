@@ -1,24 +1,26 @@
 #ifndef GL_CONST_H
 #define GL_CONST_H
 
-#define PI              3.14159265359
-#define CN_EPSILON      1e-5
-#define CN_INFINITY		1000000
-#define CN_LOG          "_log"
+#define PI                  3.14159265359
+#define CN_EPSILON          1e-6
+#define CN_INFINITY         1000000
+#define CN_LOG              "_log"
+#define CN_DEFAULT_SIZE     0.5
+#define CN_DEFAULT_RSPEED   1.0
+#define CN_DEFAULT_MSPEED   1.0
 
 //Parameters Type
 #define CN_PT_LOGLVL    0   // loglevel
 #define CN_PT_WEIGHT    1   // weight
 #define CN_PT_MT        2   // metrictype
 #define CN_PT_AA        3   // allow any-angle
-#define CN_PT_CT        4   // constraints type
-#define CN_PT_TL        5   // time limit
-#define CN_PT_RE        6   // rescheduling
-#define CN_PT_IP        7   // initial prioritization
-#define CN_PT_SSF       8   // start safe interval
-#define CN_PT_TW        9   // turning weight
+#define CN_PT_TL        4   // time limit
+#define CN_PT_RE        5   // rescheduling
+#define CN_PT_IP        6   // initial prioritization
+#define CN_PT_SSF       7   // start safe interval
+#define CN_PT_TW        8   // turning weight
 
-#define CN_PT_NUM       10   //number of parameters
+#define CN_PT_NUM       9   //number of parameters
 
 
 //Obstacle
@@ -40,15 +42,6 @@
 #define CNS_MT_EUCLID       "euclid"
 #define CNS_MT_DIAGONAL     "diagonal"
 #define CNS_MT_MANHATTAN    "manhattan"
-
-//constraints_type
-#define CN_CT_POINT     1
-#define CN_CT_VELOCITY  2
-#define CN_CT_SECTION   3
-
-#define CNS_CT_POINT     "point"
-#define CNS_CT_VELOCITY  "velocity"
-#define CNS_CT_SECTION   "section"
 
 //initial prioritization
 #define CN_IP_SHORTESTF  1
@@ -83,6 +76,9 @@
     #define CNS_TAG_SY                  "starty"
     #define CNS_TAG_FX                  "finishx"
     #define CNS_TAG_FY                  "finishy"
+    #define CNS_TAG_SIZE                "size"
+    #define CNS_TAG_MSPEED              "movespeed"
+    #define CNS_TAG_RSPEED              "rotationspeed"
     #define CNS_TAG_GRID                "grid"
         #define CNS_TAG_ROW             "row"
     #define CNS_TAG_WEIGHT              "weight"
@@ -155,11 +151,11 @@
  */
 
 #define CN_NO_DIR        0
-#define CN_LEFT_DIR      1
-#define CN_UP_DIR        2
-#define CN_RIGHT_DIR     3
-#define CN_DOWN_DIR      4
-#define CN_GOAL_DIR      5
+#define CN_LEFT_DIR      3
+#define CN_UP_DIR        4
+#define CN_RIGHT_DIR     5
+#define CN_DOWN_DIR      6
+#define CN_GOAL_DIR      9
 
 #define CN_PARALLEL          1
 #define CN_COINCIDENT        2

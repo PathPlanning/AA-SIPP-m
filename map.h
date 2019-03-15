@@ -5,18 +5,16 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
-#include <fstream>
+#include <vector>
+#include "structs.h"
 #include "tinyxml2.h"
 #include "gl_const.h"
 
 class Map
 {
 public:
-    int **Grid;
-    int height, width;
-    int *start_i, *start_j;
-    int *goal_i, *goal_j;
-    int agents;
+    std::vector<std::vector<int>> Grid;
+    unsigned int height, width;
 
 public:
     Map();
@@ -28,6 +26,7 @@ public:
     int  getValue(int i, int j) const;
     void addConstraint(int i,int j);
     void removeConstraint(int i,int j);
+
 
 };
 

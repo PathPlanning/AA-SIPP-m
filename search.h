@@ -7,6 +7,7 @@
 #include "gl_const.h"
 #include "searchresult.h"
 #include <math.h>
+#include "task.h"
 #ifdef __linux__
     #include <sys/time.h>
 #else
@@ -20,15 +21,15 @@ public:
     Search(){}
     virtual ~Search(){}
     virtual void addOpen(Node& newNode) = 0;
-    virtual SearchResult startSearch(Map &map) = 0;
-    virtual bool findPath(int numOfCurAgent, const Map &map) = 0;
-    virtual void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs, int numOfCurAgent) = 0;
+    virtual SearchResult startSearch(Map &map, Task &task) = 0;
+    virtual bool findPath(unsigned int numOfCurAgent, const Map &map) = 0;
+    virtual void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs) = 0;
     virtual Node findMin(int size) = 0;
     virtual bool stopCriterion() = 0;
     virtual void makePrimaryPath(Node curNode) = 0;
     virtual void makeSecondaryPath(Node curNode) = 0;
     virtual void addConstraints() = 0;
-    virtual std::vector<conflict> CheckConflicts() = 0;
+    virtual std::vector<conflict> CheckConflicts(const Task &task) = 0;
     SearchResult sresult;
 };
 

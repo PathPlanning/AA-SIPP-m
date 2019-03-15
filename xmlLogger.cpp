@@ -129,22 +129,15 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
         path->SetAttribute(CNS_TAG_ATTR_NODES, sresult.pathInfo[i].nodescreated);
         path->SetAttribute(CNS_TAG_ATTR_TIME, sresult.pathInfo[i].time);
         agent->LinkEndChild(path);
-
+        XMLElement *hplevel;
+        hplevel = doc->NewElement(CNS_TAG_HPLEVEL);
+        path->LinkEndChild(hplevel);
         if (sresult.pathInfo[i].pathfound)
         {
             auto iter = sresult.pathInfo[i].sections.begin();
             auto it = sresult.pathInfo[i].sections.begin();
             int partnumber(0);
             XMLElement *part;
-            part = doc->NewElement(CNS_TAG_SECTION);
-            part->SetAttribute(CNS_TAG_ATTR_NUM, partnumber);
-            part->SetAttribute(CNS_TAG_ATTR_SX, it->j);
-            part->SetAttribute(CNS_TAG_ATTR_SY, it->i);
-            part->SetAttribute(CNS_TAG_ATTR_FX, iter->j);
-            part->SetAttribute(CNS_TAG_ATTR_FY, iter->i);
-            part->SetAttribute(CNS_TAG_ATTR_LENGTH, iter->g);
-            path->LinkEndChild(part);
-            partnumber++;
             while(iter != --sresult.pathInfo[i].sections.end())
             {
                 part = doc->NewElement(CNS_TAG_SECTION);
@@ -155,7 +148,7 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult)
                 part->SetAttribute(CNS_TAG_ATTR_FX, iter->j);
                 part->SetAttribute(CNS_TAG_ATTR_FY, iter->i);
                 part->SetAttribute(CNS_TAG_ATTR_LENGTH, iter->g - it->g);
-                path->LinkEndChild(part);
+                hplevel->LinkEndChild(part);
                 it++;
                 partnumber++;
             }

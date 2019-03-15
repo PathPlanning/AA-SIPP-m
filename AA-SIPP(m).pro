@@ -1,4 +1,4 @@
-TARGET = AA-SIPP-m
+TARGET = AAt-SIPP-m
 CONFIG   += console
 CONFIG   -= app_bundle
 QMAKE_CXXFLAGS += -std=c++0x
@@ -14,7 +14,8 @@ SOURCES += main.cpp \
     config.cpp \
     sipp.cpp \
     aa_sipp.cpp \
-    constraints.cpp
+    constraints.cpp \
+    task.cpp
 
 HEADERS += \
     tinyxml2.h \
@@ -29,4 +30,6 @@ HEADERS += \
     sipp.h \
     aa_sipp.h \
     structs.h \
-    constraints.h
+    constraints.h \
+    lineofsight.h \
+    task.h

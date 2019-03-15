@@ -1,8 +1,9 @@
 #include"mission.h"
 
-Mission::Mission(const char* fName)
+Mission::Mission(const char* fName, const char* taskName)
 {
     m_fileName = fName;
+    this->taskName = taskName;
     m_pSearch = nullptr;
     m_pLogger = nullptr;
 }
@@ -15,6 +16,11 @@ Mission::~Mission()
 bool Mission::getMap()
 {
     return m_map.getMap(m_fileName);
+}
+
+bool Mission::getTask()
+{
+    return (m_task.getTask(taskName) && m_task.validateTask(m_map));
 }
 
 bool Mission::getConfig()
@@ -32,7 +38,7 @@ void Mission::createSearch()
     if(m_config.searchParams[CN_PT_AA] == 0)
         m_pSearch = new SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_MT]);
     else
-        m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_CT], m_config.searchParams[CN_PT_RE],
+        m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_RE],
                                 m_config.searchParams[CN_PT_TL], m_config.searchParams[CN_PT_IP], m_config.searchParams[CN_PT_SSF],
                                 m_config.searchParams[CN_PT_TW]);
 }
@@ -46,17 +52,18 @@ bool Mission::createLog()
         std::cout<<"'loglevel' is not correctly specified in input XML-file.\n";
         return false;
     }
-    return m_pLogger->getLog(m_fileName);
+    return m_pLogger->getLog(taskName);
 }
 
 void Mission::startSearch()
 {
-    std::cout<<"SEARCH STARTED\n";
-    sr = m_pSearch->startSearch(m_map);
+    //std::cout<<"SEARCH STARTED\n";
+    sr = m_pSearch->startSearch(m_map, m_task);
 }
 
 void Mission::printSearchResultsToConsole()
 {
+    //std::cout<<bool(sr.agentsSolved/sr.agents)<<" "<<sr.time<<" "<<sr.makespan<<" "<<sr.pathlength<<" "<<sr.flowlength<<"\n";
     std::cout<<"Results:\nTask solved: "<<bool(sr.agentsSolved/sr.agents)<<" \nTries: "<<sr.tries<<" \nPaths found: "<<(float)sr.agentsSolved*100/sr.agents<<"% \nTime: "<<sr.time<<" \nMakespan: "<<sr.makespan<<" \nFlowtime: "<<sr.pathlength<<"\n";
 }
 

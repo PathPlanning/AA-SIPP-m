@@ -16,7 +16,7 @@ bool SIPP::stopCriterion()
 {
     if(openSize == 0)
     {
-        //std::cout << "OPEN list is empty!" << std::endl;
+        std::cout << "OPEN list is empty!" << std::endl;
         return true;
     }
     return false;
@@ -32,7 +32,7 @@ double SIPP::countHValue(int i, int j, int goal_i, int goal_j)
         return abs(i - goal_i) + abs(j - goal_j);
 }
 
-void SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs, int numOfCurAgent)
+void SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs)
 {
     Node newNode;
     std::vector<std::pair<int,int>> intervals(0);
@@ -54,17 +54,17 @@ void SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node> &s
                     direction = CN_RIGHT_DIR;
                 else if(i == 1)
                     direction = CN_DOWN_DIR;
-                double h_value = weight*countHValue(newNode.i, newNode.j, map.goal_i[numOfCurAgent], map.goal_j[numOfCurAgent]);
+                double h_value = weight*countHValue(newNode.i, newNode.j, curagent.goal_i, curagent.goal_j);
                 if(ctable[newNode.i][newNode.j].size() != 0)
                 {
                     intervals.clear();
                     if(ctable[newNode.i][newNode.j][0].g - 1 >= newNode.g)
                     {
                         interval = {newNode.g,ctable[newNode.i][newNode.j][0].g - 1};
-                        if(ctable[newNode.i][newNode.j][0].g - 1 <= newNode.g)
+                        if(ctable[newNode.i][newNode.j][0].g - 1 == newNode.g)
                             interval.first++;
-                        if(direction != ctable[newNode.i][newNode.j][0].s_dir)
-                            interval.second--;
+                        //if(direction != ctable[newNode.i][newNode.j][0].s_dir)
+                        //    interval.second--;
                         if(interval.second >= interval.first)
                             intervals.push_back(interval);
                     }
@@ -79,7 +79,7 @@ void SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node> &s
                                 interval = {ctable[newNode.i][newNode.j][k].g + 1, ctable[newNode.i][newNode.j][k + 1].g - 1};
                                 if(direction != ctable[newNode.i][newNode.j][k].s_dir)
                                     interval.first++;
-                                if(direction != ctable[newNode.i][newNode.j][k + 1].p_dir || direction != ctable[newNode.i][newNode.j][k + 1].s_dir)
+                                if(direction != ctable[newNode.i][newNode.j][k + 1].p_dir)
                                     interval.second--;
                                 if(interval.second >= interval.first)
                                     intervals.push_back(interval);
@@ -170,7 +170,7 @@ void SIPP::addOpen(Node &newNode)
                 posFound = true;
             }
         }
-        if (iter->i == newNode.i && iter->j == newNode.j && iter->interval.first == newNode.interval.first && iter->interval.second == newNode.interval.second)
+        if (iter->j == newNode.j && iter->interval.first == newNode.interval.first)// && iter->interval.second == newNode.interval.second)
         {
             if(newNode.F >= iter->F)
                 return;
@@ -193,7 +193,7 @@ void SIPP::addOpen(Node &newNode)
 }
 
 
-SearchResult SIPP::startSearch(Map &map)
+SearchResult SIPP::startSearch(Map &map, Task &task)
 {
 #ifdef __linux__
     timeval begin, end;
@@ -204,8 +204,11 @@ SearchResult SIPP::startSearch(Map &map)
     QueryPerformanceFrequency(&freq);
 #endif
     sresult.pathInfo.resize(0);
-    sresult.agents = map.agents;
+    sresult.agents = task.getNumberOfAgents();
     sresult.agentsSolved = 0;
+    sresult.flowlength = 0;
+    sresult.makespan = 0;
+    sresult.pathlength = 0;
     ctable.resize(map.height);
     for(int i = 0; i < map.height; i++)
     {
@@ -213,16 +216,17 @@ SearchResult SIPP::startSearch(Map &map)
         for(int j = 0; j < map.width; j++)
             ctable[i][j].resize(0);
     }
-    for(int i = 0; i < map.agents; i++)
+    for(int i = 0; i < task.getNumberOfAgents(); i++)
     {
-        map.addConstraint(map.start_i[i], map.start_j[i]);
-        //Map.addConstraint(Map.goal_i[i], Map.goal_j[i]);
+        map.addConstraint(task.getAgent(i).start_i, task.getAgent(i).start_j);
+        //map.addConstraint(task.getAgent(i).goal_i, task.getAgent(i).goal_j);
     }
-    for(int numOfCurAgent = 0; numOfCurAgent < map.agents; numOfCurAgent++)
+    for(int numOfCurAgent = 0; numOfCurAgent < task.getNumberOfAgents(); numOfCurAgent++)
     {
         //std::cout<<numOfCurAgent<<" ";
-        map.removeConstraint(map.start_i[numOfCurAgent], map.start_j[numOfCurAgent]);
-        map.removeConstraint(map.goal_i[numOfCurAgent], map.goal_j[numOfCurAgent]);
+        curagent = task.getAgent(numOfCurAgent);
+        map.removeConstraint(curagent.start_i, curagent.start_j);
+        map.removeConstraint(curagent.goal_i, curagent.goal_j);
         if(findPath(numOfCurAgent, map))
             addConstraints();
         close.clear();
@@ -238,7 +242,7 @@ SearchResult SIPP::startSearch(Map &map)
     QueryPerformanceCounter(&end);
     sresult.time = static_cast<double>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
 #endif
-    std::vector<conflict> conflicts = CheckConflicts();
+    std::vector<conflict> conflicts = CheckConflicts(task);
     for(unsigned int i = 0; i < conflicts.size(); i++)
         std::cout<< i << " " << conflicts[i].agent1 << " " << conflicts[i].agent2 << " " << conflicts[i].g << "\n";
     return sresult;
@@ -272,7 +276,7 @@ void SIPP::makeSecondaryPath(Node curNode)
     lppath.push_front(curNode);
 }
 
-std::vector<conflict> SIPP::CheckConflicts()
+std::vector<conflict> SIPP::CheckConflicts(const Task &task)
 {
     std::vector<conflict> conflicts(0);
     conflict conf;
@@ -285,7 +289,7 @@ std::vector<conflict> SIPP::CheckConflicts()
 
                     cur = sresult.pathInfo[i].sections[k];
                     check = sresult.pathInfo[j].sections[l];
-                    if(cur.i == check.i && cur.j == check.j && abs(cur.g-check.g)<=1)
+                    if(cur.i == check.i && cur.j == check.j && cur.g==check.g)
                     {
                         conf.agent1 = i;
                         conf.agent2 = j;
@@ -311,7 +315,9 @@ std::vector<conflict> SIPP::CheckConflicts()
                             conf.g = cur.g;
                             conflicts.push_back(conf);
                         }
-                        if(((cur.i == checknext.i && cur.j == checknext.j && cur.g==checknext.g) || (curnext.i == check.i && curnext.j == check.j && curnext.g == check.g)) && ((cur.i-curnext.i)!=(check.i-checknext.i) || (cur.j-curnext.j)!=(check.j-checknext.j)))
+                        /*if(((cur.i == checknext.i && cur.j == checknext.j && cur.g==checknext.g) ||
+                            (curnext.i == check.i && curnext.j == check.j && curnext.g == check.g)) &&
+                                ((cur.i-curnext.i)!=(check.i-checknext.i) || (cur.j-curnext.j)!=(check.j-checknext.j)))
                         {
                             conf.agent1 = i;
                             conf.agent2 = j;
@@ -321,7 +327,7 @@ std::vector<conflict> SIPP::CheckConflicts()
                             conf.j = cur.j;
                             conf.g = cur.g;
                             conflicts.push_back(conf);
-                        }
+                        }*/
                     }
                 }
     return conflicts;
@@ -382,13 +388,13 @@ void SIPP::addConstraints()
     if(cur.Parent != NULL)
     {
         if(cur.Parent->i - 1 == cur.i)
-            add.p_dir = CN_DOWN_DIR;
-        else if(cur.Parent->i + 1 == cur.i)
             add.p_dir = CN_UP_DIR;
+        else if(cur.Parent->i + 1 == cur.i)
+            add.p_dir = CN_DOWN_DIR;
         else if(cur.Parent->j - 1 == cur.j)
-            add.p_dir = CN_RIGHT_DIR;
-        else if(cur.Parent->j + 1 == cur.j)
             add.p_dir = CN_LEFT_DIR;
+        else if(cur.Parent->j + 1 == cur.j)
+            add.p_dir = CN_RIGHT_DIR;
         else
             add.p_dir = CN_NO_DIR;
     }
@@ -399,7 +405,7 @@ void SIPP::addConstraints()
     ctable[cur.i][cur.j].push_back(add);
 } 
 
-bool SIPP::findPath(int numOfCurAgent, const Map &map)
+bool SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
 {
 #ifdef __linux__
     timeval begin, end;
@@ -415,7 +421,7 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
     openSize = 0;
     closeSize = 0;
 
-    Node curNode(map.start_i[numOfCurAgent], map.start_j[numOfCurAgent], 0, 0);
+    Node curNode(curagent.start_i, curagent.start_j, 0, 0);
     curNode.g = 0;
     if(ctable[curNode.i][curNode.j].empty())
         curNode.interval = {0, CN_INFINITY};
@@ -431,14 +437,14 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
         openSize--;
         close.insert({curNode.i * map.width + curNode.j, curNode});
         closeSize++;
-        if(curNode.i == map.goal_i[numOfCurAgent] && curNode.j == map.goal_j[numOfCurAgent])
+        if(curNode.i == curagent.goal_i && curNode.j == curagent.goal_j && curNode.interval.second == CN_INFINITY)
         {
             pathFound = true;
             break;
         }
         std::list<Node> succs;
         succs.clear();
-        findSuccessors(curNode, map, succs, numOfCurAgent);
+        findSuccessors(curNode, map, succs);
         std::list<Node>::iterator it = succs.begin();
         auto parent = &(close.find(curNode.i * map.width + curNode.j)->second);
         while(it != succs.end())
@@ -483,7 +489,8 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
         QueryPerformanceCounter(&end);
         resultPath.time = static_cast<double long>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
 #endif
-
+        for(int i = 0; i+1 < hppath.size(); i++)
+            sresult.flowlength+=countHValue(hppath[i].i, hppath[i].j, hppath[i+1].i, hppath[i+1].j);
         resultPath.sections = hppath;
         makeSecondaryPath(curNode);
         resultPath.nodescreated = openSize + closeSize;
@@ -495,6 +502,7 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
         sresult.pathlength += curNode.g;
         sresult.nodescreated += openSize + closeSize;
         sresult.numberofsteps += closeSize;
+        sresult.makespan = std::max(sresult.makespan, resultPath.pathlength);
         sresult.pathInfo.push_back(resultPath);
         sresult.agentsSolved++;
     }
@@ -507,7 +515,7 @@ bool SIPP::findPath(int numOfCurAgent, const Map &map)
         QueryPerformanceCounter(&end);
         resultPath.time = static_cast<double long>(end.QuadPart - begin.QuadPart)/freq.QuadPart;
 #endif
-        //std::cout<<numOfCurAgent<<" PATH NOT FOUND!\n";
+        std::cout<<numOfCurAgent<<" PATH NOT FOUND!\n";
         resultPath.nodescreated = closeSize;
         resultPath.pathfound = false;
         resultPath.path.clear();

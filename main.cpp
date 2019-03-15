@@ -3,9 +3,9 @@
 
 int main(int argc, char* argv[])
 {
-    if (argc==2)
+    if (argc==3)
     {
-        Mission mission(argv[1]);
+        Mission mission(argv[1], argv[2]);
         if (!mission.getConfig())
             return 0;
         else
@@ -18,6 +18,13 @@ int main(int argc, char* argv[])
         }
         else
             std::cout<<"MAP LOADED\n";
+        if (!mission.getTask())
+        {
+            std::cout<<"Program terminated.\n";
+            return 0;
+        }
+        else
+            std::cout<<"TASK LOADED\n";
 
         mission.createSearch();
         mission.createLog();

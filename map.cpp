@@ -3,33 +3,19 @@ using namespace tinyxml2;
 
 Map::Map()
 {
-    height = -1;
-    width = -1;
-    Grid = 0;
-    agents=1;
+    height = 0;
+    width = 0;
 }
 Map::~Map()
 {	
-    if(Grid)
-    {
-        for(int i = 0; i < height; i++)
-        {
-            delete[] Grid[i];
-        }
-
-        delete[] Grid;
-    }
-    delete[] start_i;
-    delete[] start_j;
-    delete[] goal_i;
-    delete[] goal_j;
+    Grid.clear();
 }
 
 bool Map::getMap(const char* FileName)
 {
-    const char* grid = 0;
+    const char* grid = nullptr;
     std::string value;
-    XMLElement *root = 0;
+    XMLElement *root = nullptr;
     std::string text = "";
     bool hasGrid = false;
     std::stringstream stream;
@@ -54,10 +40,8 @@ bool Map::getMap(const char* FileName)
         return false;
     }
 
-    XMLNode *node = 0;
-    XMLElement *element = 0;
-
-    int agentNumber = 0;
+    XMLNode *node = nullptr;
+    XMLElement *element = nullptr;
     node = map->FirstChild();
 
     while(node)
@@ -68,9 +52,9 @@ bool Map::getMap(const char* FileName)
 
         if(!hasGrid && height > 0 && width > 0)
         {
-            Grid = new int*[height];
+            Grid.resize(height);
             for(int i = 0; i < height; i++)
-                Grid[i] = new int[width];
+                Grid[i].resize(width, 0);
             hasGrid = true;
         }
 
@@ -100,97 +84,6 @@ bool Map::getMap(const char* FileName)
                 std::cout << "Wrong '"<<CNS_TAG_WIDTH<<"' value."<<std::endl;
                 return false;
             }
-        }
-        else if(value == CNS_TAG_AGENTS)
-        {
-            text = element->GetText();
-            stream<<text;
-            stream>>agents;
-            stream.clear();
-            stream.str("");
-
-            if (agents <= 0)
-            {
-                std::cout << "Wrong '"<<CNS_TAG_AGENTS<<"' value\n";
-                return false;
-            }
-
-            XMLElement *child;
-            int countsx(0), countsy(0), countgx(0), countgy(0);
-            for(child = map->FirstChildElement(CNS_TAG_SX); child; child = child->NextSiblingElement(CNS_TAG_SX))
-                countsx++;
-            for(child = map->FirstChildElement(CNS_TAG_SY); child; child = child->NextSiblingElement(CNS_TAG_SY))
-                countsy++;
-            for(child = map->FirstChildElement(CNS_TAG_FX); child; child = child->NextSiblingElement(CNS_TAG_FX))
-                countgx++;
-            for(child = map->FirstChildElement(CNS_TAG_FY); child; child = child->NextSiblingElement(CNS_TAG_FY))
-                countgy++;
-            if(countsx < agents || countsy < agents || countgx < agents || countgy < agents)
-            {
-                std::cout<<"There is not enough information about "<< agents<<" agents!\n";
-                return false;
-            }
-            start_j = new int[agents];
-            start_i = new int[agents];
-            goal_j = new int[agents];
-            goal_i = new int[agents];
-        }
-        else if(value == CNS_TAG_SX)
-        {
-            text = element->GetText();
-            stream<<text;
-            stream>>start_j[agentNumber];
-            stream.clear();
-            stream.str("");
-
-            if (start_j[agentNumber] < 0 || start_j[agentNumber] >= width)
-            {
-                std::cout << "Wrong '"<<CNS_TAG_SX<<"' value."<<std::endl;
-                return false;
-            }
-        }
-        else if(value == CNS_TAG_SY)
-        {
-            text = element->GetText();
-            stream<<text;
-            stream>>start_i[agentNumber];
-            stream.clear();
-            stream.str("");
-
-            if (start_i[agentNumber] < 0 || start_i[agentNumber] >= height)
-            {
-                std::cout << "Wrong '"<<CNS_TAG_SY<<"' value."<<std::endl;
-                return false;
-            }
-        }
-        else if(value == CNS_TAG_FX)
-        {
-            text = element->GetText();
-            stream<<text;
-            stream>>goal_j[agentNumber];
-            stream.clear();
-            stream.str("");
-
-            if (goal_j[agentNumber] < 0 || goal_j[agentNumber] >= width)
-            {
-                std::cout << "Wrong '"<<CNS_TAG_FX<<"' value."<<std::endl;
-                return false;
-            }
-        }
-        else if(value == CNS_TAG_FY)
-        {
-            text = element->GetText();
-            stream<<text;
-            stream>>goal_i[agentNumber];
-            stream.clear();
-            stream.str("");
-
-            if (goal_i[agentNumber] < 0 || goal_i[agentNumber] >= height)
-            {
-                std::cout << "Wrong '"<<CNS_TAG_FY<<"' value."<<std::endl;
-                return false;
-            }
-            agentNumber++;
         }
         else if(value == CNS_TAG_GRID)
         {
@@ -242,13 +135,13 @@ bool Map::getMap(const char* FileName)
                     std::cout << "Not enough cells in '"<<CNS_TAG_ROW<<"' "<< i <<" given."<<std::endl;
                     return false;
                 }
-
                 i++;
                 element = element->NextSiblingElement();
             }
         }
         node = node->NextSibling();
     }
+
     return true;
 }
 
