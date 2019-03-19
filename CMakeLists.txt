@@ -15,7 +15,6 @@ set( SOURCE_FILES
      map.cpp 
 	 task.cpp
      config.cpp 
-     sipp.cpp 
      aa_sipp.cpp
      constraints.cpp )
 
@@ -30,9 +29,8 @@ set( HEADER_FILES
 	 task.h
      logger.h 
      config.h 
-     sipp.h 
      aa_sipp.h 
      structs.h
      constraints.h )
 
-add_executable( AA-SIPP ${SOURCE_FILES} ${HEADER_FILES} )
+add_executable( AA-SIPP-m ${SOURCE_FILES} ${HEADER_FILES} )
