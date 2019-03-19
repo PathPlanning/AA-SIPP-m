@@ -38,6 +38,12 @@ bool Task::getTask(const char *fileName)
             defaultMSpeed = CN_DEFAULT_MSPEED;
         }
     }
+    root = root->FirstChildElement("agents");
+    if (!root)
+    {
+        std::cout << "No 'agents' element found in XML file."<<std::endl;
+        return false;
+    }
     element = root->FirstChildElement("agent");
     if(!element)
     {
@@ -91,6 +97,7 @@ bool Task::validateTask(const Map &map)
     LineOfSight los;
     for(agent a:agents)
     {
+        std::cout<<a.start_i<<" "<<a.start_j<<" "<<a.size<<" ";
         los.setSize(a.size);
         if(!los.checkTraversability(a.start_i, a.start_j, map))
         {

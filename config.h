@@ -12,13 +12,18 @@
 class Config
 {
 public:
-    float *searchParams;
-    int N;
-public:
-    Config();
-    ~Config();
+    Config(){ loglevel = CN_LOGLVL_HIGH; }
+    int loglevel;
+    int metrictype;
+    bool allowanyangle;
+    double hweight;
+    double tweight;
+    double timelimit;
+    int rescheduling;
+    int initialprioritization;
+    int startsafeinterval;
 
-    bool getConfig(const char* FileName);
+    bool getConfig(const char* fileName);
 };
 
 #endif

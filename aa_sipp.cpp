@@ -1,20 +1,11 @@
 #include "aa_sipp.h"
 
-AA_SIPP::AA_SIPP(double weight, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight)
+AA_SIPP::AA_SIPP(const Config &config)
 {
-    this->weight = weight;
-    this->rescheduling = rescheduling;
-    this->timelimit = timelimit;
-    this->prioritization = prioritization;
-    this->startsafeinterval = startsafeinterval;
-    this->tweight = tweight;
+    this->config = std::make_shared<const Config> (config);
     closeSize = 0;
     openSize = 0;
     constraints = nullptr;
-    if(timelimit == -1)
-        this->timelimit = CN_INFINITY;
-    if(startsafeinterval == -1)
-        this->startsafeinterval = CN_INFINITY;
 }
 
 AA_SIPP::~AA_SIPP()
@@ -51,6 +42,7 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
     std::vector<std::pair<double, double>> intervals;
     double h_value;
     auto parent = &(close.find(curNode.i*map.width + curNode.j)->second);
+
     for(int i = -1; i <= +1; i++)
     {
         for(int j = -1; j <= +1; j++)
@@ -63,10 +55,10 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
                 newNode.heading = calcHeading(curNode, newNode);
                 angleNode = curNode;                                                 //the same state, but with extended g-value
                 double rotateg = std::min(360 - fabs(angleNode.heading - newNode.heading), fabs(angleNode.heading - newNode.heading));
-                angleNode.g += tweight*rotateg/(curagent.rspeed*180);//to compensate the amount of time required for rotation
+                angleNode.g += config->tweight*rotateg/(curagent.rspeed*180);//to compensate the amount of time required for rotation
                 newNode.g = angleNode.g + 1.0/curagent.rspeed;
                 newNode.Parent = &angleNode;
-                h_value = weight*getCost(newNode.i, newNode.j, curagent.goal_i, curagent.goal_j)/curagent.mspeed;
+                h_value = config->hweight*getCost(newNode.i, newNode.j, curagent.goal_i, curagent.goal_j)/curagent.mspeed;
 
                 if(angleNode.g <= angleNode.interval.second)
                 {
@@ -80,25 +72,28 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
                         succs.push_front(newNode);
                     }
                 }
-                newNode = resetParent(newNode, curNode, map);
-                if(newNode.Parent->i != parent->i || newNode.Parent->j != parent->j)
+                if(config->allowanyangle)
                 {
-                    angleNode = *newNode.Parent;
-                    newNode.heading = calcHeading(*newNode.Parent, newNode);//new heading with respect to new parent
-                    double rotateg = std::min(360 - fabs(angleNode.heading - newNode.heading), fabs(angleNode.heading - newNode.heading));
-                    angleNode.g += tweight*rotateg/(curagent.rspeed*180);//count new additional time required for rotation
-                    newNode.g += tweight*rotateg/(curagent.rspeed*180);
-                    newNode.Parent = &angleNode;
-                    if(angleNode.g > angleNode.interval.second)
-                        continue;
-                    intervals = constraints->findIntervals(newNode, EAT, close, map.width);
-                    for(unsigned int k = 0; k < intervals.size(); k++)
+                    newNode = resetParent(newNode, curNode, map);
+                    if(newNode.Parent->i != parent->i || newNode.Parent->j != parent->j)
                     {
-                        newNode.interval = intervals[k];
-                        newNode.Parent = parent->Parent;
-                        newNode.g = EAT[k];
-                        newNode.F = newNode.g + h_value;
-                        succs.push_front(newNode);
+                        angleNode = *newNode.Parent;
+                        newNode.heading = calcHeading(*newNode.Parent, newNode);//new heading with respect to new parent
+                        double rotateg = std::min(360 - fabs(angleNode.heading - newNode.heading), fabs(angleNode.heading - newNode.heading));
+                        angleNode.g += config->tweight*rotateg/(curagent.rspeed*180);//count new additional time required for rotation
+                        newNode.g += config->tweight*rotateg/(curagent.rspeed*180);
+                        newNode.Parent = &angleNode;
+                        if(angleNode.g > angleNode.interval.second)
+                            continue;
+                        intervals = constraints->findIntervals(newNode, EAT, close, map.width);
+                        for(unsigned int k = 0; k < intervals.size(); k++)
+                        {
+                            newNode.interval = intervals[k];
+                            newNode.Parent = parent->Parent;
+                            newNode.g = EAT[k];
+                            newNode.F = newNode.g + h_value;
+                            succs.push_front(newNode);
+                        }
                     }
                 }
             }
@@ -160,9 +155,9 @@ void AA_SIPP::addOpen(Node &newNode)
         if (iter->j == newNode.j && iter->interval.first == newNode.interval.first)
         {
             //if(iter->g <= newNode.g)
-            if((iter->g - (newNode.g + tweight*fabs(newNode.heading - iter->heading)/(curagent.rspeed*180))) < CN_EPSILON)//if existing state dominates new one
+            if((iter->g - (newNode.g + config->tweight*fabs(newNode.heading - iter->heading)/(curagent.rspeed*180))) < CN_EPSILON)//if existing state dominates new one
                 return;
-            if((newNode.g - (iter->g + tweight*fabs(newNode.heading - iter->heading)/(curagent.rspeed*180))) < CN_EPSILON)//if new state dominates the existing one
+            if((newNode.g - (iter->g + config->tweight*fabs(newNode.heading - iter->heading)/(curagent.rspeed*180))) < CN_EPSILON)//if new state dominates the existing one
             {
                 if(pos == iter)
                 {
@@ -189,10 +184,10 @@ void AA_SIPP::setPriorities(const Task& task)
 {
     current_priorities.clear();
     current_priorities.resize(task.getNumberOfAgents(), -1);
-    if(prioritization == CN_IP_FIFO)
+    if(config->initialprioritization == CN_IP_FIFO)
         for(int i = 0; i < task.getNumberOfAgents(); i++)
             current_priorities[i] = i;
-    else if(prioritization != CN_IP_RANDOM)
+    else if(config->initialprioritization != CN_IP_RANDOM)
     {
         std::vector<double> dists(task.getNumberOfAgents(), -1);
         for(int i = 0; i < task.getNumberOfAgents(); i++)
@@ -208,7 +203,7 @@ void AA_SIPP::setPriorities(const Task& task)
                     min_i = i;
                     mindist = dists[i];
                 }
-            if(prioritization == CN_IP_LONGESTF)
+            if(config->initialprioritization == CN_IP_LONGESTF)
                 current_priorities[k] = min_i;
             else
                 current_priorities[task.getNumberOfAgents() - k - 1] = min_i;
@@ -227,10 +222,10 @@ void AA_SIPP::setPriorities(const Task& task)
 
 bool AA_SIPP::changePriorities(int bad_i)
 {
-    if(rescheduling == CN_RE_NO)
+    if(config->rescheduling == CN_RE_NO)
         return false;
     priorities.push_back(current_priorities);
-    if(rescheduling == CN_RE_RULED) //rises the piority of the agent that can't find its path
+    if(config->rescheduling == CN_RE_RULED) //rises the piority of the agent that can't find its path
     {
         for(auto it = current_priorities.begin(); it != current_priorities.end(); it++)
             if(*it == bad_i)
@@ -309,20 +304,20 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task)
         for(int k = 0; k < task.getNumberOfAgents(); k++)
         {
             curagent = task.getAgent(k);
-            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, tweight);
+            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->tweight);
             lineofsight.setSize(curagent.size);
-            if(startsafeinterval > 0)
+            if(config->startsafeinterval > 0)
             {
                 auto cells = lineofsight.getCells(curagent.start_i,curagent.start_j);
-                constraints->addStartConstraint(curagent.start_i, curagent.start_j, startsafeinterval, cells, curagent.size);
+                constraints->addStartConstraint(curagent.start_i, curagent.start_j, config->startsafeinterval, cells, curagent.size);
             }
         }
         for(unsigned int numOfCurAgent = 0; numOfCurAgent < task.getNumberOfAgents(); numOfCurAgent++)
         {
             curagent = task.getAgent(current_priorities[numOfCurAgent]);
-            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, tweight);
+            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->tweight);
             lineofsight.setSize(curagent.size);
-            if(startsafeinterval > 0)
+            if(config->startsafeinterval > 0)
             {
                 auto cells = lineofsight.getCells(curagent.start_i, curagent.start_j);
                 constraints->removeStartConstraint(cells);
@@ -347,7 +342,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task)
     QueryPerformanceCounter(&end);
     timespent = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
 #endif
-        if(timespent > timelimit)
+        if(timespent > config->timelimit)
             break;
     } while(changePriorities(bad_i) && !solution_found);
 
@@ -408,9 +403,9 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
     curNode.Parent = &(close.begin()->second);
     curNode.i--;
 
-    curNode.F = weight * getCost(curNode.i, curNode.j, curagent.goal_i, curagent.goal_j);
+    curNode.F = config->hweight * getCost(curNode.i, curNode.j, curagent.goal_i, curagent.goal_j);
     curNode.interval = constraints->getSafeInterval(curNode.i, curNode.j, 0);
-    curNode.heading = calcHeading(*curNode.Parent, curNode)*tweight/180;
+    curNode.heading = calcHeading(*curNode.Parent, curNode)*config->tweight/180;
     bool pathFound = false;
     open[curNode.i].push_back(curNode);
     openSize++;

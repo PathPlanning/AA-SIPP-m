@@ -1,21 +1,27 @@
 #include"mission.h"
 
-Mission::Mission(const char* fName, const char* taskName)
+Mission::Mission()
 {
-    m_fileName = fName;
-    this->taskName = taskName;
     m_pSearch = nullptr;
     m_pLogger = nullptr;
 }
+
 Mission::~Mission()
 {
     delete m_pSearch;
     delete m_pLogger;
 }
 
+void Mission::setFileNames(const char *mapName, const char *taskName, const char *configName)
+{
+    this->mapName = mapName;
+    this->taskName = taskName;
+    this->configName = configName;
+}
+
 bool Mission::getMap()
 {
-    return m_map.getMap(m_fileName);
+    return m_map.getMap(mapName);
 }
 
 bool Mission::getTask()
@@ -25,7 +31,7 @@ bool Mission::getTask()
 
 bool Mission::getConfig()
 {
-    return m_config.getConfig(m_fileName);
+    return m_config.getConfig(configName);
 }
 
 void Mission::createSearch()
@@ -35,19 +41,14 @@ void Mission::createSearch()
         delete m_pSearch;
         delete m_pLogger;
     }
-    if(m_config.searchParams[CN_PT_AA] == 0)
-        m_pSearch = new SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_MT]);
-    else
-        m_pSearch = new AA_SIPP(m_config.searchParams[CN_PT_WEIGHT], m_config.searchParams[CN_PT_RE],
-                                m_config.searchParams[CN_PT_TL], m_config.searchParams[CN_PT_IP], m_config.searchParams[CN_PT_SSF],
-                                m_config.searchParams[CN_PT_TW]);
+    m_pSearch = new AA_SIPP(m_config);
 }
 
 bool Mission::createLog()
 {
-    if(m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_HIGH)
-        m_pLogger = new XmlLogger(m_config.searchParams[CN_PT_LOGLVL]);
-    else if(m_config.searchParams[CN_PT_LOGLVL] != CN_LOGLVL_NO)
+    if(m_config.loglevel == CN_LOGLVL_HIGH)
+        m_pLogger = new XmlLogger(m_config.loglevel);
+    else if(m_config.loglevel != CN_LOGLVL_NO)
     {
         std::cout<<"'loglevel' is not correctly specified in input XML-file.\n";
         return false;
@@ -69,7 +70,7 @@ void Mission::printSearchResultsToConsole()
 
 void Mission::saveSearchResultsToLog()
 {
-    if(m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_NO)
+    if(m_config.loglevel == CN_LOGLVL_NO)
         return;
     std::cout<<"LOG STARTED\n";
     m_pLogger->writeToLogSummary(sr);

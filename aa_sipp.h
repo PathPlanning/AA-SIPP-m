@@ -6,13 +6,15 @@
 #include <random>
 #include <algorithm>
 #include "lineofsight.h"
+#include "config.h"
+#include <memory>
 
 class AA_SIPP : public Search
 {
 
 public:
 
-    AA_SIPP(double weight, int rescheduling, int timelimit, int prioritization, int startsafeinterval, int tweight);
+    AA_SIPP(const Config &config);
     ~AA_SIPP();
     SearchResult startSearch(Map &map, Task &task);
 
@@ -33,13 +35,6 @@ private:
     std::vector<conflict> CheckConflicts(const Task &task);//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
     void setPriorities(const Task &task);
     bool changePriorities(int bad_i);
-    double weight;
-    bool breakingties;
-    int rescheduling;
-    int timelimit;
-    int prioritization;
-    int startsafeinterval;
-    double tweight;
     unsigned int closeSize, openSize;
     std::list<Node> lppath;
     std::vector<std::list<Node>> open;
@@ -50,6 +45,7 @@ private:
     LineOfSight lineofsight;
     agent curagent;
     Constraints *constraints;
+    std::shared_ptr<const Config> config;
 };
 
 #endif // AA_SIPP_H

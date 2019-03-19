@@ -6,14 +6,13 @@
 #include "search.h"
 #include "xmlLogger.h"
 #include "searchresult.h"
-#include "sipp.h"
 #include "aa_sipp.h"
 #include "task.h"
 
 class Mission
 {
 public:
-    Mission(const char* fName, const char *taskName);
+    Mission();
     ~Mission();
 
     bool getMap();
@@ -24,6 +23,7 @@ public:
     void startSearch();
     void printSearchResultsToConsole();
     void saveSearchResultsToLog();
+    void setFileNames(const char* mapName, const char *taskName, const char *configName);
 
 private:
     Map     m_map;
@@ -32,8 +32,9 @@ private:
     Search  *m_pSearch;
     Logger  *m_pLogger;
     SearchResult sr;
-    const char* m_fileName;
+    const char* mapName;
     const char* taskName;
+    const char* configName;
 
 };
 

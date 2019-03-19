@@ -3,9 +3,18 @@
 
 int main(int argc, char* argv[])
 {
-    if (argc==3)
+    if (argc > 1)
     {
-        Mission mission(argv[1], argv[2]);
+        Mission mission;
+        if(argc == 4)
+            mission.setFileNames(argv[1], argv[2], argv[3]);
+        else if(argc == 2)
+            mission.setFileNames(argv[1], argv[1], argv[1]);
+        else
+        {
+            std::cout<<"Wrong number of input XML-files. It should be either all-in-one file, or three ones: map-file, task-file and config-file.\n";
+            return 0;
+        }
         if (!mission.getConfig())
             return 0;
         else

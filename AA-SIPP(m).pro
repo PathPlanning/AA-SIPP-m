@@ -12,7 +12,6 @@ SOURCES += main.cpp \
     mission.cpp \
     map.cpp \
     config.cpp \
-    sipp.cpp \
     aa_sipp.cpp \
     constraints.cpp \
     task.cpp
@@ -27,7 +26,6 @@ HEADERS += \
     map.h \
     logger.h \
     config.h \
-    sipp.h \
     aa_sipp.h \
     structs.h \
     constraints.h \
