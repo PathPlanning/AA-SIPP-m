@@ -8,12 +8,13 @@
 #include "searchresult.h"
 #include <math.h>
 #include "task.h"
+#include "dynamicobstacles.h"
+#include <unordered_map>
 #ifdef __linux__
     #include <sys/time.h>
 #else
     #include <windows.h>
 #endif
-#include <unordered_map>
 
 class Search
 {
@@ -21,7 +22,7 @@ public:
     Search(){}
     virtual ~Search(){}
     virtual void addOpen(Node& newNode) = 0;
-    virtual SearchResult startSearch(Map &map, Task &task) = 0;
+    virtual SearchResult startSearch(Map &map, Task &task, DynamicObstacles &obstacles) = 0;
     virtual bool findPath(unsigned int numOfCurAgent, const Map &map) = 0;
     virtual void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs) = 0;
     virtual Node findMin(int size) = 0;

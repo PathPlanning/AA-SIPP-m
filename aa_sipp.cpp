@@ -29,8 +29,8 @@ double AA_SIPP::getCost(int a_i, int a_j, int b_i, int b_j)
 
 double AA_SIPP::calcHeading(const Node &node, const Node &son)
 {
-    double heading = acos((node.i - son.i)/getCost(son.i, son.j, node.i, node.j))*180/PI;
-    if(node.j < son.j)
+    double heading = acos((son.j - node.j)/getCost(son.i, son.j, node.i, node.j))*180/PI;
+    if(node.i < son.i)
         heading += 180;
     return heading;
 }
@@ -274,7 +274,7 @@ bool AA_SIPP::changePriorities(int bad_i)
     }
 }
 
-SearchResult AA_SIPP::startSearch(Map &map, Task &task)
+SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstacles)
 {
 
 #ifdef __linux__
@@ -294,6 +294,12 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task)
     do
     {
         constraints = new VelocityConstraints(map.width, map.height);
+        for(int k = 0; k < obstacles.getNumberOfObstacles(); k++)
+        {
+            std::vector<Node> sections = obstacles.getSections(k);
+            double size = obstacles.getSize(k);
+            constraints->addConstraints(sections, size);
+        }
         sresult.pathInfo.clear();
         sresult.pathInfo.resize(task.getNumberOfAgents());
         sresult.agents = task.getNumberOfAgents();
@@ -322,7 +328,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task)
                 auto cells = lineofsight.getCells(curagent.start_i, curagent.start_j);
                 constraints->removeStartConstraint(cells);
             }
-            if(findPath(curagent.id, map))
+            if(findPath(numOfCurAgent, map))
                 constraints->addConstraints(sresult.pathInfo[current_priorities[numOfCurAgent]].sections, curagent.size);
             else
             {
@@ -397,15 +403,15 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
     constraints->resetSafeIntervals(map.width, map.height);
     constraints->updateCellSafeIntervals({curagent.start_i, curagent.start_j});
     Node curNode(curagent.start_i, curagent.start_j, 0, 0);
-    curNode.i++;
+    curNode.j--;
     curNode.interval={-1,-1};
     close.insert({curNode.i * map.width + curNode.j, curNode});
     curNode.Parent = &(close.begin()->second);
-    curNode.i--;
+    curNode.j++;
 
     curNode.F = config->hweight * getCost(curNode.i, curNode.j, curagent.goal_i, curagent.goal_j);
     curNode.interval = constraints->getSafeInterval(curNode.i, curNode.j, 0);
-    curNode.heading = calcHeading(*curNode.Parent, curNode)*config->tweight/180;
+    curNode.heading = calcHeading(*curNode.Parent, curNode)*config->tweight;
     bool pathFound = false;
     open[curNode.i].push_back(curNode);
     openSize++;
@@ -462,7 +468,7 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
         sresult.nodescreated += openSize + closeSize;
         sresult.numberofsteps += closeSize;
         sresult.makespan = std::max(sresult.makespan, curNode.g);
-        sresult.pathInfo[curagent.id] = resultPath;
+        sresult.pathInfo[numOfCurAgent] = resultPath;
         sresult.agentsSolved++;
     }
     else
@@ -474,7 +480,7 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
         QueryPerformanceCounter(&end);
         resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
 #endif
-        std::cout<<"Path for agent "<<numOfCurAgent<<" not found!\n";
+        std::cout<<"Path for agent "<<curagent.id<<" not found!\n";
         sresult.pathfound = false;
         sresult.nodescreated += closeSize;
         sresult.numberofsteps += closeSize;
@@ -484,7 +490,7 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
         resultPath.sections.clear();
         resultPath.pathlength = 0;
         resultPath.numberofsteps = closeSize;
-        sresult.pathInfo.push_back(resultPath);
+        sresult.pathInfo[numOfCurAgent] = resultPath;
     }
     //std::cout<<numOfCurAgent<<" found\n";
     return resultPath.pathfound;

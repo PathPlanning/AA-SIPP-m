@@ -8,6 +8,7 @@
 #include "searchresult.h"
 #include "aa_sipp.h"
 #include "task.h"
+#include "dynamicobstacles.h"
 
 class Mission
 {
@@ -18,23 +19,26 @@ public:
     bool getMap();
     bool getTask();
     bool getConfig();
+    bool getObstacles();
     bool createLog();
     void createSearch();
     void startSearch();
     void printSearchResultsToConsole();
     void saveSearchResultsToLog();
-    void setFileNames(const char* mapName, const char *taskName, const char *configName);
+    void setFileNames(const char* mapName, const char *taskName, const char *configName, const char *obstaclesName = nullptr);
 
 private:
     Map     m_map;
     Task    m_task;
     Config  m_config;
+    DynamicObstacles m_obstacles;
     Search  *m_pSearch;
     Logger  *m_pLogger;
     SearchResult sr;
     const char* mapName;
     const char* taskName;
     const char* configName;
+    const char* obstaclesName;
 
 };
 

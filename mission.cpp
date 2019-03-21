@@ -12,11 +12,12 @@ Mission::~Mission()
     delete m_pLogger;
 }
 
-void Mission::setFileNames(const char *mapName, const char *taskName, const char *configName)
+void Mission::setFileNames(const char *mapName, const char *taskName, const char *configName, const char *obstaclesName)
 {
     this->mapName = mapName;
     this->taskName = taskName;
     this->configName = configName;
+    this->obstaclesName = obstaclesName;
 }
 
 bool Mission::getMap()
@@ -32,6 +33,14 @@ bool Mission::getTask()
 bool Mission::getConfig()
 {
     return m_config.getConfig(configName);
+}
+
+bool Mission::getObstacles()
+{
+    if(obstaclesName)
+        return m_obstacles.getObstacles(obstaclesName);
+    else
+        return false;
 }
 
 void Mission::createSearch()
@@ -53,13 +62,13 @@ bool Mission::createLog()
         std::cout<<"'loglevel' is not correctly specified in input XML-file.\n";
         return false;
     }
-    return m_pLogger->getLog(taskName);
+    return m_pLogger->createLog(taskName);
 }
 
 void Mission::startSearch()
 {
     //std::cout<<"SEARCH STARTED\n";
-    sr = m_pSearch->startSearch(m_map, m_task);
+    sr = m_pSearch->startSearch(m_map, m_task, m_obstacles);
 }
 
 void Mission::printSearchResultsToConsole()
@@ -73,11 +82,12 @@ void Mission::saveSearchResultsToLog()
     if(m_config.loglevel == CN_LOGLVL_NO)
         return;
     std::cout<<"LOG STARTED\n";
+    m_pLogger->writeToLogInput(taskName, mapName, configName, obstaclesName);
     m_pLogger->writeToLogSummary(sr);
     if(sr.pathfound)
     {
-        m_pLogger->writeToLogPath(sr);
         m_pLogger->writeToLogMap(m_map,sr);
+        m_pLogger->writeToLogPath(sr, m_task);
     }
     m_pLogger->saveLog();
     std::cout<<"LOG SAVED\n";

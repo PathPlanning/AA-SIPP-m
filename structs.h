@@ -2,6 +2,8 @@
 #define STRUCTS_H
 #include "gl_const.h"
 #include <utility>
+#include <vector>
+#include <string>
 
 struct conflict
 {
@@ -14,17 +16,21 @@ struct conflict
     double g;
 };
 
-struct agent
+struct Agent
 {
-    int id;
+    std::string id;
     int start_i;
     int start_j;
+    double start_heading;
     int goal_i;
     int goal_j;
+    double goal_heading;
     double size;
     double rspeed;
     double mspeed;
-    agent(){ start_i = -1; start_j = -1; goal_i = -1; goal_j = -1; size = 0.5; mspeed = 1.0; rspeed = 1.0; }
+    Agent(){ start_i = -1; start_j = -1; goal_i = -1; goal_j = -1;
+             size = CN_DEFAULT_SIZE; mspeed = CN_DEFAULT_MSPEED; rspeed = CN_DEFAULT_RSPEED;
+             start_heading = CN_DEFAULT_SHEADING; goal_heading = CN_DEFAULT_GHEADING; }
 };
 
 struct constraint
@@ -53,6 +59,13 @@ struct Node
     double  heading;
     Node*   Parent;
     std::pair<double,double> interval;
+};
+
+struct obstacle
+{
+    int id;
+    double size;
+    std::vector<Node> sections;
 };
 
 struct section

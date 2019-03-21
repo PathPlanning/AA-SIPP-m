@@ -8,6 +8,8 @@
 #define CN_DEFAULT_SIZE     0.5
 #define CN_DEFAULT_RSPEED   1.0
 #define CN_DEFAULT_MSPEED   1.0
+#define CN_DEFAULT_SHEADING 0
+#define CN_DEFAULT_GHEADING -1 //i.e. whatever
 
 //Parameters Type
 #define CN_PT_LOGLVL    0   // loglevel
@@ -95,6 +97,9 @@
     #define CNS_TAG_LOGLVL              "loglevel"
     #define CNS_TAG_LOG                 "log"
         #define CNS_TAG_MAPFN           "mapfilename"
+        #define CNS_TAG_TASKFN          "taskfilename"
+        #define CNS_TAG_CONFIGFN        "configfilename"
+        #define CNS_TAG_OBSFN           "obstaclesfilename"
         #define CNS_TAG_SUM             "summary"
         #define CNS_TAG_PATH            "path"
         #define CNS_TAG_ROW             "row"
@@ -118,12 +123,16 @@
     #define CNS_TAG_ATTR_NUMOFSTEPS     "numberofsteps"
     #define CNS_TAG_ATTR_TOTALNODES     "totalnodescreated"
     #define CNS_TAG_ATTR_NODES          "nodescreated"
-    #define CNS_TAG_ATTR_LENGTH         "length"
+    #define CNS_TAG_ATTR_DURATION       "duration"
     #define CNS_TAG_ATTR_PATHLENGTH     "pathlength"
     #define CNS_TAG_ATTR_TIME           "time"
     #define CNS_TAG_ATTR_X              "x"
     #define CNS_TAG_ATTR_Y              "y"
     #define CNS_TAG_ATTR_NUM            "number"
+    #define CNS_TAG_ATTR_ID             "id"
+    #define CNS_TAG_ATTR_SIZE           "size"
+    #define CNS_TAG_ATTR_RSPEED         "rotationspeed"
+    #define CNS_TAG_ATTR_MSPEED         "movespeed"
     #define CNS_TAG_ATTR_F              "F"
     #define CNS_TAG_ATTR_G              "g"
     #define CNS_TAG_ATTR_PARX           "parent_x"
@@ -131,8 +140,10 @@
     #define CNS_TAG_ATTR_VALUE          "value"
     #define CNS_TAG_ATTR_SX             "start.x"
     #define CNS_TAG_ATTR_SY             "start.y"
-    #define CNS_TAG_ATTR_FX             "finish.x"
-    #define CNS_TAG_ATTR_FY             "finish.y"
+    #define CNS_TAG_ATTR_SH             "start.heading"
+    #define CNS_TAG_ATTR_GX             "goal.x"
+    #define CNS_TAG_ATTR_GY             "goal.y"
+    #define CNS_TAG_ATTR_GH             "goal.heading"
     #define CNS_TAG_ATTR_PF             "pathfound"
     #define CNS_TAG_ATTR_SOLVED         "solved"
         #define CNS_TAG_ATTR_TRUE       "true"

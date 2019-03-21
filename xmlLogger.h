@@ -6,6 +6,7 @@
 #include "tinyxml2.h"
 #include <string>
 #include "searchresult.h"
+#include <fstream>
 
 class XmlLogger:public Logger
 {
@@ -19,11 +20,12 @@ public:
 
     XmlLogger(float loglvl);
     ~XmlLogger();
-    bool getLog(const char* FileName);
-    void saveLog();
+    bool createLog(const char* FileName);
+    void writeToLogInput(const char* taskName, const char* mapName, const char* configName, const char* obstaclesName);
     void writeToLogSummary(const SearchResult &sr);
-    void writeToLogPath(const SearchResult &sresult);
+    void writeToLogPath(const SearchResult &sresult, const Task &task);
     void writeToLogMap(const Map &map, const SearchResult &sresult);
+    void saveLog();
 };
 
 #endif

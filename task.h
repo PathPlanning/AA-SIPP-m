@@ -10,11 +10,11 @@
 
 class Task
 {
-    std::vector<agent> agents;
+    std::vector<Agent> agents;
 public:
     Task(){}
     bool getTask(const char* fileName);
-    agent getAgent(unsigned int id) const;
+    Agent getAgent(unsigned int id) const;
     unsigned int getNumberOfAgents() const;
     bool validateTask(const Map &map);
 };

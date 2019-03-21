@@ -6,10 +6,12 @@ int main(int argc, char* argv[])
     if (argc > 1)
     {
         Mission mission;
-        if(argc == 4)
+        if(argc == 5)
+            mission.setFileNames(argv[1], argv[2], argv[3], argv[4]);
+        else if(argc == 4)
             mission.setFileNames(argv[1], argv[2], argv[3]);
         else if(argc == 2)
-            mission.setFileNames(argv[1], argv[1], argv[1]);
+            mission.setFileNames(argv[1], argv[1], argv[1], argv[1]);
         else
         {
             std::cout<<"Wrong number of input XML-files. It should be either all-in-one file, or three ones: map-file, task-file and config-file.\n";
@@ -34,6 +36,10 @@ int main(int argc, char* argv[])
         }
         else
             std::cout<<"TASK LOADED\n";
+        if(mission.getObstacles())
+        {
+            std::cout<<"OBSTACLES LOADED\n";
+        }
 
         mission.createSearch();
         mission.createLog();

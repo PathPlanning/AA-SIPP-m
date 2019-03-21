@@ -14,7 +14,8 @@ SOURCES += main.cpp \
     config.cpp \
     aa_sipp.cpp \
     constraints.cpp \
-    task.cpp
+    task.cpp \
+    dynamicobstacles.cpp
 
 HEADERS += \
     tinyxml2.h \
@@ -30,4 +31,5 @@ HEADERS += \
     structs.h \
     constraints.h \
     lineofsight.h \
-    task.h
+    task.h \
+    dynamicobstacles.h

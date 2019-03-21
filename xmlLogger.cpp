@@ -17,52 +17,50 @@ XmlLogger::~XmlLogger()
     }
 }
 
-bool XmlLogger::getLog(const char *FileName)
+bool XmlLogger::createLog(const char *FileName)
 {
     if (loglevel == CN_LOGLVL_NO)
         return true;
 
-    std::string value;
-    XMLDocument doc_xml;
-
-    if(doc_xml.LoadFile(FileName) != XMLError::XML_SUCCESS)
-    {
-        std::cout << "Error opening XML-file in getLog";
-        return false;
-    }
-
-    value = FileName;
+    std::string value(FileName);
     size_t dotPos = value.find_last_of(".");
-
     if(dotPos != std::string::npos)
         value.insert(dotPos,CN_LOG);
     else
         value += CN_LOG;
-
     LogFileName = value;
-    doc_xml.SaveFile(LogFileName.c_str());
 
+    std::ofstream out(LogFileName);
+    out<<"<?xml version=\"1.0\" ?>\n<root>\n</root>";
+    out.close();
     doc = new XMLDocument;
     doc->LoadFile(LogFileName.c_str());
-
-    XMLElement *msg;
-    XMLElement *root;
-
-    root = doc->FirstChildElement(CNS_TAG_ROOT);
-    XMLElement *log = doc->NewElement(CNS_TAG_LOG);
-    root->LinkEndChild(log);
-
-    msg = doc->NewElement(CNS_TAG_MAPFN);
-    msg->LinkEndChild(doc->NewText(FileName));
-    log->LinkEndChild(msg);
-
-    msg = doc->NewElement(CNS_TAG_SUM);
-    log->LinkEndChild(msg);
-
-    XMLElement* path = doc->NewElement(CNS_TAG_PATH);
-    log->LinkEndChild(path);
+    XMLElement *root = doc->FirstChildElement(CNS_TAG_ROOT);
+    root->LinkEndChild(doc->NewElement(CNS_TAG_LOG));
 
     return true;
+}
+
+void XmlLogger::writeToLogInput(const char *taskName, const char *mapName, const char *configName, const char *obstaclesName)
+{
+    if (loglevel == CN_LOGLVL_NO)
+        return;
+    XMLElement *log = doc->FirstChildElement(CNS_TAG_ROOT)->FirstChildElement(CNS_TAG_LOG);
+    XMLElement *element = doc->NewElement(CNS_TAG_TASKFN);
+    element->LinkEndChild(doc->NewText(taskName));
+    log->LinkEndChild(element);
+    element = doc->NewElement(CNS_TAG_MAPFN);
+    element->LinkEndChild(doc->NewText(mapName));
+    log->LinkEndChild(element);
+    element = doc->NewElement(CNS_TAG_CONFIGFN);
+    element->LinkEndChild(doc->NewText(configName));
+    log->LinkEndChild(element);
+    if(obstaclesName)
+    {
+        element = doc->NewElement(CNS_TAG_OBSFN);
+        element->LinkEndChild(doc->NewText(obstaclesName));
+        log->LinkEndChild(element);
+    }
 }
 
 void XmlLogger::saveLog()
@@ -78,6 +76,7 @@ void XmlLogger::writeToLogSummary(const SearchResult &sresult)
         return;
     XMLElement *element=doc->FirstChildElement(CNS_TAG_ROOT);
     element = element->FirstChildElement(CNS_TAG_LOG);
+    element->LinkEndChild(doc->NewElement(CNS_TAG_SUM));
     element = element->FirstChildElement(CNS_TAG_SUM);
 
     float pathlenght(0);
@@ -98,58 +97,77 @@ void XmlLogger::writeToLogSummary(const SearchResult &sresult)
     element->SetAttribute(CNS_TAG_ATTR_FLOWTIME, pathlenght);
     element->SetAttribute(CNS_TAG_ATTR_AVGLENGTH, pathlenght/sresult.agentsSolved);
     element->SetAttribute(CNS_TAG_ATTR_MAKESPAN, sresult.makespan);
-    element->SetAttribute(CNS_TAG_ATTR_TIME, sresult.time);
+    element->SetAttribute(CNS_TAG_ATTR_TIME, float(sresult.time));
 }
 
-void XmlLogger::writeToLogPath(const SearchResult &sresult)
+void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task)
 {
     if (loglevel == CN_LOGLVL_NO)
         return;
     XMLElement *element=doc->FirstChildElement(CNS_TAG_ROOT);
     element = element->FirstChildElement(CNS_TAG_LOG);
-    XMLElement *agent, *path;
-
-    for(unsigned int i = 0; i < sresult.agents; i++)
+    XMLElement *agent_elem, *path;
+    for(unsigned int i = 0; i < task.getNumberOfAgents(); i++)
     {
-        agent = doc->NewElement(CNS_TAG_AGENT);
-        agent->SetAttribute(CNS_TAG_ATTR_NUM,i);
-        element->LinkEndChild(agent);
+        Agent agent = task.getAgent(i);
+        agent_elem = doc->NewElement(CNS_TAG_AGENT);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_ID, agent.id.c_str());
+        agent_elem->SetAttribute(CNS_TAG_ATTR_SIZE, agent.size);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_MSPEED, agent.mspeed);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_RSPEED, agent.rspeed);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_SX, agent.start_j);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_SY, agent.start_i);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_SH, agent.start_heading);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_GX, agent.goal_i);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_GY, agent.goal_j);
+        if(agent.goal_heading < 0)
+            agent_elem->SetAttribute(CNS_TAG_ATTR_GH, "whatever");
+        else
+            agent_elem->SetAttribute(CNS_TAG_ATTR_SY, agent.goal_heading);
+        element->LinkEndChild(agent_elem);
         path = doc->NewElement(CNS_TAG_PATH);
 
         if(sresult.pathInfo[i].pathfound)
         {
             path->SetAttribute(CNS_TAG_ATTR_PATHFOUND, CNS_TAG_ATTR_TRUE);
-            path->SetAttribute(CNS_TAG_ATTR_LENGTH, sresult.pathInfo[i].pathlength);
+            path->SetAttribute(CNS_TAG_ATTR_DURATION, float(sresult.pathInfo[i].pathlength));
         }
         else
         {
             path->SetAttribute(CNS_TAG_ATTR_PATHFOUND, CNS_TAG_ATTR_FALSE);
-            path->SetAttribute(CNS_TAG_ATTR_LENGTH, 0);
+            path->SetAttribute(CNS_TAG_ATTR_DURATION, 0);
         }
         path->SetAttribute(CNS_TAG_ATTR_NODES, sresult.pathInfo[i].nodescreated);
-        path->SetAttribute(CNS_TAG_ATTR_TIME, sresult.pathInfo[i].time);
-        agent->LinkEndChild(path);
-        XMLElement *hplevel;
-        hplevel = doc->NewElement(CNS_TAG_HPLEVEL);
-        path->LinkEndChild(hplevel);
+        path->SetAttribute(CNS_TAG_ATTR_TIME, float(sresult.pathInfo[i].time));
+        agent_elem->LinkEndChild(path);
         if (sresult.pathInfo[i].pathfound)
         {
             auto iter = sresult.pathInfo[i].sections.begin();
             auto it = sresult.pathInfo[i].sections.begin();
             int partnumber(0);
             XMLElement *part;
-            while(iter != --sresult.pathInfo[i].sections.end())
+            while(it != --sresult.pathInfo[i].sections.end())
             {
                 part = doc->NewElement(CNS_TAG_SECTION);
-                part->SetAttribute(CNS_TAG_ATTR_NUM, partnumber);
+                part->SetAttribute(CNS_TAG_ATTR_ID, partnumber);
                 part->SetAttribute(CNS_TAG_ATTR_SX, it->j);
                 part->SetAttribute(CNS_TAG_ATTR_SY, it->i);
                 iter++;
-                part->SetAttribute(CNS_TAG_ATTR_FX, iter->j);
-                part->SetAttribute(CNS_TAG_ATTR_FY, iter->i);
-                part->SetAttribute(CNS_TAG_ATTR_LENGTH, iter->g - it->g);
-                hplevel->LinkEndChild(part);
+                part->SetAttribute(CNS_TAG_ATTR_SH, float(iter->heading));
+                part->SetAttribute(CNS_TAG_ATTR_GX, iter->j);
+                part->SetAttribute(CNS_TAG_ATTR_GY, iter->i);
+                if(iter == --sresult.pathInfo[i].sections.end())
+                    part->SetAttribute(CNS_TAG_ATTR_GH, float(iter->heading));
+                else
+                {
+                    iter++;
+                    part->SetAttribute(CNS_TAG_ATTR_GH, float(iter->heading));
+                    iter--;
+                }
+                part->SetAttribute(CNS_TAG_ATTR_DURATION, float(iter->g - it->g));
+                path->LinkEndChild(part);
                 it++;
+
                 partnumber++;
             }
         }
@@ -162,7 +180,9 @@ void XmlLogger::writeToLogMap(const Map &map, const SearchResult &sresult)
         return;
     std::string text;
     std::vector<int> curLine(map.width, 0);
-    XMLElement *element = doc->FirstChildElement(CNS_TAG_ROOT)->FirstChildElement(CNS_TAG_LOG)->FirstChildElement(CNS_TAG_PATH);
+    XMLElement *element = doc->FirstChildElement(CNS_TAG_ROOT)->FirstChildElement(CNS_TAG_LOG);
+    element->LinkEndChild(doc->NewElement(CNS_TAG_PATH));
+    element = element->FirstChildElement(CNS_TAG_PATH);
     XMLElement *msg;
 
     for(int i = 0; i < map.height; i++)

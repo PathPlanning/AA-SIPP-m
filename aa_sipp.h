@@ -16,7 +16,7 @@ public:
 
     AA_SIPP(const Config &config);
     ~AA_SIPP();
-    SearchResult startSearch(Map &map, Task &task);
+    SearchResult startSearch(Map &map, Task &task, DynamicObstacles &obstacles);
 
 private:
 
@@ -43,7 +43,7 @@ private:
     std::vector<std::vector<int>> priorities;
     std::vector<int> current_priorities;
     LineOfSight lineofsight;
-    agent curagent;
+    Agent curagent;
     Constraints *constraints;
     std::shared_ptr<const Config> config;
 };

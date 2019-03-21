@@ -15,6 +15,7 @@ set( SOURCE_FILES
      map.cpp 
 	 task.cpp
      config.cpp 
+	 dynamicobstacles.cpp
      aa_sipp.cpp
      constraints.cpp )
 
@@ -27,6 +28,7 @@ set( HEADER_FILES
      mission.h 
      map.h 
 	 task.h
+	 dynamicobstacles.h
      logger.h 
      config.h 
      aa_sipp.h 
