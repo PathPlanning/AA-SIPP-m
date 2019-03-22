@@ -12,7 +12,7 @@ class Logger
 {
 public:
     float loglevel;
-    Logger() {loglevel = -1;}
+    Logger(float loglvl = -1) {loglevel = loglvl;}
     virtual ~Logger(){}
     virtual bool createLog(const char* FileName) = 0;
     virtual void saveLog() = 0;

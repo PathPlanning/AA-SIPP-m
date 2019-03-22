@@ -234,20 +234,17 @@ bool Config::getConfig(const char* fileName)
             stream.clear();
             stream.str("");
         }
-        std::cout<<"OK?\n";
         if(loglevel != CN_LOGLVL_NO && loglevel != CN_LOGLVL_NORM && loglevel != CN_LOGLVL_ALL)
         {
             std::cout << "Warning! Wrong value of '"<<CNS_TAG_LOGLVL<<"' element found inside '"<<CNS_TAG_OPTIONS<<"' section. It's compared to 1 (normal)."<<std::endl;
             loglevel = CN_LOGLVL_NORM;
         }
-        std::cout<<"OK?\n";
         element = options->FirstChildElement(CNS_TAG_LOGPATH);
         if(element->GetText() != nullptr)
             logpath = element->GetText();
         element = options->FirstChildElement(CNS_TAG_LOGFILENAME);
         if(element->GetText() != nullptr)
             logfilename = element->GetText();
-        std::cout<<"OK?\n";
 }
 return true;
 }

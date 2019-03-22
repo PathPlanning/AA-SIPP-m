@@ -1,21 +1,6 @@
 #include"xmlLogger.h"
 using namespace tinyxml2;
 
-XmlLogger::XmlLogger(float loglvl)
-{
-    loglevel = loglvl;
-    LogFileName = "";
-    doc = nullptr;
-}
-
-XmlLogger::~XmlLogger()
-{
-    if (doc)
-    {
-        doc->Clear();
-        delete doc;
-    }
-}
 
 bool XmlLogger::createLog(const char *FileName)
 {

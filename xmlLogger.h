@@ -17,8 +17,8 @@ private:
 
 public:
 
-    XmlLogger(float loglvl);
-    ~XmlLogger();
+    XmlLogger(float loglvl):Logger(loglvl){ LogFileName = ""; doc = nullptr; }
+    ~XmlLogger() { if(doc) { doc->Clear(); delete doc;} }
     bool createLog(const char* FileName);
     void writeToLogInput(const char* taskName, const char* mapName, const char* configName, const char* obstaclesName);
     void writeToLogSummary(const SearchResult &sr);

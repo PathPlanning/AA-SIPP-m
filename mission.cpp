@@ -57,11 +57,6 @@ bool Mission::createLog()
 {
     if(m_config.loglevel != CN_LOGLVL_NO)
         m_pLogger = new XmlLogger(m_config.loglevel);
-    else if(m_config.loglevel != CN_LOGLVL_NO)
-    {
-        std::cout<<"'loglevel' is not correctly specified in input XML-file.\n";
-        return false;
-    }
     return m_pLogger->createLog(taskName);
 }
 
