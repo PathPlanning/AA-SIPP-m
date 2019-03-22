@@ -12,16 +12,18 @@
 class Config
 {
 public:
-    Config(){ loglevel = CN_LOGLVL_HIGH; }
+    Config(){ loglevel = CN_LOGLVL_NORM; }
     int loglevel;
     int metrictype;
     bool allowanyangle;
+    bool planforturns;
     double hweight;
-    double tweight;
     double timelimit;
     int rescheduling;
     int initialprioritization;
-    int startsafeinterval;
+    double startsafeinterval;
+    std::string logfilename;
+    std::string logpath;
 
     bool getConfig(const char* fileName);
 };

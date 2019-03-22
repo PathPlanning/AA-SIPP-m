@@ -198,23 +198,56 @@ bool Config::getConfig(const char* fileName)
     }
     hweight = weight;
 
-    element = algorithm->FirstChildElement(CNS_TAG_TURNINGWEIGHT);
+    element = algorithm->FirstChildElement(CNS_TAG_PLANFORTURNS);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_TURNINGWEIGHT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 0."<<std::endl;
-        tweight = 0;
+        std::cout << "Warning! No '"<<CNS_TAG_PLANFORTURNS<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'false'."<<std::endl;
+        planforturns = false;
     }
     else
     {
         value = element->GetText();
         stream<<value;
-        stream>>tweight;
+        stream>>planforturns;
         stream.clear();
         stream.str("");
     }
-
-///TODO: ADD OPTIONS
-
-
-    return true;
+    XMLElement *options = root->FirstChildElement(CNS_TAG_OPTIONS);
+    if(!options)
+    {
+        std::cout << "Warning! No '"<<CNS_TAG_OPTIONS<<"' section found."<<std::endl;
+        loglevel = CN_LOGLVL_NORM;
+    }
+    else
+    {
+        element = options->FirstChildElement(CNS_TAG_LOGLVL);
+        if (!element)
+        {
+            std::cout << "Warning! No '"<<CNS_TAG_LOGLVL<<"' element found inside '"<<CNS_TAG_OPTIONS<<"' section. It's compared to 1 (normal)."<<std::endl;
+            loglevel = CN_LOGLVL_NORM;
+        }
+        else
+        {
+            value = element->GetText();
+            stream<<value;
+            stream>>loglevel;
+            stream.clear();
+            stream.str("");
+        }
+        std::cout<<"OK?\n";
+        if(loglevel != CN_LOGLVL_NO && loglevel != CN_LOGLVL_NORM && loglevel != CN_LOGLVL_ALL)
+        {
+            std::cout << "Warning! Wrong value of '"<<CNS_TAG_LOGLVL<<"' element found inside '"<<CNS_TAG_OPTIONS<<"' section. It's compared to 1 (normal)."<<std::endl;
+            loglevel = CN_LOGLVL_NORM;
+        }
+        std::cout<<"OK?\n";
+        element = options->FirstChildElement(CNS_TAG_LOGPATH);
+        if(element->GetText() != nullptr)
+            logpath = element->GetText();
+        element = options->FirstChildElement(CNS_TAG_LOGFILENAME);
+        if(element->GetText() != nullptr)
+            logfilename = element->GetText();
+        std::cout<<"OK?\n";
+}
+return true;
 }

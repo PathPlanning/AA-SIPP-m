@@ -5,7 +5,7 @@ XmlLogger::XmlLogger(float loglvl)
 {
     loglevel = loglvl;
     LogFileName = "";
-    doc = 0;
+    doc = nullptr;
 }
 
 XmlLogger::~XmlLogger()
@@ -45,22 +45,31 @@ void XmlLogger::writeToLogInput(const char *taskName, const char *mapName, const
 {
     if (loglevel == CN_LOGLVL_NO)
         return;
-    XMLElement *log = doc->FirstChildElement(CNS_TAG_ROOT)->FirstChildElement(CNS_TAG_LOG);
-    XMLElement *element = doc->NewElement(CNS_TAG_TASKFN);
-    element->LinkEndChild(doc->NewText(taskName));
-    log->LinkEndChild(element);
-    element = doc->NewElement(CNS_TAG_MAPFN);
-    element->LinkEndChild(doc->NewText(mapName));
-    log->LinkEndChild(element);
-    element = doc->NewElement(CNS_TAG_CONFIGFN);
-    element->LinkEndChild(doc->NewText(configName));
-    log->LinkEndChild(element);
-    if(obstaclesName)
+    else if(loglevel == CN_LOGLVL_NORM)
     {
-        element = doc->NewElement(CNS_TAG_OBSFN);
-        element->LinkEndChild(doc->NewText(obstaclesName));
+        XMLElement *log = doc->FirstChildElement(CNS_TAG_ROOT)->FirstChildElement(CNS_TAG_LOG);
+        XMLElement *element = doc->NewElement(CNS_TAG_TASKFN);
+        element->LinkEndChild(doc->NewText(taskName));
         log->LinkEndChild(element);
+        element = doc->NewElement(CNS_TAG_MAPFN);
+        element->LinkEndChild(doc->NewText(mapName));
+        log->LinkEndChild(element);
+        element = doc->NewElement(CNS_TAG_CONFIGFN);
+        element->LinkEndChild(doc->NewText(configName));
+        log->LinkEndChild(element);
+        if(obstaclesName)
+        {
+            element = doc->NewElement(CNS_TAG_OBSFN);
+            element->LinkEndChild(doc->NewText(obstaclesName));
+            log->LinkEndChild(element);
+        }
     }
+    else if(loglevel == CN_LOGLVL_ALL)
+    {
+        /// TODO
+        /// need to copy info from input files into log
+    }
+
 }
 
 void XmlLogger::saveLog()
@@ -100,7 +109,7 @@ void XmlLogger::writeToLogSummary(const SearchResult &sresult)
     element->SetAttribute(CNS_TAG_ATTR_TIME, float(sresult.time));
 }
 
-void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task)
+void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task, const Config &config)
 {
     if (loglevel == CN_LOGLVL_NO)
         return;
@@ -112,18 +121,22 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task)
         Agent agent = task.getAgent(i);
         agent_elem = doc->NewElement(CNS_TAG_AGENT);
         agent_elem->SetAttribute(CNS_TAG_ATTR_ID, agent.id.c_str());
-        agent_elem->SetAttribute(CNS_TAG_ATTR_SIZE, agent.size);
-        agent_elem->SetAttribute(CNS_TAG_ATTR_MSPEED, agent.mspeed);
-        agent_elem->SetAttribute(CNS_TAG_ATTR_RSPEED, agent.rspeed);
         agent_elem->SetAttribute(CNS_TAG_ATTR_SX, agent.start_j);
         agent_elem->SetAttribute(CNS_TAG_ATTR_SY, agent.start_i);
-        agent_elem->SetAttribute(CNS_TAG_ATTR_SH, agent.start_heading);
-        agent_elem->SetAttribute(CNS_TAG_ATTR_GX, agent.goal_i);
-        agent_elem->SetAttribute(CNS_TAG_ATTR_GY, agent.goal_j);
-        if(agent.goal_heading < 0)
-            agent_elem->SetAttribute(CNS_TAG_ATTR_GH, "whatever");
-        else
-            agent_elem->SetAttribute(CNS_TAG_ATTR_SY, agent.goal_heading);
+        if(config.planforturns)
+            agent_elem->SetAttribute(CNS_TAG_ATTR_SH, float(agent.start_heading));
+        agent_elem->SetAttribute(CNS_TAG_ATTR_GX, agent.goal_j);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_GY, agent.goal_i);
+        if(config.planforturns)
+        {
+            if(agent.goal_heading < 0)
+                agent_elem->SetAttribute(CNS_TAG_ATTR_GH, "whatever");
+            else
+                agent_elem->SetAttribute(CNS_TAG_ATTR_GH, float(agent.goal_heading));
+        }
+        agent_elem->SetAttribute(CNS_TAG_ATTR_SIZE, float(agent.size));
+        agent_elem->SetAttribute(CNS_TAG_ATTR_MSPEED, float(agent.mspeed));
+        agent_elem->SetAttribute(CNS_TAG_ATTR_RSPEED, float(agent.rspeed));
         element->LinkEndChild(agent_elem);
         path = doc->NewElement(CNS_TAG_PATH);
 
@@ -152,22 +165,16 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task)
                 part->SetAttribute(CNS_TAG_ATTR_ID, partnumber);
                 part->SetAttribute(CNS_TAG_ATTR_SX, it->j);
                 part->SetAttribute(CNS_TAG_ATTR_SY, it->i);
+                if(config.planforturns)
+                    part->SetAttribute(CNS_TAG_ATTR_SH, float(it->heading));
                 iter++;
-                part->SetAttribute(CNS_TAG_ATTR_SH, float(iter->heading));
                 part->SetAttribute(CNS_TAG_ATTR_GX, iter->j);
                 part->SetAttribute(CNS_TAG_ATTR_GY, iter->i);
-                if(iter == --sresult.pathInfo[i].sections.end())
+                if(config.planforturns)
                     part->SetAttribute(CNS_TAG_ATTR_GH, float(iter->heading));
-                else
-                {
-                    iter++;
-                    part->SetAttribute(CNS_TAG_ATTR_GH, float(iter->heading));
-                    iter--;
-                }
                 part->SetAttribute(CNS_TAG_ATTR_DURATION, float(iter->g - it->g));
                 path->LinkEndChild(part);
                 it++;
-
                 partnumber++;
             }
         }

@@ -22,10 +22,12 @@ private:
 
     void addOpen(Node &newNode);
     Node findMin(int size);
-    bool stopCriterion();
+    bool stopCriterion(const Node &curNode, Node &goalNode);
+    bool testGoal(const Node &curNode, Node &goalNode);
     double getCost(int a_i, int a_j, int b_i, int b_j);
+    double getRCost(double headingA, double headingB);
     double calcHeading(const Node &node, const Node &son);
-    void findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs);
+    std::list<Node> findSuccessors(const Node curNode, const Map &map);
     void makePrimaryPath(Node curNode);
     void makeSecondaryPath(Node curNode);
     void calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal);

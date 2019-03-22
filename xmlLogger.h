@@ -7,7 +7,6 @@
 #include <string>
 #include "searchresult.h"
 #include <fstream>
-
 class XmlLogger:public Logger
 {
 
@@ -23,7 +22,7 @@ public:
     bool createLog(const char* FileName);
     void writeToLogInput(const char* taskName, const char* mapName, const char* configName, const char* obstaclesName);
     void writeToLogSummary(const SearchResult &sr);
-    void writeToLogPath(const SearchResult &sresult, const Task &task);
+    void writeToLogPath(const SearchResult &sresult, const Task &task, const Config &config);
     void writeToLogMap(const Map &map, const SearchResult &sresult);
     void saveLog();
 };

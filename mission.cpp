@@ -55,7 +55,7 @@ void Mission::createSearch()
 
 bool Mission::createLog()
 {
-    if(m_config.loglevel == CN_LOGLVL_HIGH)
+    if(m_config.loglevel != CN_LOGLVL_NO)
         m_pLogger = new XmlLogger(m_config.loglevel);
     else if(m_config.loglevel != CN_LOGLVL_NO)
     {
@@ -86,8 +86,8 @@ void Mission::saveSearchResultsToLog()
     m_pLogger->writeToLogSummary(sr);
     if(sr.pathfound)
     {
-        m_pLogger->writeToLogMap(m_map,sr);
-        m_pLogger->writeToLogPath(sr, m_task);
+        m_pLogger->writeToLogMap(m_map, sr);
+        m_pLogger->writeToLogPath(sr, m_task, m_config);
     }
     m_pLogger->saveLog();
     std::cout<<"LOG SAVED\n";

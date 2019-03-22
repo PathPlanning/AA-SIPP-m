@@ -27,8 +27,6 @@ bool Task::getTask(const char *fileName)
         defaultGHeading = element->DoubleAttribute("goal.heading");
         if(element->Attribute("goal.heading") == "whatever")
             defaultGHeading = -1;
-        if(element->Attribute("start.heading") == "whatever")
-            defaultSHeading = -1;
         if(defaultSize <= 0 || defaultSize > 10.0)
         {
             std::cout<<"Incorrect value of \"default size\" parameter. The value is set to "<< CN_DEFAULT_SIZE<<".\n";
@@ -44,7 +42,7 @@ bool Task::getTask(const char *fileName)
             std::cout<<"Incorrect value of \"default movement speed\" parameter. The value is set to "<< CN_DEFAULT_MSPEED<<".\n";
             defaultMSpeed = CN_DEFAULT_MSPEED;
         }
-        if(defaultSHeading < -1 || defaultSHeading > 360)
+        if(defaultSHeading < 0 || defaultSHeading > 360)
         {
             std::cout<<"Incorrect value of \"default start heading\" parameter. The value is set to "<< CN_DEFAULT_SHEADING<<".\n";
             defaultSHeading = CN_DEFAULT_SHEADING;
@@ -75,6 +73,7 @@ bool Task::getTask(const char *fileName)
         agent.start_j = element->IntAttribute("start.x");
         agent.goal_i = element->IntAttribute("goal.y");
         agent.goal_j = element->IntAttribute("goal.x");
+
         if(element->Attribute("id"))
             agent.id = element->Attribute("id");
         else
@@ -93,8 +92,12 @@ bool Task::getTask(const char *fileName)
             agent.mspeed = defaultMSpeed;
         if(element->Attribute("start.heading"))
             agent.start_heading = element->DoubleAttribute("start.heading");
+        else
+            agent.start_heading = defaultSHeading;
         if(element->Attribute("goal.heading"))
             agent.goal_heading = element->DoubleAttribute("goal.heading");
+        else
+            agent.goal_heading = defaultGHeading;
         if(agent.size <= 0 || agent.size > 10.0)
         {
             std::cout<<"Incorrect size of agent "<<agent.id<<". Its size is set to default value "<<defaultSize<<".\n";
@@ -110,7 +113,7 @@ bool Task::getTask(const char *fileName)
             std::cout<<"Incorrect movement speed of agent "<<agent.id<<". Its movement speed is set to default value "<<defaultMSpeed<<".\n";
             agent.mspeed = defaultMSpeed;
         }
-        if(agent.start_heading < -1 || agent.start_heading > 360.0)
+        if(agent.start_heading < 0 || agent.start_heading > 360.0)
         {
             std::cout<<"Incorrect start heading of agent "<<agent.id<<". Its start heading is set to default value "<<defaultSHeading<<".\n";
             agent.start_heading = defaultSHeading;
@@ -131,7 +134,6 @@ bool Task::validateTask(const Map &map)
     LineOfSight los;
     for(Agent a:agents)
     {
-        std::cout<<a.start_i<<" "<<a.start_j<<" "<<a.size<<" ";
         los.setSize(a.size);
         if(!los.checkTraversability(a.start_i, a.start_j, map))
         {

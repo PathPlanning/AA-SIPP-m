@@ -30,7 +30,8 @@
 
 //loglevel
 #define CN_LOGLVL_NO	0
-#define CN_LOGLVL_HIGH	1
+#define CN_LOGLVL_NORM	1
+#define CN_LOGLVL_ALL   2
 
 //breakingties
 #define CN_BT_G_MAX     1
@@ -69,20 +70,10 @@
  * XML file tags ---------------------------------------------------------------
  */
 #define CNS_TAG_ROOT "root"
-    #define CNS_TAG_ALGORITHM           "algorithm"
     #define CNS_TAG_MAP                 "map"
-    #define CNS_TAG_AGENTS              "agents"
-    #define CNS_TAG_HEIGHT              "height"
-    #define CNS_TAG_WIDTH               "width"
-    #define CNS_TAG_SX                  "startx"
-    #define CNS_TAG_SY                  "starty"
-    #define CNS_TAG_FX                  "finishx"
-    #define CNS_TAG_FY                  "finishy"
-    #define CNS_TAG_SIZE                "size"
-    #define CNS_TAG_MSPEED              "movespeed"
-    #define CNS_TAG_RSPEED              "rotationspeed"
     #define CNS_TAG_GRID                "grid"
         #define CNS_TAG_ROW             "row"
+    #define CNS_TAG_ALGORITHM           "algorithm"
     #define CNS_TAG_WEIGHT              "weight"
     #define CNS_TAG_HWEIGHT             "hweight"
     #define CNS_TAG_ALLOW_AA            "allowanyangle"
@@ -91,10 +82,11 @@
     #define CNS_TAG_STARTSAFEINTERVAL   "startsafeinterval"
     #define CNS_TAG_TIMELIMIT           "timelimit"
     #define CNS_TAG_METRICTYPE          "metrictype"
-    #define CNS_TAG_CONSTRAINTSTYPE     "constraintstype"
-    #define CNS_TAG_TURNINGWEIGHT       "turningweight"
+    #define CNS_TAG_PLANFORTURNS        "planforturns"
     #define CNS_TAG_OPTIONS             "options"
     #define CNS_TAG_LOGLVL              "loglevel"
+    #define CNS_TAG_LOGPATH             "logpath"
+    #define CNS_TAG_LOGFILENAME         "logfilename"
     #define CNS_TAG_LOG                 "log"
         #define CNS_TAG_MAPFN           "mapfilename"
         #define CNS_TAG_TASKFN          "taskfilename"
@@ -120,6 +112,8 @@
 /*
  * XML files tag's attributes --------------------------------------------------
  */
+    #define CNS_TAG_ATTR_HEIGHT         "height"
+    #define CNS_TAG_ATTR_WIDTH          "width"
     #define CNS_TAG_ATTR_NUMOFSTEPS     "numberofsteps"
     #define CNS_TAG_ATTR_TOTALNODES     "totalnodescreated"
     #define CNS_TAG_ATTR_NODES          "nodescreated"

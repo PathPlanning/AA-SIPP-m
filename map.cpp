@@ -41,16 +41,16 @@ bool Map::getMap(const char* FileName)
         std::cout << "No '"<<CNS_TAG_GRID<<"' element found in XML file."<<std::endl;
         return false;
     }
-    height = grid->IntAttribute(CNS_TAG_HEIGHT);
+    height = grid->IntAttribute(CNS_TAG_ATTR_HEIGHT);
     if(height <= 0)
     {
-        std::cout<<"Wrong value of "<<CNS_TAG_HEIGHT<<" attribute. It should be >0.\n";
+        std::cout<<"Wrong value of "<<CNS_TAG_ATTR_HEIGHT<<" attribute. It should be >0.\n";
         return false;
     }
-    width = grid->IntAttribute(CNS_TAG_WIDTH);
+    width = grid->IntAttribute(CNS_TAG_ATTR_WIDTH);
     if(width <= 0)
     {
-        std::cout<<"Wrong value of "<<CNS_TAG_WIDTH<<" attribute. It should be >0.\n";
+        std::cout<<"Wrong value of "<<CNS_TAG_ATTR_WIDTH<<" attribute. It should be >0.\n";
         return false;
     }
     XMLElement *row = grid->FirstChildElement(CNS_TAG_ROW);

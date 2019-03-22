@@ -12,19 +12,36 @@ AA_SIPP::~AA_SIPP()
 {
 }
 
-bool AA_SIPP::stopCriterion()
+bool AA_SIPP::stopCriterion(const Node &curNode, Node &goalNode)
 {
     if(openSize == 0)
     {
         std::cout << "OPEN list is empty! ";
         return true;
     }
+    if(curNode.i == curagent.goal_i && curNode.j == curagent.goal_j && curNode.interval.second == CN_INFINITY)
+    {
+        if(!config->planforturns || curagent.goal_heading < 0) // means goal heading doesn't matter
+            goalNode = curNode;
+        else if(goalNode.g > curNode.g + getRCost(curNode.heading,curagent.goal_heading))
+        {
+            goalNode = curNode;
+            goalNode.g = curNode.g + getRCost(curNode.heading,curagent.goal_heading);
+        }
+    }
+    if(goalNode.g - CN_EPSILON < curNode.g)
+        return true;
     return false;
 }
 
 double AA_SIPP::getCost(int a_i, int a_j, int b_i, int b_j)
 {
     return sqrt((a_i - b_i) * (a_i - b_i) + (a_j - b_j) * (a_j - b_j));
+}
+
+double AA_SIPP::getRCost(double headingA, double headingB)
+{
+    return std::min(360 - fabs(headingA - headingB), fabs(headingA - headingB))/(curagent.rspeed*180.0);
 }
 
 double AA_SIPP::calcHeading(const Node &node, const Node &son)
@@ -35,9 +52,10 @@ double AA_SIPP::calcHeading(const Node &node, const Node &son)
     return heading;
 }
 
-void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node> &succs)
+std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
 {
     Node newNode, angleNode;
+    std::list<Node> successors;
     std::vector<double> EAT;
     std::vector<std::pair<double, double>> intervals;
     double h_value;
@@ -54,9 +72,9 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
                 constraints->updateCellSafeIntervals({newNode.i,newNode.j});
                 newNode.heading = calcHeading(curNode, newNode);
                 angleNode = curNode;                                                 //the same state, but with extended g-value
-                double rotateg = std::min(360 - fabs(angleNode.heading - newNode.heading), fabs(angleNode.heading - newNode.heading));
-                angleNode.g += config->tweight*rotateg/(curagent.rspeed*180);//to compensate the amount of time required for rotation
-                newNode.g = angleNode.g + 1.0/curagent.rspeed;
+                if(config->planforturns)
+                    angleNode.g += getRCost(angleNode.heading, newNode.heading);//to compensate the amount of time required for rotation
+                newNode.g = angleNode.g + 1.0/curagent.mspeed;
                 newNode.Parent = &angleNode;
                 h_value = config->hweight*getCost(newNode.i, newNode.j, curagent.goal_i, curagent.goal_j)/curagent.mspeed;
 
@@ -69,7 +87,7 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
                         newNode.Parent = parent;
                         newNode.g = EAT[k];
                         newNode.F = newNode.g + h_value;
-                        succs.push_front(newNode);
+                        successors.push_front(newNode);
                     }
                 }
                 if(config->allowanyangle)
@@ -79,9 +97,11 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
                     {
                         angleNode = *newNode.Parent;
                         newNode.heading = calcHeading(*newNode.Parent, newNode);//new heading with respect to new parent
-                        double rotateg = std::min(360 - fabs(angleNode.heading - newNode.heading), fabs(angleNode.heading - newNode.heading));
-                        angleNode.g += config->tweight*rotateg/(curagent.rspeed*180);//count new additional time required for rotation
-                        newNode.g += config->tweight*rotateg/(curagent.rspeed*180);
+                        if(config->planforturns)
+                        {
+                            angleNode.g += getRCost(angleNode.heading, newNode.heading);//count new additional time required for rotation
+                            newNode.g += getRCost(angleNode.heading, newNode.heading);
+                        }
                         newNode.Parent = &angleNode;
                         if(angleNode.g > angleNode.interval.second)
                             continue;
@@ -92,13 +112,14 @@ void AA_SIPP::findSuccessors(const Node curNode, const Map &map, std::list<Node>
                             newNode.Parent = parent->Parent;
                             newNode.g = EAT[k];
                             newNode.F = newNode.g + h_value;
-                            succs.push_front(newNode);
+                            successors.push_front(newNode);
                         }
                     }
                 }
             }
         }
     }
+    return successors;
 }
 
 Node AA_SIPP::findMin(int size)
@@ -155,9 +176,9 @@ void AA_SIPP::addOpen(Node &newNode)
         if (iter->j == newNode.j && iter->interval.first == newNode.interval.first)
         {
             //if(iter->g <= newNode.g)
-            if((iter->g - (newNode.g + config->tweight*fabs(newNode.heading - iter->heading)/(curagent.rspeed*180))) < CN_EPSILON)//if existing state dominates new one
+            if((iter->g - (newNode.g + int(config->planforturns)*getRCost(iter->heading, newNode.heading))) < CN_EPSILON)//if existing state dominates new one
                 return;
-            if((newNode.g - (iter->g + config->tweight*fabs(newNode.heading - iter->heading)/(curagent.rspeed*180))) < CN_EPSILON)//if new state dominates the existing one
+            if((newNode.g - (iter->g + int(config->planforturns)*getRCost(iter->heading, newNode.heading))) < CN_EPSILON)//if new state dominates the existing one
             {
                 if(pos == iter)
                 {
@@ -310,7 +331,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
         for(int k = 0; k < task.getNumberOfAgents(); k++)
         {
             curagent = task.getAgent(k);
-            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->tweight);
+            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->planforturns);
             lineofsight.setSize(curagent.size);
             if(config->startsafeinterval > 0)
             {
@@ -321,7 +342,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
         for(unsigned int numOfCurAgent = 0; numOfCurAgent < task.getNumberOfAgents(); numOfCurAgent++)
         {
             curagent = task.getAgent(current_priorities[numOfCurAgent]);
-            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->tweight);
+            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->planforturns);
             lineofsight.setSize(curagent.size);
             if(config->startsafeinterval > 0)
             {
@@ -373,7 +394,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
 
 Node AA_SIPP::resetParent(Node current, Node Parent, const Map &map)
 {
-    if(Parent.Parent->interval.first==-1 || (current.i == Parent.Parent->i && current.j == Parent.Parent->j))
+    if(Parent.Parent == nullptr || (current.i == Parent.Parent->i && current.j == Parent.Parent->j))
         return current;
     if(lineofsight.checkLine(Parent.Parent->i, Parent.Parent->j, current.i, current.j, map))
     {
@@ -402,53 +423,25 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
     closeSize = 0;
     constraints->resetSafeIntervals(map.width, map.height);
     constraints->updateCellSafeIntervals({curagent.start_i, curagent.start_j});
-    Node curNode(curagent.start_i, curagent.start_j, 0, 0);
-    curNode.j--;
-    curNode.interval={-1,-1};
-    close.insert({curNode.i * map.width + curNode.j, curNode});
-    curNode.Parent = &(close.begin()->second);
-    curNode.j++;
-
+    Node curNode(curagent.start_i, curagent.start_j, 0, 0), goalNode(curagent.goal_i, curagent.goal_j, CN_INFINITY, CN_INFINITY);
     curNode.F = config->hweight * getCost(curNode.i, curNode.j, curagent.goal_i, curagent.goal_j);
     curNode.interval = constraints->getSafeInterval(curNode.i, curNode.j, 0);
-    curNode.heading = calcHeading(*curNode.Parent, curNode)*config->tweight;
-    bool pathFound = false;
+    curNode.heading = curagent.start_heading;
     open[curNode.i].push_back(curNode);
     openSize++;
-    while(!stopCriterion())
+    while(!stopCriterion(curNode, goalNode))
     {
         curNode = findMin(map.height);
         open[curNode.i].pop_front();
         openSize--;
         close.insert({curNode.i * map.width + curNode.j, curNode});
         closeSize++;
-        if(curNode.i == curagent.goal_i && curNode.j == curagent.goal_j && curNode.interval.second == CN_INFINITY)
-        {
-            pathFound = true;
-            break;
-        }
-        std::list<Node> successors;
-        successors.clear();
-        findSuccessors(curNode, map, successors);
-        for(auto it = successors.begin(); it != successors.end(); it++)
-            addOpen(*it);
+        for(Node s:findSuccessors(curNode, map))
+            addOpen(s);
     }
-    if(pathFound)
+    if(goalNode.g < CN_INFINITY)
     {
-        makePrimaryPath(curNode);
-        for(unsigned int i = 1; i < hppath.size(); i++)
-        {
-            if((hppath[i].g - (hppath[i - 1].g + getCost(hppath[i].i, hppath[i].j, hppath[i - 1].i, hppath[i - 1].j)/curagent.mspeed)) > CN_EPSILON)
-            {
-                Node add = hppath[i - 1];
-                add.Parent = hppath[i].Parent;
-                add.g = hppath[i].g - getCost(hppath[i].i, hppath[i].j, hppath[i - 1].i,hppath[i - 1].j)/curagent.mspeed;
-                auto parent = (close.insert({add.i*map.width + add.j, add}));
-                hppath[i].Parent = &(*parent).second;
-                hppath.emplace(hppath.begin() + i, add);
-                i++;
-            }
-        }
+        makePrimaryPath(goalNode);
 #ifdef __linux__
         gettimeofday(&end, NULL);
         resultPath.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
@@ -457,17 +450,17 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
         resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
 #endif
         resultPath.sections = hppath;
-        makeSecondaryPath(curNode);
+        makeSecondaryPath(goalNode);
         resultPath.nodescreated = openSize + closeSize;
         resultPath.pathfound = true;
         resultPath.path = lppath;
         resultPath.numberofsteps = closeSize;
-        resultPath.pathlength = curNode.g;
+        resultPath.pathlength = goalNode.g;
         sresult.pathfound = true;
-        sresult.pathlength += curNode.g;
+        sresult.pathlength += goalNode.g;
         sresult.nodescreated += openSize + closeSize;
         sresult.numberofsteps += closeSize;
-        sresult.makespan = std::max(sresult.makespan, curNode.g);
+        sresult.makespan = std::max(sresult.makespan, goalNode.g);
         sresult.pathInfo[numOfCurAgent] = resultPath;
         sresult.agentsSolved++;
     }
@@ -605,29 +598,50 @@ void AA_SIPP::makePrimaryPath(Node curNode)
     hppath.shrink_to_fit();
     std::list<Node> path;
     path.push_front(curNode);
-    if(curNode.Parent->interval.second != -1)
+    if(curNode.Parent != nullptr)
     {
         curNode = *curNode.Parent;
-        if(curNode.Parent->interval.second != -1)
+        if(curNode.Parent != nullptr)
         {
             do
             {
                 path.push_front(curNode);
                 curNode = *curNode.Parent;
             }
-            while(curNode.Parent->interval.second != -1);
+            while(curNode.Parent != nullptr);
         }
         path.push_front(curNode);
     }
     for(auto it = path.begin(); it != path.end(); it++)
         hppath.push_back(*it);
+    if(config->planforturns && curagent.goal_heading >= 0)
+    {
+        Node add = hppath.back();
+        add.heading = curagent.goal_heading;
+        hppath.back().g -= getRCost(hppath.back().heading, curagent.goal_heading);
+        hppath.push_back(add);
+    }
+    for(unsigned int i = 1; i < hppath.size(); i++)
+    {
+        if((hppath[i].g - (hppath[i - 1].g + getCost(hppath[i].i, hppath[i].j, hppath[i - 1].i, hppath[i - 1].j)/curagent.mspeed)) > CN_EPSILON)
+        {
+            Node add = hppath[i - 1];
+            add.Parent = hppath[i].Parent;
+            add.g = hppath[i].g - getCost(hppath[i].i, hppath[i].j, hppath[i - 1].i, hppath[i - 1].j)/curagent.mspeed;
+            add.heading = hppath[i].heading;
+            hppath.emplace(hppath.begin() + i, add);
+            i++;
+        }
+    }
+    if(config->planforturns && curagent.goal_heading >= 0)
+        hppath.pop_back();
     return;
 }
 
 void AA_SIPP::makeSecondaryPath(Node curNode)
 {
     lppath.clear();
-    if(curNode.Parent->interval.second != -1)
+    if(curNode.Parent != nullptr)
     {
         std::vector<Node> lineSegment;
         do
@@ -636,7 +650,7 @@ void AA_SIPP::makeSecondaryPath(Node curNode)
             lppath.insert(lppath.begin(), ++lineSegment.begin(), lineSegment.end());
             curNode = *curNode.Parent;
         }
-        while(curNode.Parent->interval.second != -1);
+        while(curNode.Parent != nullptr);
         lppath.push_front(*lineSegment.begin());
     }
     else
