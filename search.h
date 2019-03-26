@@ -2,7 +2,6 @@
 #define SEARCH_H
 
 #include "map.h"
-#include "logger.h"
 #include "xmlLogger.h"
 #include "gl_const.h"
 #include "searchresult.h"

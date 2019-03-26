@@ -25,7 +25,6 @@ HEADERS += \
     search.h \
     mission.h \
     map.h \
-    logger.h \
     config.h \
     aa_sipp.h \
     structs.h \

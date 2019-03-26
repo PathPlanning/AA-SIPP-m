@@ -33,7 +33,7 @@ private:
     Config  m_config;
     DynamicObstacles m_obstacles;
     Search  *m_pSearch;
-    Logger  *m_pLogger;
+    XmlLogger  *m_pLogger;
     SearchResult sr;
     const char* mapName;
     const char* taskName;

@@ -1,7 +1,6 @@
 #include"xmlLogger.h"
 using namespace tinyxml2;
 
-
 bool XmlLogger::createLog(const char *FileName)
 {
     if (loglevel == CN_LOGLVL_NO)

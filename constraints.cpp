@@ -12,6 +12,13 @@ Constraints::Constraints(int width, int height)
             safe_intervals[i][j].push_back({0,CN_INFINITY});
         }
     }
+    constraints.resize(height);
+    for(int i = 0; i < height; i++)
+    {
+        constraints[i].resize(width);
+        for(int j = 0; j < width; j++)
+            constraints[i][j].resize(0);
+    }
 }
 
 bool sort_function(std::pair<double, double> a, std::pair<double, double> b)
@@ -44,7 +51,7 @@ void Constraints::resetSafeIntervals(int width, int height)
     }
 }
 
-void VelocityConstraints::updateCellSafeIntervals(std::pair<int, int> cell)
+void Constraints::updateCellSafeIntervals(std::pair<int, int> cell)
 {
     if(safe_intervals[cell.first][cell.second].size() > 1)
         return;
@@ -184,18 +191,7 @@ std::vector<std::pair<double, double> > Constraints::getSafeIntervals(Node curNo
     return safe_intervals[curNode.i][curNode.j];
 }
 
-VelocityConstraints::VelocityConstraints(int width, int height):Constraints(width, height)
-{
-    constraints.resize(height);
-    for(int i = 0; i < height; i++)
-    {
-        constraints[i].resize(width);
-        for(int j = 0; j < width; j++)
-            constraints[i][j].resize(0);
-    }
-}
-
-void VelocityConstraints::addStartConstraint(int i, int j, int size, std::vector<std::pair<int, int> > cells, double agentsize)
+void Constraints::addStartConstraint(int i, int j, int size, std::vector<std::pair<int, int> > cells, double agentsize)
 {
     section sec(i, j, i, j, 0, size);
     sec.size = agentsize;
@@ -204,14 +200,14 @@ void VelocityConstraints::addStartConstraint(int i, int j, int size, std::vector
     return;
 }
 
-void VelocityConstraints::removeStartConstraint(std::vector<std::pair<int, int> > cells)
+void Constraints::removeStartConstraint(std::vector<std::pair<int, int> > cells)
 {
     for(auto cell: cells)
         constraints[cell.first][cell.second].erase(constraints[cell.first][cell.second].begin());
     return;
 }
 
-void VelocityConstraints::addConstraints(const std::vector<Node> &sections, double size)
+void Constraints::addConstraints(const std::vector<Node> &sections, double size)
 {
     std::vector<std::pair<int,int>> cells;
     LineOfSight los(size);
@@ -239,7 +235,7 @@ void VelocityConstraints::addConstraints(const std::vector<Node> &sections, doub
     }
 }
 
-std::vector<std::pair<double,double>> VelocityConstraints::findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w)
+std::vector<std::pair<double,double>> Constraints::findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w)
 {
     std::vector<std::pair<double,double>> curNodeIntervals = getSafeIntervals(curNode, close, w);
     if(curNodeIntervals.empty())
@@ -309,7 +305,7 @@ std::vector<std::pair<double,double>> VelocityConstraints::findIntervals(Node cu
     return curNodeIntervals;
 }
 
-bool VelocityConstraints::hasCollision(const Node &curNode, double startTimeA, const section &constraint, bool &goal_collision)
+bool Constraints::hasCollision(const Node &curNode, double startTimeA, const section &constraint, bool &goal_collision)
 {
     double endTimeA(startTimeA + curNode.g - curNode.Parent->g), startTimeB(constraint.g1), endTimeB(constraint.g2);
     if(startTimeA > endTimeB || startTimeB > endTimeA)

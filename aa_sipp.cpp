@@ -27,9 +27,10 @@ bool AA_SIPP::stopCriterion(const Node &curNode, Node &goalNode)
         {
             goalNode = curNode;
             goalNode.g = curNode.g + getRCost(curNode.heading,curagent.goal_heading);
+            goalNode.F = curNode.F + getRCost(curNode.heading,curagent.goal_heading);
         }
     }
-    if(goalNode.g - CN_EPSILON < curNode.g)
+    if(goalNode.F - CN_EPSILON < curNode.F)
         return true;
     return false;
 }
@@ -314,7 +315,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
     setPriorities(task);
     do
     {
-        constraints = new VelocityConstraints(map.width, map.height);
+        constraints = new Constraints(map.width, map.height);
         for(int k = 0; k < obstacles.getNumberOfObstacles(); k++)
         {
             std::vector<Node> sections = obstacles.getSections(k);

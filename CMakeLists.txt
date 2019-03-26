@@ -29,7 +29,6 @@ set( HEADER_FILES
      map.h 
 	 task.h
 	 dynamicobstacles.h
-     logger.h 
      config.h 
      aa_sipp.h 
      structs.h
