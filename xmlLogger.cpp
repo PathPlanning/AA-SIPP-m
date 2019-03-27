@@ -19,6 +19,8 @@ bool XmlLogger::createLog(const char *FileName)
     out.close();
     doc = new XMLDocument;
     doc->LoadFile(LogFileName.c_str());
+    if(!doc)
+        return false;
     XMLElement *root = doc->FirstChildElement(CNS_TAG_ROOT);
     root->LinkEndChild(doc->NewElement(CNS_TAG_LOG));
 
@@ -50,10 +52,36 @@ void XmlLogger::writeToLogInput(const char *taskName, const char *mapName, const
     }
     else if(loglevel == CN_LOGLVL_ALL)
     {
-        /// TODO
-        /// need to copy info from input files into log
+        if(taskName == mapName)//i.e. all_in_one
+        {
+            writeToLogFile(taskName);
+        }
+        else
+        {
+            if(obstaclesName)
+                writeToLogFile(obstaclesName);
+            writeToLogFile(configName);
+            writeToLogFile(mapName);
+            writeToLogFile(taskName);
+        }
     }
 
+}
+
+void XmlLogger::writeToLogFile(const char *fileName)
+{
+    XMLDocument file;
+    file.LoadFile(fileName);
+    XMLNode *prev = nullptr;
+    for(XMLNode* node = file.RootElement()->FirstChild(); node; node = node->NextSibling())
+    {
+        XMLNode *clone = node->DeepClone(doc);
+        if(!prev)
+            doc->RootElement()->InsertFirstChild(clone);
+        else
+            doc->RootElement()->InsertAfterChild(prev, clone);
+        prev = clone;
+    }
 }
 
 void XmlLogger::saveLog()
@@ -87,9 +115,9 @@ void XmlLogger::writeToLogSummary(const SearchResult &sresult)
     element->SetAttribute(CNS_TAG_ATTR_AGENTSSOLVED, (std::to_string(float(sresult.agentsSolved*100)/sresult.agents)+"%").c_str());
     element->SetAttribute(CNS_TAG_ATTR_MAXNODESCR, maxnodes);
     element->SetAttribute(CNS_TAG_ATTR_TOTALNODES, totalnodes);
-    element->SetAttribute(CNS_TAG_ATTR_FLOWTIME, pathlenght);
-    element->SetAttribute(CNS_TAG_ATTR_AVGLENGTH, pathlenght/sresult.agentsSolved);
-    element->SetAttribute(CNS_TAG_ATTR_MAKESPAN, sresult.makespan);
+    element->SetAttribute(CNS_TAG_ATTR_FLOWTIME, float(pathlenght));
+    element->SetAttribute(CNS_TAG_ATTR_AVGLENGTH, float(pathlenght/sresult.agentsSolved));
+    element->SetAttribute(CNS_TAG_ATTR_MAKESPAN, float(sresult.makespan));
     element->SetAttribute(CNS_TAG_ATTR_TIME, float(sresult.time));
 }
 
@@ -114,7 +142,7 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task, co
         if(config.planforturns)
         {
             if(agent.goal_heading < 0)
-                agent_elem->SetAttribute(CNS_TAG_ATTR_GH, "whatever");
+                agent_elem->SetAttribute(CNS_TAG_ATTR_GH, CNS_HEADING_WHATEVER);
             else
                 agent_elem->SetAttribute(CNS_TAG_ATTR_GH, float(agent.goal_heading));
         }

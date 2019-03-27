@@ -12,7 +12,7 @@ Mission::~Mission()
     delete m_pLogger;
 }
 
-void Mission::setFileNames(const char *mapName, const char *taskName, const char *configName, const char *obstaclesName)
+void Mission::setFileNames(const char *taskName, const char *mapName, const char *configName, const char *obstaclesName)
 {
     this->mapName = mapName;
     this->taskName = taskName;
@@ -53,11 +53,13 @@ void Mission::createSearch()
     m_pSearch = new AA_SIPP(m_config);
 }
 
-bool Mission::createLog()
+void Mission::createLog()
 {
     if(m_config.loglevel != CN_LOGLVL_NO)
+    {
         m_pLogger = new XmlLogger(m_config.loglevel);
-    return m_pLogger->createLog(taskName);
+        m_pLogger->createLog(taskName);
+    }
 }
 
 void Mission::startSearch()

@@ -24,7 +24,7 @@ bool Map::getMap(const char* FileName)
     root = doc.FirstChildElement(CNS_TAG_ROOT);
     if (!root)
     {
-        std::cout << "No '"<<CNS_TAG_ROOT<<"' element found in XML file."<<std::endl;
+        std::cout << "No '"<<CNS_TAG_ROOT<<"' element found in XML map-file."<<std::endl;
         return false;
     }
 
@@ -129,15 +129,4 @@ int Map::getValue(int i, int j) const
         return -1;
 
     return Grid[i][j];
-}
-
-
-void Map::addConstraint(int i, int j)
-{
-    Grid[i][j] = CN_OBSTL;
-}
-
-void Map::removeConstraint(int i, int j)
-{
-    Grid[i][j] = 0;
 }

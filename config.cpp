@@ -1,6 +1,20 @@
 #include "config.h"
 using namespace tinyxml2;
 
+Config::Config()
+{
+    loglevel = CN_DEFAULT_LOGLVL;
+    allowanyangle = CN_DEFAULT_ALLOWANYANGLE;
+    hweight = CN_DEFAULT_HWEIGHT;
+    metrictype = CN_DEFAULT_METRICTYPE;
+    startsafeinterval = CN_DEFAULT_STARTSAFEINTERVAL;
+    timelimit = CN_DEFAULT_TIMELIMIT;
+    initialprioritization = CN_DEFAULT_INITIALPRIORITIZATION;
+    rescheduling = CN_DEFAULT_RESCHEDULING;
+    planforturns = CN_DEFAULT_PLANFORTURNS;
+    additionalwait = CN_DEFAULT_ADDITIONALWAIT;
+}
+
 bool Config::getConfig(const char* fileName)
 {
     std::string value;
@@ -33,7 +47,7 @@ bool Config::getConfig(const char* fileName)
     element = algorithm->FirstChildElement(CNS_TAG_ALLOW_AA);
     if (!element)
     {
-        std::cout << "Error! No '"<<CNS_TAG_ALLOW_AA<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'true'."<<std::endl;
+        std::cout << "Error! No '"<<CNS_TAG_ALLOW_AA<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set '"<<CNS_DEFAULT_ALLOWANYANGLE<<"'."<<std::endl;
         allowanyangle = true;
     }
     else
@@ -45,8 +59,8 @@ bool Config::getConfig(const char* fileName)
             allowanyangle = false;
         else
         {
-            std::cout << "Warning! Wrong '"<<CNS_TAG_ALLOW_AA<<"' value. It's compared to 'true'."<<std::endl;
-            allowanyangle = true;
+            std::cout << "Warning! Wrong '"<<CNS_TAG_ALLOW_AA<<"' value. It's set to '"<<CNS_DEFAULT_ALLOWANYANGLE<<"'."<<std::endl;
+            allowanyangle = CN_DEFAULT_ALLOWANYANGLE;
         }
     }
 
@@ -55,12 +69,12 @@ bool Config::getConfig(const char* fileName)
     {
         if(allowanyangle == true)
         {
-            std::cout << "Error! No '"<<CNS_TAG_METRICTYPE<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to '"<< CNS_MT_EUCLID <<"'."<<std::endl;
+            std::cout << "Error! No '"<<CNS_TAG_METRICTYPE<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<< CNS_MT_EUCLID <<"'."<<std::endl;
             metrictype = CN_MT_EUCLID;
         }
         else
         {
-            std::cout << "Error! No '"<<CNS_TAG_METRICTYPE<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to '"<< CNS_MT_MANHATTAN <<"'."<<std::endl;
+            std::cout << "Error! No '"<<CNS_TAG_METRICTYPE<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<< CNS_MT_MANHATTAN <<"'."<<std::endl;
             metrictype = CN_MT_MANHATTAN;
         }
     }
@@ -77,12 +91,12 @@ bool Config::getConfig(const char* fileName)
         {
             if(allowanyangle == true)
             {
-                std::cout << "Warning! Wrong '"<<CNS_TAG_METRICTYPE<<"' value. It's compared to '"<< CNS_MT_EUCLID <<"'."<<std::endl;
+                std::cout << "Warning! Wrong '"<<CNS_TAG_METRICTYPE<<"' value. It's set to '"<< CNS_MT_EUCLID <<"'."<<std::endl;
                 metrictype = CN_MT_EUCLID;
             }
             else
             {
-                std::cout << "Warning! Wrong '"<<CNS_TAG_METRICTYPE<<"' value. It's compared to '"<< CNS_MT_MANHATTAN <<"'."<<std::endl;
+                std::cout << "Warning! Wrong '"<<CNS_TAG_METRICTYPE<<"' value. It's set to '"<< CNS_MT_MANHATTAN <<"'."<<std::endl;
                 metrictype = CN_MT_MANHATTAN;
             }
         }
@@ -91,8 +105,8 @@ bool Config::getConfig(const char* fileName)
     element = algorithm->FirstChildElement(CNS_TAG_STARTSAFEINTERVAL);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_STARTSAFEINTERVAL<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 0."<<std::endl;
-        startsafeinterval = 0;
+        std::cout << "Warning! No '"<<CNS_TAG_STARTSAFEINTERVAL<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CN_DEFAULT_STARTSAFEINTERVAL<<"'."<<std::endl;
+        startsafeinterval = CN_DEFAULT_STARTSAFEINTERVAL;
     }
     else
     {
@@ -106,8 +120,8 @@ bool Config::getConfig(const char* fileName)
     element = algorithm->FirstChildElement(CNS_TAG_PRIORITIZATION);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_PRIORITIZATION<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'fifo'."<<std::endl;
-        initialprioritization = CN_IP_FIFO;
+        std::cout << "Warning! No '"<<CNS_TAG_PRIORITIZATION<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CNS_DEFAULT_INITIALPRIORITIZATION<<"'."<<std::endl;
+        initialprioritization = CN_DEFAULT_INITIALPRIORITIZATION;
     }
     else
     {
@@ -122,16 +136,16 @@ bool Config::getConfig(const char* fileName)
             initialprioritization = CN_IP_RANDOM;
         else
         {
-            std::cout << "Warning! Wrong '"<<CNS_TAG_PRIORITIZATION<<"' value. It's compared to 'fifo'."<<std::endl;
-            initialprioritization = CN_IP_FIFO;
+            std::cout << "Warning! Wrong '"<<CNS_TAG_PRIORITIZATION<<"' value. It's set to '"<<CNS_DEFAULT_INITIALPRIORITIZATION<<"'."<<std::endl;
+            initialprioritization = CN_DEFAULT_INITIALPRIORITIZATION;
         }
     }
 
     element = algorithm->FirstChildElement(CNS_TAG_TIMELIMIT);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_TIMELIMIT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to infinity(no limit)."<<std::endl;
-        timelimit = CN_INFINITY;
+        std::cout << "Warning! No '"<<CNS_TAG_TIMELIMIT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to "<<CNS_DEFAULT_TIMELIMIT<<"."<<std::endl;
+        timelimit = CN_DEFAULT_TIMELIMIT;
     }
     else
     {
@@ -145,8 +159,8 @@ bool Config::getConfig(const char* fileName)
     element = algorithm->FirstChildElement(CNS_TAG_RESCHEDULING);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_RESCHEDULING<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'no'."<<std::endl;
-        rescheduling = CN_RE_NO;
+        std::cout << "Warning! No '"<<CNS_TAG_RESCHEDULING<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is to '"<<CNS_RE_NO<<"'."<<std::endl;
+        rescheduling = CN_DEFAULT_RESCHEDULING;
     }
     else
     {
@@ -159,8 +173,8 @@ bool Config::getConfig(const char* fileName)
             rescheduling = CN_RE_RANDOM;
         else
         {
-            std::cout << "Warning! Wrong '"<<CNS_TAG_RESCHEDULING<<"' value. It's compared to 'no'."<<std::endl;
-            rescheduling = CN_RE_NO;
+            std::cout << "Warning! Wrong '"<<CNS_TAG_RESCHEDULING<<"' value. It's set to '"<<CNS_RE_NO<<"'."<<std::endl;
+            rescheduling = CN_DEFAULT_RESCHEDULING;
         }
     }
 
@@ -170,8 +184,8 @@ bool Config::getConfig(const char* fileName)
         element = algorithm->FirstChildElement(CNS_TAG_WEIGHT);
         if (!element)
         {
-            std::cout << "Warning! No '"<<CNS_TAG_HWEIGHT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to "<< 1 <<"."<<std::endl;
-            hweight = 1;
+            std::cout << "Warning! No '"<<CNS_TAG_HWEIGHT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is to "<< CN_DEFAULT_HWEIGHT <<"."<<std::endl;
+            hweight = CN_DEFAULT_HWEIGHT;
         }
         else
         {
@@ -193,16 +207,16 @@ bool Config::getConfig(const char* fileName)
 
     if (weight == 0)
     {
-        std::cout << "Warning! Wrong '"<<CNS_TAG_WEIGHT<<"' value. It's compared to " << 1 <<"."<<std::endl;
-        weight = 1;
+        std::cout << "Warning! Wrong '"<<CNS_TAG_WEIGHT<<"' value. It's set to " << CN_DEFAULT_HWEIGHT <<"."<<std::endl;
+        weight = CN_DEFAULT_HWEIGHT;
     }
     hweight = weight;
 
     element = algorithm->FirstChildElement(CNS_TAG_PLANFORTURNS);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_PLANFORTURNS<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to 'false'."<<std::endl;
-        planforturns = false;
+        std::cout << "Warning! No '"<<CNS_TAG_PLANFORTURNS<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CNS_DEFAULT_PLANFORTURNS<<"'."<<std::endl;
+        planforturns = CN_DEFAULT_PLANFORTURNS;
     }
     else
     {
@@ -216,8 +230,8 @@ bool Config::getConfig(const char* fileName)
     element = algorithm->FirstChildElement(CNS_TAG_ADDITIONALWAIT);
     if (!element)
     {
-        std::cout << "Warning! No '"<<CNS_TAG_ADDITIONALWAIT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to '0'."<<std::endl;
-        additionalwait = 0;
+        std::cout << "Warning! No '"<<CNS_TAG_ADDITIONALWAIT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CN_DEFAULT_ADDITIONALWAIT<<"'."<<std::endl;
+        additionalwait = CN_DEFAULT_ADDITIONALWAIT;
     }
     else
     {
@@ -228,8 +242,8 @@ bool Config::getConfig(const char* fileName)
         stream.str("");
         if(additionalwait < 0 || additionalwait > 100)
         {
-            std::cout << "Warning! Wrong value of '"<<CNS_TAG_ADDITIONALWAIT<<"' element. It should belong to the interval [0,100]. The value compared to '0'"<<std::endl;
-            additionalwait = 0;
+            std::cout << "Warning! Wrong value of '"<<CNS_TAG_ADDITIONALWAIT<<"' element. It should belong to the interval [0,100]. Its value is set to '"<<CN_DEFAULT_ADDITIONALWAIT<<"'"<<std::endl;
+            additionalwait = CN_DEFAULT_ADDITIONALWAIT;
         }
     }
 
@@ -237,15 +251,15 @@ bool Config::getConfig(const char* fileName)
     if(!options)
     {
         std::cout << "Warning! No '"<<CNS_TAG_OPTIONS<<"' section found."<<std::endl;
-        loglevel = CN_LOGLVL_NORM;
+        loglevel = CN_DEFAULT_LOGLVL;
     }
     else
     {
         element = options->FirstChildElement(CNS_TAG_LOGLVL);
         if (!element)
         {
-            std::cout << "Warning! No '"<<CNS_TAG_LOGLVL<<"' element found inside '"<<CNS_TAG_OPTIONS<<"' section. It's compared to 1 (normal)."<<std::endl;
-            loglevel = CN_LOGLVL_NORM;
+            std::cout << "Warning! No '"<<CNS_TAG_LOGLVL<<"' element found inside '"<<CNS_TAG_OPTIONS<<"' section. Its value is set to '"<<CNS_DEFAULT_LOGLVL<<"'."<<std::endl;
+            loglevel = CN_DEFAULT_LOGLVL;
         }
         else
         {
@@ -257,8 +271,8 @@ bool Config::getConfig(const char* fileName)
         }
         if(loglevel != CN_LOGLVL_NO && loglevel != CN_LOGLVL_NORM && loglevel != CN_LOGLVL_ALL)
         {
-            std::cout << "Warning! Wrong value of '"<<CNS_TAG_LOGLVL<<"' element found inside '"<<CNS_TAG_OPTIONS<<"' section. It's compared to 1 (normal)."<<std::endl;
-            loglevel = CN_LOGLVL_NORM;
+            std::cout << "Warning! Wrong value of '"<<CNS_TAG_LOGLVL<<"' element found inside '"<<CNS_TAG_OPTIONS<<"' section. Its value is set to '"<<CNS_DEFAULT_LOGLVL<<"'."<<std::endl;
+            loglevel = CN_DEFAULT_LOGLVL;
         }
         element = options->FirstChildElement(CNS_TAG_LOGPATH);
         if(element->GetText() != nullptr)

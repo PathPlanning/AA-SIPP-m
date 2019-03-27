@@ -3,7 +3,6 @@
 
 #include "map.h"
 #include "config.h"
-#include "search.h"
 #include "xmlLogger.h"
 #include "searchresult.h"
 #include "aa_sipp.h"
@@ -20,25 +19,25 @@ public:
     bool getTask();
     bool getConfig();
     bool getObstacles();
-    bool createLog();
+    void createLog();
     void createSearch();
     void startSearch();
     void printSearchResultsToConsole();
     void saveSearchResultsToLog();
-    void setFileNames(const char* mapName, const char *taskName, const char *configName, const char *obstaclesName = nullptr);
+    void setFileNames(const char *taskName, const char* mapName, const char *configName, const char *obstaclesName = nullptr);
 
 private:
-    Map     m_map;
-    Task    m_task;
-    Config  m_config;
+    Map              m_map;
+    Task             m_task;
+    Config           m_config;
     DynamicObstacles m_obstacles;
-    Search  *m_pSearch;
-    XmlLogger  *m_pLogger;
-    SearchResult sr;
-    const char* mapName;
-    const char* taskName;
-    const char* configName;
-    const char* obstaclesName;
+    AA_SIPP*         m_pSearch;
+    XmlLogger*       m_pLogger;
+    SearchResult     sr;
+    const char*      mapName;
+    const char*      taskName;
+    const char*      configName;
+    const char*      obstaclesName;
 
 };
 

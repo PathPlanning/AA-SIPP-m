@@ -22,7 +22,6 @@ HEADERS += \
     searchresult.h \
     gl_const.h \
     xmlLogger.h \
-    search.h \
     mission.h \
     map.h \
     config.h \

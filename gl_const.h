@@ -1,41 +1,46 @@
 #ifndef GL_CONST_H
 #define GL_CONST_H
 
+//constants
 #define PI                  3.14159265359
-#define CN_EPSILON          1e-6
-#define CN_INFINITY         1000000
+#define CN_EPSILON          1e-9
+#define CN_INFINITY         1e+9
 #define CN_LOG              "_log"
-#define CN_DEFAULT_SIZE     0.5
-#define CN_DEFAULT_RSPEED   1.0
-#define CN_DEFAULT_MSPEED   1.0
-#define CN_DEFAULT_SHEADING 0
-#define CN_DEFAULT_GHEADING -1 //i.e. whatever
+#define CN_OBSTL            1
 
-//Parameters Type
-#define CN_PT_LOGLVL    0   // loglevel
-#define CN_PT_WEIGHT    1   // weight
-#define CN_PT_MT        2   // metrictype
-#define CN_PT_AA        3   // allow any-angle
-#define CN_PT_TL        4   // time limit
-#define CN_PT_RE        5   // rescheduling
-#define CN_PT_IP        6   // initial prioritization
-#define CN_PT_SSF       7   // start safe interval
-#define CN_PT_TW        8   // turning weight
+//default values
+#define CN_DEFAULT_SIZE                     0.5
+#define CN_DEFAULT_RSPEED                   1.0
+#define CN_DEFAULT_MSPEED                   1.0
+#define CN_DEFAULT_SHEADING                 0
+#define CN_DEFAULT_GHEADING                 -1 //i.e. whatever
+#define CN_DEFAULT_HWEIGHT                  1
+#define CN_DEFAULT_METRICTYPE               CN_MT_EUCLID
+#define CN_DEFAULT_RESCHEDULING             CN_RE_NO
+#define CN_DEFAULT_INITIALPRIORITIZATION    CN_IP_FIFO
+#define CNS_DEFAULT_INITIALPRIORITIZATION   CNS_IP_FIFO
+#define CN_DEFAULT_LOGLVL                   CN_LOGLVL_NORM
+#define CNS_DEFAULT_LOGLVL                  CNS_LOGLVL_NORM
+#define CN_DEFAULT_TIMELIMIT                CN_INFINITY
+#define CNS_DEFAULT_TIMELIMIT               "'infinity' (no limit)"
+#define CN_DEFAULT_ALLOWANYANGLE            true
+#define CNS_DEFAULT_ALLOWANYANGLE           "true"
+#define CN_DEFAULT_PLANFORTURNS             false
+#define CNS_DEFAULT_PLANFORTURNS            "false"
+#define CN_DEFAULT_ADDITIONALWAIT           0
+#define CN_DEFAULT_STARTSAFEINTERVAL        0
 
-#define CN_PT_NUM       9   //number of parameters
-
-
-//Obstacle
-#define CN_OBSTL 1
+#define CN_HEADING_WHATEVER                 -1
+#define CNS_HEADING_WHATEVER                "whatever"
 
 //loglevel
 #define CN_LOGLVL_NO	0
 #define CN_LOGLVL_NORM	1
 #define CN_LOGLVL_ALL   2
 
-//breakingties
-#define CN_BT_G_MAX     1
-#define CN_BT_G_MIN     2
+#define CNS_LOGLVL_NO	"no"
+#define CNS_LOGLVL_NORM	"regular"
+#define CNS_LOGLVL_FULL "full"
 
 //metrictype
 #define CN_MT_EUCLID        1
@@ -70,6 +75,12 @@
  * XML file tags ---------------------------------------------------------------
  */
 #define CNS_TAG_ROOT "root"
+    #define CNS_TAG_DEF_PARAMS          "default_parameters"
+        #define CNS_TAG_ATTR_SIZE       "size"
+        #define CNS_TAG_ATTR_MOVESPEED  "movespeed"
+        #define CNS_TAG_ATTR_ROTATIONSPEED "rotationspeed"
+    #define CNS_TAG_AGENTS              "agents"
+    #define CNS_TAG_AGENT               "agent"
     #define CNS_TAG_MAP                 "map"
     #define CNS_TAG_GRID                "grid"
         #define CNS_TAG_ROW             "row"
@@ -96,8 +107,6 @@
         #define CNS_TAG_SUM             "summary"
         #define CNS_TAG_PATH            "path"
         #define CNS_TAG_ROW             "row"
-        #define CNS_TAG_LPLEVEL         "lplevel"
-        #define CNS_TAG_HPLEVEL         "hplevel"
         #define CNS_TAG_AGENT           "agent"
         #define CNS_TAG_LOWLEVEL        "lowlevel"
             #define CNS_TAG_SECTION     "section"
@@ -128,6 +137,8 @@
     #define CNS_TAG_ATTR_SIZE           "size"
     #define CNS_TAG_ATTR_RSPEED         "rotationspeed"
     #define CNS_TAG_ATTR_MSPEED         "movespeed"
+    #define CNS_TAG_ATTR_SHEADING       "start.heading"
+    #define CNS_TAG_ATTR_GHEADING       "goal.heading"
     #define CNS_TAG_ATTR_F              "F"
     #define CNS_TAG_ATTR_G              "g"
     #define CNS_TAG_ATTR_PARX           "parent_x"

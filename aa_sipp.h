@@ -1,15 +1,22 @@
 #ifndef AA_SIPP_H
 #define AA_SIPP_H
 
-#include "search.h"
 #include "constraints.h"
-#include <random>
-#include <algorithm>
 #include "lineofsight.h"
 #include "config.h"
+#include "searchresult.h"
+#include "task.h"
+#include "dynamicobstacles.h"
+#include <math.h>
 #include <memory>
-
-class AA_SIPP : public Search
+#include <algorithm>
+#include <unordered_map>
+#ifdef __linux__
+    #include <sys/time.h>
+#else
+    #include <windows.h>
+#endif
+class AA_SIPP
 {
 
 public:
@@ -17,7 +24,7 @@ public:
     AA_SIPP(const Config &config);
     ~AA_SIPP();
     SearchResult startSearch(Map &map, Task &task, DynamicObstacles &obstacles);
-
+    SearchResult sresult;
 private:
 
     void addOpen(Node &newNode);
@@ -36,6 +43,7 @@ private:
     bool findPath(unsigned int numOfCurAgent, const Map &map);
     std::vector<conflict> CheckConflicts(const Task &task);//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
     void setPriorities(const Task &task);
+    double getHValue(int i, int j);
     bool changePriorities(int bad_i);
     unsigned int closeSize, openSize;
     std::list<Node> lppath;

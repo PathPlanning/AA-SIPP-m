@@ -12,7 +12,7 @@
 class Config
 {
 public:
-    Config(){ loglevel = CN_LOGLVL_NORM; }
+    Config();
     int loglevel;
     int metrictype;
     bool allowanyangle;

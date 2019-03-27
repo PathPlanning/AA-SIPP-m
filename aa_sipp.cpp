@@ -21,7 +21,7 @@ bool AA_SIPP::stopCriterion(const Node &curNode, Node &goalNode)
     }
     if(curNode.i == curagent.goal_i && curNode.j == curagent.goal_j && curNode.interval.second == CN_INFINITY)
     {
-        if(!config->planforturns || curagent.goal_heading < 0) // means goal heading doesn't matter
+        if(!config->planforturns || curagent.goal_heading == CN_HEADING_WHATEVER)
             goalNode = curNode;
         else if(goalNode.g > curNode.g + getRCost(curNode.heading,curagent.goal_heading))
         {
@@ -40,9 +40,22 @@ double AA_SIPP::getCost(int a_i, int a_j, int b_i, int b_j)
     return sqrt((a_i - b_i) * (a_i - b_i) + (a_j - b_j) * (a_j - b_j));
 }
 
+double AA_SIPP::getHValue(int i, int j)
+{
+    if(config->metrictype == CN_MT_EUCLID)
+        return config->hweight*(sqrt(pow(i - curagent.goal_i, 2) + pow(j - curagent.goal_j, 2)))/curagent.mspeed;
+    else if(config->metrictype == CN_MT_DIAGONAL)
+        return config->hweight*(abs(abs(i - curagent.goal_i) - abs(j - curagent.goal_j)) + sqrt(2.0)*std::min(abs(i - curagent.goal_i), abs(j - curagent.goal_j)))/curagent.mspeed;
+    else
+        return config->hweight*(abs(i - curagent.goal_i) + abs(j - curagent.goal_j))/curagent.mspeed;
+}
+
 double AA_SIPP::getRCost(double headingA, double headingB)
 {
-    return std::min(360 - fabs(headingA - headingB), fabs(headingA - headingB))/(curagent.rspeed*180.0);
+    if(config->planforturns)
+        return std::min(360 - fabs(headingA - headingB), fabs(headingA - headingB))/(curagent.rspeed*180.0);
+    else
+        return 0;
 }
 
 double AA_SIPP::calcHeading(const Node &node, const Node &son)
@@ -61,83 +74,74 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
     std::vector<std::pair<double, double>> intervals;
     double h_value;
     auto parent = &(close.find(curNode.i*map.width + curNode.j)->second);
-
-    for(int i = -1; i <= +1; i++)
-    {
-        for(int j = -1; j <= +1; j++)
+    std::vector<std::pair<int, int>> offsets = {{0,1}, {1,0}, {0,-1}, {-1, 0}};
+    for(auto o:offsets)
+        if(lineofsight.checkTraversability(curNode.i+o.first,curNode.j+o.second,map))
         {
-            if(((i == 0 && j != 0) || (i != 0 && j == 0)) && lineofsight.checkTraversability(curNode.i+i,curNode.j+j,map))
-            {
-                newNode.i = curNode.i + i;
-                newNode.j = curNode.j + j;
-                constraints->updateCellSafeIntervals({newNode.i,newNode.j});
-                newNode.heading = calcHeading(curNode, newNode);
-                angleNode = curNode;                                                 //the same state, but with extended g-value
-                if(config->planforturns)
-                    angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//to compensate the amount of time required for rotation
-                newNode.g = angleNode.g + 1.0/curagent.mspeed;
-                newNode.Parent = &angleNode;
-                h_value = config->hweight*getCost(newNode.i, newNode.j, curagent.goal_i, curagent.goal_j)/curagent.mspeed;
+            newNode.i = curNode.i + o.first;
+            newNode.j = curNode.j + o.second;
+            constraints->updateCellSafeIntervals({newNode.i,newNode.j});
+            newNode.heading = calcHeading(curNode, newNode);
+            angleNode = curNode; //the same state, but with extended g-value
+            angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//to compensate the amount of time required for rotation
+            newNode.g = angleNode.g + 1.0/curagent.mspeed;
+            newNode.Parent = &angleNode;
+            h_value = getHValue(newNode.i, newNode.j);
 
-                if(angleNode.g <= angleNode.interval.second)
+            if(angleNode.g <= angleNode.interval.second)
+            {
+                intervals = constraints->findIntervals(newNode, EAT, close, map.width);
+                for(unsigned int k = 0; k < intervals.size(); k++)
                 {
+                    newNode.interval = intervals[k];
+                    newNode.Parent = parent;
+                    newNode.g = EAT[k];
+                    newNode.F = newNode.g + h_value;
+                    successors.push_front(newNode);
+                }
+            }
+            if(config->allowanyangle)
+            {
+                newNode = resetParent(newNode, curNode, map);
+                if(newNode.Parent->i != parent->i || newNode.Parent->j != parent->j)
+                {
+                    angleNode = *newNode.Parent;
+                    newNode.heading = calcHeading(*newNode.Parent, newNode);//new heading with respect to new parent
+                    angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//count new additional time required for rotation
+                    newNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;
+                    newNode.Parent = &angleNode;
+                    if(angleNode.g > angleNode.interval.second)
+                        continue;
                     intervals = constraints->findIntervals(newNode, EAT, close, map.width);
                     for(unsigned int k = 0; k < intervals.size(); k++)
                     {
                         newNode.interval = intervals[k];
-                        newNode.Parent = parent;
+                        newNode.Parent = parent->Parent;
                         newNode.g = EAT[k];
                         newNode.F = newNode.g + h_value;
                         successors.push_front(newNode);
                     }
                 }
-                if(config->allowanyangle)
-                {
-                    newNode = resetParent(newNode, curNode, map);
-                    if(newNode.Parent->i != parent->i || newNode.Parent->j != parent->j)
-                    {
-                        angleNode = *newNode.Parent;
-                        newNode.heading = calcHeading(*newNode.Parent, newNode);//new heading with respect to new parent
-                        if(config->planforturns)
-                        {
-                            angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//count new additional time required for rotation
-                            newNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;
-                        }
-                        newNode.Parent = &angleNode;
-                        if(angleNode.g > angleNode.interval.second)
-                            continue;
-                        intervals = constraints->findIntervals(newNode, EAT, close, map.width);
-                        for(unsigned int k = 0; k < intervals.size(); k++)
-                        {
-                            newNode.interval = intervals[k];
-                            newNode.Parent = parent->Parent;
-                            newNode.g = EAT[k];
-                            newNode.F = newNode.g + h_value;
-                            successors.push_front(newNode);
-                        }
-                    }
-                }
             }
         }
-    }
     return successors;
 }
 
 Node AA_SIPP::findMin(int size)
 {
     Node min;
-    min.F = std::numeric_limits<float>::max();
+    min.F = std::numeric_limits<double>::max();
     for(int i = 0; i < size; i++)
     {
-        if(open[i].size() != 0 && open[i].begin()->F <= min.F)
+        if(!open[i].empty() && open[i].begin()->F - CN_EPSILON < min.F)
         {
-            if (open[i].begin()->F == min.F)
+            if (fabs(open[i].begin()->F - min.F) < CN_EPSILON)
             {
-                if (open[i].begin()->g >= min.g)
-                    min=*open[i].begin();
+                if (min.g < open[i].begin()->g)
+                    min = *open[i].begin();
             }
             else
-                min=*open[i].begin();
+                min = *open[i].begin();
         }
     }
     return min;
@@ -145,7 +149,7 @@ Node AA_SIPP::findMin(int size)
 
 void AA_SIPP::addOpen(Node &newNode)
 {
-    if (open[newNode.i].size() == 0)
+    if (open[newNode.i].empty())
     {
         open[newNode.i].push_back(newNode);
         openSize++;
@@ -153,11 +157,11 @@ void AA_SIPP::addOpen(Node &newNode)
     }
 
     std::list<Node>::iterator iter, pos, delpos;
-    bool posFound = false;
+    bool posFound(false);
     pos = open[newNode.i].end();
     for(iter = open[newNode.i].begin(); iter != open[newNode.i].end(); ++iter)
     {
-        if ((iter->F >= newNode.F) && (!posFound))
+        if ((newNode.F - CN_EPSILON < iter->F) && !posFound)
         {
             if (fabs(iter->F - newNode.F) < CN_EPSILON)//CN_EPSILON is needed to prevent mistakes with comparison of double-type values
             {
@@ -174,12 +178,11 @@ void AA_SIPP::addOpen(Node &newNode)
             }
         }
 
-        if (iter->j == newNode.j && iter->interval.first == newNode.interval.first)
+        if (iter->j == newNode.j && fabs(iter->interval.first - newNode.interval.first) < CN_EPSILON)
         {
-            //if(iter->g <= newNode.g)
-            if((iter->g - (newNode.g + int(config->planforturns)*getRCost(iter->heading, newNode.heading))) < CN_EPSILON)//if existing state dominates new one
+            if((iter->g - newNode.g + getRCost(iter->heading, newNode.heading)) < CN_EPSILON)//if existing state dominates new one
                 return;
-            if((newNode.g - (iter->g + int(config->planforturns)*getRCost(iter->heading, newNode.heading))) < CN_EPSILON)//if new state dominates the existing one
+            if((newNode.g - iter->g + getRCost(iter->heading, newNode.heading)) < CN_EPSILON)//if new state dominates the existing one
             {
                 if(pos == iter)
                 {

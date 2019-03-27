@@ -12,115 +12,115 @@ bool Task::getTask(const char *fileName)
     XMLElement *root = doc.FirstChildElement(CNS_TAG_ROOT);
     if (!root)
     {
-        std::cout << "No 'root' element found in XML file."<<std::endl;
+        std::cout << "No '"<<CNS_TAG_ROOT<<"' element found in XML task-file."<<std::endl;
         return false;
     }
     double defaultSize(CN_DEFAULT_SIZE), defaultRSpeed(CN_DEFAULT_RSPEED), defaultMSpeed(CN_DEFAULT_MSPEED),
            defaultSHeading(CN_DEFAULT_SHEADING), defaultGHeading(CN_DEFAULT_GHEADING);
-    XMLElement *element = root->FirstChildElement("default_parameters");
+    XMLElement *element = root->FirstChildElement(CNS_TAG_DEF_PARAMS);
     if(element)
     {
-        defaultSize = element->DoubleAttribute("size");
-        defaultRSpeed = element->DoubleAttribute("rotationspeed");
-        defaultMSpeed = element->DoubleAttribute("movespeed");
-        defaultSHeading = element->DoubleAttribute("start.heading");
-        defaultGHeading = element->DoubleAttribute("goal.heading");
-        if(element->Attribute("goal.heading") == "whatever")
-            defaultGHeading = -1;
+        defaultSize = element->DoubleAttribute(CNS_TAG_ATTR_SIZE);
+        defaultRSpeed = element->DoubleAttribute(CNS_TAG_ATTR_RSPEED);
+        defaultMSpeed = element->DoubleAttribute(CNS_TAG_ATTR_MSPEED);
+        defaultSHeading = element->DoubleAttribute(CNS_TAG_ATTR_SHEADING);
+        defaultGHeading = element->DoubleAttribute(CNS_TAG_ATTR_GHEADING);
+        if(element->Attribute(CNS_TAG_ATTR_GHEADING) == CNS_HEADING_WHATEVER)
+            defaultGHeading = CN_HEADING_WHATEVER;
         if(defaultSize <= 0 || defaultSize > 10.0)
         {
-            std::cout<<"Incorrect value of \"default size\" parameter. The value is set to "<< CN_DEFAULT_SIZE<<".\n";
+            std::cout<<"Incorrect value of default "<<CNS_TAG_ATTR_SIZE" parameter. The value is set to "<< CN_DEFAULT_SIZE<<".\n";
             defaultSize = CN_DEFAULT_SIZE;
         }
         if(defaultRSpeed <= 0 || defaultRSpeed > 10.0)
         {
-            std::cout<<"Incorrect value of \"default rotation speed\" parameter. The value is set to "<< CN_DEFAULT_RSPEED<<".\n";
+            std::cout<<"Incorrect value of default "<<CNS_TAG_ATTR_ROTATIONSPEED<<" parameter. The value is set to "<< CN_DEFAULT_RSPEED<<".\n";
             defaultRSpeed = CN_DEFAULT_RSPEED;
         }
         if(defaultMSpeed <= 0 || defaultMSpeed > 10.0)
         {
-            std::cout<<"Incorrect value of \"default movement speed\" parameter. The value is set to "<< CN_DEFAULT_MSPEED<<".\n";
+            std::cout<<"Incorrect value of default "<<CNS_TAG_ATTR_MOVESPEED<<" parameter. The value is set to "<< CN_DEFAULT_MSPEED<<".\n";
             defaultMSpeed = CN_DEFAULT_MSPEED;
         }
         if(defaultSHeading < 0 || defaultSHeading > 360)
         {
-            std::cout<<"Incorrect value of \"default start heading\" parameter. The value is set to "<< CN_DEFAULT_SHEADING<<".\n";
+            std::cout<<"Incorrect value of default "<<CNS_TAG_ATTR_SHEADING<<" parameter. The value is set to "<< CN_DEFAULT_SHEADING<<".\n";
             defaultSHeading = CN_DEFAULT_SHEADING;
         }
         if(defaultGHeading < -1 || defaultGHeading > 360)
         {
-            std::cout<<"Incorrect value of \"default goal heading\" parameter. The value is set to "<< CN_DEFAULT_GHEADING<<".\n";
+            std::cout<<"Incorrect value of default "<<CNS_TAG_ATTR_GHEADING<<" parameter. The value is set to "<< CN_DEFAULT_GHEADING<<".\n";
             defaultGHeading = CN_DEFAULT_GHEADING;
         }
     }
-    root = root->FirstChildElement("agents");
+    root = root->FirstChildElement(CNS_TAG_AGENTS);
     if (!root)
     {
-        std::cout << "No 'agents' element found in XML file."<<std::endl;
+        std::cout << "No '"<<CNS_TAG_AGENTS<<"' element found in XML file."<<std::endl;
         return false;
     }
-    element = root->FirstChildElement("agent");
+    element = root->FirstChildElement(CNS_TAG_AGENT);
     if(!element)
     {
-        std::cout << "No 'agent' element found in XML file."<<std::endl;
+        std::cout << "No '"<<CNS_TAG_AGENT<<"' element found in XML file."<<std::endl;
         return false;
     }
     int k(0);
     for(element; element; element = element->NextSiblingElement("agent"))
     {
         Agent agent;
-        agent.start_i = element->IntAttribute("start.y");
-        agent.start_j = element->IntAttribute("start.x");
-        agent.goal_i = element->IntAttribute("goal.y");
-        agent.goal_j = element->IntAttribute("goal.x");
+        agent.start_i = element->IntAttribute(CNS_TAG_ATTR_SY);
+        agent.start_j = element->IntAttribute(CNS_TAG_ATTR_SX);
+        agent.goal_i = element->IntAttribute(CNS_TAG_ATTR_GY);
+        agent.goal_j = element->IntAttribute(CNS_TAG_ATTR_GX);
 
-        if(element->Attribute("id"))
-            agent.id = element->Attribute("id");
+        if(element->Attribute(CNS_TAG_ATTR_ID))
+            agent.id = element->Attribute(CNS_TAG_ATTR_ID);
         else
             agent.id = std::to_string(k);
-        if(element->Attribute("size"))
-            agent.size = element->DoubleAttribute("size");
+        if(element->Attribute(CNS_TAG_ATTR_SIZE))
+            agent.size = element->DoubleAttribute(CNS_TAG_ATTR_SIZE);
         else
             agent.size = defaultSize;
-        if(element->Attribute("rotationspeed"))
-            agent.rspeed = element->DoubleAttribute("rotationspeed");
+        if(element->Attribute(CNS_TAG_ATTR_RSPEED))
+            agent.rspeed = element->DoubleAttribute(CNS_TAG_ATTR_RSPEED);
         else
             agent.rspeed = defaultRSpeed;
-        if(element->Attribute("movespeed"))
-            agent.mspeed = element->DoubleAttribute("movespeed");
+        if(element->Attribute(CNS_TAG_ATTR_MSPEED))
+            agent.mspeed = element->DoubleAttribute("CNS_TAG_ATTR_MSPEED");
         else
             agent.mspeed = defaultMSpeed;
-        if(element->Attribute("start.heading"))
-            agent.start_heading = element->DoubleAttribute("start.heading");
+        if(element->Attribute(CNS_TAG_ATTR_SHEADING))
+            agent.start_heading = element->DoubleAttribute(CNS_TAG_ATTR_SHEADING);
         else
             agent.start_heading = defaultSHeading;
-        if(element->Attribute("goal.heading"))
-            agent.goal_heading = element->DoubleAttribute("goal.heading");
+        if(element->Attribute(CNS_TAG_ATTR_GHEADING))
+            agent.goal_heading = element->DoubleAttribute(CNS_TAG_ATTR_GHEADING);
         else
             agent.goal_heading = defaultGHeading;
         if(agent.size <= 0 || agent.size > 10.0)
         {
-            std::cout<<"Incorrect size of agent "<<agent.id<<". Its size is set to default value "<<defaultSize<<".\n";
+            std::cout<<"Incorrect value of "<<CNS_TAG_ATTR_SIZE<<" attribute of agent "<<agent.id<<". It's set to default value "<<defaultSize<<".\n";
             agent.size = defaultSize;
         }
         if(agent.rspeed <= 0 || agent.rspeed > 10.0)
         {
-            std::cout<<"Incorrect rotation speed of agent "<<agent.id<<". Its rotation speed is set to default value "<<defaultRSpeed<<".\n";
+            std::cout<<"Incorrect value of "<<CNS_TAG_ATTR_RSPEED<<" of agent "<<agent.id<<". It's set to default value "<<defaultRSpeed<<".\n";
             agent.rspeed = defaultRSpeed;
         }
         if(agent.mspeed <= 0 || agent.mspeed > 10.0)
         {
-            std::cout<<"Incorrect movement speed of agent "<<agent.id<<". Its movement speed is set to default value "<<defaultMSpeed<<".\n";
+            std::cout<<"Incorrect value of "<<CNS_TAG_ATTR_MSPEED<<" of agent "<<agent.id<<". It's set to default value "<<defaultMSpeed<<".\n";
             agent.mspeed = defaultMSpeed;
         }
         if(agent.start_heading < 0 || agent.start_heading > 360.0)
         {
-            std::cout<<"Incorrect start heading of agent "<<agent.id<<". Its start heading is set to default value "<<defaultSHeading<<".\n";
+            std::cout<<"Incorrect value of "<<CNS_TAG_ATTR_SH<<" of agent "<<agent.id<<". It's set to default value "<<defaultSHeading<<".\n";
             agent.start_heading = defaultSHeading;
         }
         if(agent.goal_heading < -1 || agent.goal_heading > 360.0)
         {
-            std::cout<<"Incorrect goal heading of agent "<<agent.id<<". Its goal heading is set to default value "<<defaultSHeading<<".\n";
+            std::cout<<"Incorrect value of "<<CNS_TAG_ATTR_GHEADING<<" of agent "<<agent.id<<". It's set to default value "<<defaultSHeading<<".\n";
             agent.goal_heading = defaultGHeading;
         }
         k++;
