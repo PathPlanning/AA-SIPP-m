@@ -212,6 +212,27 @@ bool Config::getConfig(const char* fileName)
         stream.clear();
         stream.str("");
     }
+
+    element = algorithm->FirstChildElement(CNS_TAG_ADDITIONALWAIT);
+    if (!element)
+    {
+        std::cout << "Warning! No '"<<CNS_TAG_ADDITIONALWAIT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. It's compared to '0'."<<std::endl;
+        additionalwait = 0;
+    }
+    else
+    {
+        value = element->GetText();
+        stream<<value;
+        stream>>additionalwait;
+        stream.clear();
+        stream.str("");
+        if(additionalwait < 0 || additionalwait > 100)
+        {
+            std::cout << "Warning! Wrong value of '"<<CNS_TAG_ADDITIONALWAIT<<"' element. It should belong to the interval [0,100]. The value compared to '0'"<<std::endl;
+            additionalwait = 0;
+        }
+    }
+
     XMLElement *options = root->FirstChildElement(CNS_TAG_OPTIONS);
     if(!options)
     {
@@ -245,6 +266,6 @@ bool Config::getConfig(const char* fileName)
         element = options->FirstChildElement(CNS_TAG_LOGFILENAME);
         if(element->GetText() != nullptr)
             logfilename = element->GetText();
-}
-return true;
+    }
+    return true;
 }

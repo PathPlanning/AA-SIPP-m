@@ -74,7 +74,7 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
                 newNode.heading = calcHeading(curNode, newNode);
                 angleNode = curNode;                                                 //the same state, but with extended g-value
                 if(config->planforturns)
-                    angleNode.g += getRCost(angleNode.heading, newNode.heading);//to compensate the amount of time required for rotation
+                    angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//to compensate the amount of time required for rotation
                 newNode.g = angleNode.g + 1.0/curagent.mspeed;
                 newNode.Parent = &angleNode;
                 h_value = config->hweight*getCost(newNode.i, newNode.j, curagent.goal_i, curagent.goal_j)/curagent.mspeed;
@@ -100,8 +100,8 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
                         newNode.heading = calcHeading(*newNode.Parent, newNode);//new heading with respect to new parent
                         if(config->planforturns)
                         {
-                            angleNode.g += getRCost(angleNode.heading, newNode.heading);//count new additional time required for rotation
-                            newNode.g += getRCost(angleNode.heading, newNode.heading);
+                            angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//count new additional time required for rotation
+                            newNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;
                         }
                         newNode.Parent = &angleNode;
                         if(angleNode.g > angleNode.interval.second)

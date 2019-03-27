@@ -83,6 +83,7 @@
     #define CNS_TAG_TIMELIMIT           "timelimit"
     #define CNS_TAG_METRICTYPE          "metrictype"
     #define CNS_TAG_PLANFORTURNS        "planforturns"
+    #define CNS_TAG_ADDITIONALWAIT      "additionalwait"
     #define CNS_TAG_OPTIONS             "options"
     #define CNS_TAG_LOGLVL              "loglevel"
     #define CNS_TAG_LOGPATH             "logpath"

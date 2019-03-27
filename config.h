@@ -22,6 +22,7 @@ public:
     int rescheduling;
     int initialprioritization;
     double startsafeinterval;
+    double additionalwait;
     std::string logfilename;
     std::string logpath;
 
