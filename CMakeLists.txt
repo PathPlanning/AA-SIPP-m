@@ -24,7 +24,6 @@ set( HEADER_FILES
      searchresult.h 
      gl_const.h 
      xmlLogger.h 
-     search.h 
      mission.h 
      map.h 
 	 task.h
