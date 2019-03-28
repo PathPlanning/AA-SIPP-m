@@ -33,11 +33,6 @@ Built current project using **Qt Creator** or **CMake**. To launch the compiled 
 cd PATH_TO_THE_PROJECT
 cmake .
 make
-./AA-SIPP-m initial_file_name.xml
-```
-Output file for this project will be placed in the same folder as input file and, by default, will be named `_log.xml`. For examlpe,
-```
-"initial_file_name.xml" -> "initial_file_name_log.xml"
 ```
 ## Input and Output files
 
@@ -46,33 +41,69 @@ Both files are an XML file with a specific structure.
 Note that all tags in XML files are case sensitive.
 
 Input file should contain:
+* Mandatory tag `<agents>`. It describes the task.
+   * Optional tag `<defaultparameters>`. It is used to change the default values for size, speeds and headings of agents.
+      * `size` &mdash; attribute that defines the radius of agents. Possible values [0, 10]. The value is relative to the grid's cell size, which always has conditional value 1. For example, 0.5 means that the agent size corresponds to the circle inscribed in the cell.
+      * `movespeed` &mdash; attribute that defines the movement speed of agent. Possible values (0, 10]. The value is relative to the grid's cell size, which always has conditional value 1. For example, 1.0 means that the movement between two adjacent cells takes one time unit.
+      * `rotationspeed` &mdash; attribute that defines how fast the agent can change its heading. Possible values (0, 10]. Speed 1.0 means that the agent can rotate for 180 degrees within one time unit. Other speeds are set as a coefficient to this ratio. This attribute makes sense only if option `<planforturns>` is active.
+      * `start.heading`, `goal.heading` - attributes that defines the heading of agents. Possible values are [0, 360] degrees. Additional possible value for `goal.heading` is `-1` or `whatever` which means that goal's heading doesn't matter. Zero degrees corresponds to the direction of increasing of coordinate X. The angle value increases counterclockwise. These attributes make sense only if option `<planforturns>` is active.
 
+      If any of the parameters doesn't specified, the default value defined inside the code (in gl_const.h) is used. The default values are the following: `size`=`0.5`; `movespeed`=`1.0`; `rotationspedd`=`1.0`, `start.heading`=`0`; `goal.heading`=`-1`.
+   * Mandatory tag `<agent>` defines start and goal locations, size and speeds of one agent.
+      * `id` &mdash; attribute that defines the identicator for agent. It is used only for notifications and can have any value. In cases when ID doesn't specified the number in the order of enumeration is used.
+      * `start.x`, `start.y`, `goal.x`, `goal.y` &mdash; mandatory attributes that defines the coordinates of start and goal locations. Legal values for `start.x` and `goal.x` are [0, .., *width* - 1], for `start.y` and `goal.y` - [0, .., *height* - 1]. (0,0) coordinates correspond to the upper left corner of the grid. Two agents can't have equal start or goal location and the distance between their start and goal locations must be not lower than the sum of their sizes. Moreover these locations must be traversable with respect to the sizes of the agents.
+      * `size`, `movespeed`, `rotationspeed`, `start.heading`, `goal.heading` &mdash; additional attributes that allow to change the values of these attributes for an exact agent. The values specified here have a higher priority than the values specified in the default parameters.
+      
 * Mandatory tag `<map>`. It describes the environment.
-    * `<height>` and `<width>` &mdash; mandatory tags that define size of the map. Origin is in the upper left corner. (0,0) - is upper left, (*width* - 1, *height* - 1) is lower right.
-    * `<agents>` &mdash; mandatory tag that defines the number of agents which contains the instance.
-    * `<startx>` and `<starty>` &mdash; mandatory tags that define horizontal (X) and vertical (Y) offset of the start location from the upper left corner. Legal values for *startx* are [0, .., *width* - 1], for *starty* - [0, .., *height* - 1].
-    * `<finishx>` and `<finishy>` &mdash; mandatory tags that horizontal (X) and vertical (Y) offset of the goal location.
-    * Number of `<startx>`, `<starty>`, `<finishx>` and `<finishy>` tags should be equal to the number of agents, as each of them defines the start(goal) location only for one agent.
-    * `<grid>` &mdash; mandatory tag that describes the square grid constituting the map. It consists of `<row>` tags. Each `<row>` contains a sequence of "0" and "1" separated by blanks. "0" stands for traversable cell, "1" &mdash; for not traversable (actually any other figure but "0" can be used instead of "1").
+    * `<grid>` &mdash; mandatory tag that describes the square grid constituting the map. 
+    * `height` and `width` &mdash; mandatory attributes if tag `<grid>` that define size of the map. Origin is in the upper left corner. (0,0) - is upper left, (*width* - 1, *height* - 1) is lower right.
+    *  `<row>` &mdash; mandatory tags, each of which describes one line of the grid. Each `row` contains a sequence of "0" and "1" separated by blanks. "0" stands for traversable cell, "1" &mdash; for not traversable (actually any other figure but "0" can be used instead of "1"). Total number of "0" and "1" in each row must be equal to the width of the grid. Total number of rows must be equal to the height of the grid. 
     
-* Mandatory tag `<algorithm>`. It describes the parameters of the algorithm.
-
-    * `<hweight>` or `<weight>` &mdash; defines the weight of heuristic function. Default value is "1".
-    * `<allowanyangle>` &mdash; possible values `true` or `false`. Defines the choice between AA-SIPP and SIPP algorithms.
-    * `<prioritization>` &mdash; defines the initial prioitization of the agents. Possible values: `fifo` - priority of agents corresponds to the order of their enumeration in XML file; `shortest_first` - the less the distance between the start and goal locations, the higher the priority of the agent; `longest_first` - the more the distance between the start and goal locations, the higher the priority of the agent; `random` - shuffles the priorities of all agents in a random way.
-    * `<rescheduling>` &mdash; defines the possibility of using rescheduling in cases when the algorithm fails to find a solution. Possible values: `no` - rescheduling is disabled; `rulebased` - rises the priority of failed agent to the top; `random` - shuffles the priorities of all agents in a random way.
-    * `<timelimit>` &mdash; defines  the amount of time that the algorithm can spend on finding a solution. Can be helpful in cases of using rescheduling. Possible values: `-1` - no limit; `n` - number of seconds (n>0).
-    * `<startsafeinterval>` &mdash; defines the size of additional constraints in the start locations of low-prioirity agents. Helps to find a solution for instances with many agents without rescheduling. Possible values: `0` - no startsafeintervals; `n` - the size of constraints, counts in conditional time units.
-    * `<constraintstype>` &mdash; defines the procedure that the algorithm uses to count EAT. Possible values: `point` - the procedure based on splitting the found trajectories of high-priority agents into sequences of point-constraints (original procedure introduced in ICAPS-2017 paper); `velocity` - procedure based on `time-to-collision` formula (the fastest); `section` - procedure that considers all possible cases of intersecting of two sections and counts EAT precisely (produces the best quality solutions).
-    * `<turningweight>` &mdash; defines the cost of changing heading (the moving direction). Need for AAt-SIPP(m). Value `1` means that the turning on 180 degrees requires the same amount of time as for moving between the centers of two adjacent cells (1 conditional time unit).
-
+* Mandatory tag `<algorithm>`. It describes the parameters of the algorithm. In cases when some tags, that describes the settings, are not specified or are incorrect the default values are taken.
+    * `<allowanyangle>` &mdash; possible values `true` or `false`. Defines the choice between AA-SIPP and SIPP algorithms. By default the value is `true`.
+    * `<prioritization>` &mdash; defines the initial prioitization of the agents. Possible values: `fifo` - priority of agents corresponds to the order of their enumeration in XML file; `shortest_first` - the less the distance between the start and goal locations, the higher the priority of the agent; `longest_first` - the more the distance between the start and goal locations, the higher the priority of the agent; `random` - shuffles the priorities of all agents in a random way. By default the value is `fifo`.
+    * `<rescheduling>` &mdash; defines the possibility of using rescheduling in cases when the algorithm fails to find a solution. Possible values: `none` - rescheduling is disabled; `rulebased` - rises the priority of failed agent to the top; `random` - shuffles the priorities of all agents in a random way. By default the value is `none`.
+    * `<timelimit>` &mdash; defines  the amount of time that the algorithm can spend on finding a solution. Can be helpful in cases of using rescheduling. Possible values: `-1` - no limit; `n` - number of seconds (n>0). By default the vaule is `-1`.
+    * `<startsafeinterval>` &mdash; defines the size of additional constraints in the start locations of low-prioirity agents. Helps to find a solution for instances with many agents without rescheduling. Possible values: `0` - no startsafeintervals; `n` - the size of constraints, counts in conditional time units. By default the value is `0`.
+    * `<planforturns>` &mdash; defines the option of taking into account the headings of agents and the time required to change them. Possible values `true` or `false`. The cost of changing the heading is defined by the attributes `rotationspeed` that were described above. By default the value is `false`.
+   * `<waitbeforemove>` &mdash; defines additional delay that each agent performs before starting to move along the next section. Possible values are [0;100]. By default the value is `0`.
+   
 * Optional tag `<options>`. Options that are not related to search.
-
     * `<loglevel>` &mdash; defines the level of detalization of log-file. Default value is "1". Possible values:
         - "0" &mdash; log-file is not created.
-        - "1" &mdash; all the input data is copied to the log-file plus short `<summary>` is appended. `<summary>` contains info of the path length, number of steps, elapsed time, etc. It also contains `<path>` tag. It looks like `<grid>` but cells forming the path are marked by "\*" instead of "0". Moreover, the log contains the information about each agent and its path.
+        - "1" &mdash; log-file contains the names of input files, short `<summary>`, `<path>` and found trajectories inside tags `<agent>`. `<summary>` contains info of the path length, number of steps, elapsed time, etc. `<path>` tag looks like `<grid>` but cells forming the path are marked by "\*" instead of "0". Each tag `<agent>` contains a path that consists of a sequence of sections with start and goal locations and duration. 
+        - "2" &mdash; instead of names of the input files all the input data is copied to the log-file plus the log-info that were made by loglevel="1".
     * `<logpath>` - defines the directory where the log-file should be written. If not specified directory of the input file is used.
     * `<logname>` - defines the name of log-file. If not specified the name of the log file is: "input file name" + "\_log" + input file extension.
+    
+* Optional tag `<dynamicobstacles>`. Contains the trajectories of dynamic obstacles.
+   * Optional tag `<defaultparameters>`. It is used to change the default values for size and speeds od dynamic obstacles.
+   * `<obstacle>` &mdash; contains the trajcetory of one dynamic obstacle represented as a seqence of sections.
+      * `<section>` &mdash; describes a part of a trajectory. It must contain attributes `start.x`, `start.y`, `goal.x`, `goal.y` and `duration`. 
+## Launch
+To launch the application you need to have an input XML-file with all required information. If it's all-in-one file:
+```
+./AA-SIPP-m initial_file_name.xml
+```
+Due to simplify the procedure of performing experiments with many tasks, the parts of input XML-file can be devided into several files:
+* Task-file &mdash; contains part `<agents>`.
+* Map-file &mdash; contains part `<map>`.
+* Config-file &mdash; contains parts `<algorithm>` and `<options>`.
+* Obstacles-file &mdash; optional file, contains part `<dynamicobstacles>`.
+
+The application can be launched with separated input files in the following way:
+```
+   ./AA-SIPP-m task_file_name.xml map_file_name.xml config_file_name.xml
+```
+or
+```
+   ./AA-SIPP-m task_file_name.xml map_file_name.xml config_file_name.xml obstacles_file_name.xml
+```
+If `<loglevel>` has value `1` or `2` the output file will be placed in the same folder as input file and, by default, will be named `_log.xml`. For examlpe,
+```
+"initial_file_name.xml" -> "initial_file_name_log.xml"
+```
+In case of using separate input files the output file by default will be named as the task-file, i.e. `task_file_name_log.xml`.
 
 ## Repository folders
 
