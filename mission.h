@@ -24,7 +24,7 @@ public:
     void startSearch();
     void printSearchResultsToConsole();
     void saveSearchResultsToLog();
-    void setFileNames(const char *taskName, const char* mapName, const char *configName, const char *obstaclesName = nullptr);
+    void setFileNames(const char *taskName, const char* mapName, const char *configName, const char *obstaclesName);
 
 private:
     Map              m_map;

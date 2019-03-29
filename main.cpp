@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
         if(argc == 5)
             mission.setFileNames(argv[1], argv[2], argv[3], argv[4]);
         else if(argc == 4)
-            mission.setFileNames(argv[1], argv[2], argv[3]);
+            mission.setFileNames(argv[1], argv[2], argv[3], nullptr);
         else if(argc == 2)
             mission.setFileNames(argv[1], argv[1], argv[1], argv[1]);
         else

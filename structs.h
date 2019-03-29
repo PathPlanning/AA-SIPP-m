@@ -63,7 +63,7 @@ struct Node
 
 struct obstacle
 {
-    int id;
+    std::string id;
     double size;
     std::vector<Node> sections;
 };

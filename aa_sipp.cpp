@@ -3,7 +3,6 @@
 AA_SIPP::AA_SIPP(const Config &config)
 {
     this->config = std::make_shared<const Config> (config);
-    closeSize = 0;
     openSize = 0;
     constraints = nullptr;
 }
@@ -23,11 +22,11 @@ bool AA_SIPP::stopCriterion(const Node &curNode, Node &goalNode)
     {
         if(!config->planforturns || curagent.goal_heading == CN_HEADING_WHATEVER)
             goalNode = curNode;
-        else if(goalNode.g > curNode.g + getRCost(curNode.heading,curagent.goal_heading))
+        else if(goalNode.g > curNode.g + getRCost(curNode.heading, curagent.goal_heading))
         {
             goalNode = curNode;
-            goalNode.g = curNode.g + getRCost(curNode.heading,curagent.goal_heading);
-            goalNode.F = curNode.F + getRCost(curNode.heading,curagent.goal_heading);
+            goalNode.g = curNode.g + getRCost(curNode.heading, curagent.goal_heading);
+            goalNode.F = curNode.F + getRCost(curNode.heading, curagent.goal_heading);
         }
     }
     if(goalNode.F - CN_EPSILON < curNode.F)
@@ -42,12 +41,14 @@ double AA_SIPP::getCost(int a_i, int a_j, int b_i, int b_j)
 
 double AA_SIPP::getHValue(int i, int j)
 {
-    if(config->metrictype == CN_MT_EUCLID)
-        return config->hweight*(sqrt(pow(i - curagent.goal_i, 2) + pow(j - curagent.goal_j, 2)))/curagent.mspeed;
-    else if(config->metrictype == CN_MT_DIAGONAL)
-        return config->hweight*(abs(abs(i - curagent.goal_i) - abs(j - curagent.goal_j)) + sqrt(2.0)*std::min(abs(i - curagent.goal_i), abs(j - curagent.goal_j)))/curagent.mspeed;
-    else
-        return config->hweight*(abs(i - curagent.goal_i) + abs(j - curagent.goal_j))/curagent.mspeed;
+    if(config->allowanyangle) //euclid
+        return (sqrt(pow(i - curagent.goal_i, 2) + pow(j - curagent.goal_j, 2)))/curagent.mspeed;
+    else //manhattan
+        return (abs(i - curagent.goal_i) + abs(j - curagent.goal_j))/curagent.mspeed;
+    ///TODO
+    ///use diagonal heuristic for k=3
+    ///return (abs(abs(i - curagent.goal_i) - abs(j - curagent.goal_j)) + sqrt(2.0)*std::min(abs(i - curagent.goal_i), abs(j - curagent.goal_j)))/curagent.mspeed;
+
 }
 
 double AA_SIPP::getRCost(double headingA, double headingB)
@@ -163,7 +164,7 @@ void AA_SIPP::addOpen(Node &newNode)
     {
         if ((newNode.F - CN_EPSILON < iter->F) && !posFound)
         {
-            if (fabs(iter->F - newNode.F) < CN_EPSILON)//CN_EPSILON is needed to prevent mistakes with comparison of double-type values
+            if (fabs(iter->F - newNode.F) < CN_EPSILON)
             {
                 if (newNode.g > iter->g)
                 {
@@ -329,9 +330,8 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
         sresult.pathInfo.resize(task.getNumberOfAgents());
         sresult.agents = task.getNumberOfAgents();
         sresult.agentsSolved = 0;
-        sresult.pathlength = 0;
+        sresult.flowtime = 0;
         sresult.makespan = 0;
-        sresult.flowlength = 0;
         for(int k = 0; k < task.getNumberOfAgents(); k++)
         {
             curagent = task.getAgent(k);
@@ -380,10 +380,10 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
 
 #ifdef __linux__
     gettimeofday(&end, NULL);
-    sresult.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
+    sresult.runtime = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
 #else
     QueryPerformanceCounter(&end);
-    sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+    sresult.runtime = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
 #endif
     sresult.tries = tries;
     if(sresult.pathfound)
@@ -424,11 +424,10 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
         open[i].clear();
     ResultPathInfo resultPath;
     openSize = 0;
-    closeSize = 0;
     constraints->resetSafeIntervals(map.width, map.height);
     constraints->updateCellSafeIntervals({curagent.start_i, curagent.start_j});
     Node curNode(curagent.start_i, curagent.start_j, 0, 0), goalNode(curagent.goal_i, curagent.goal_j, CN_INFINITY, CN_INFINITY);
-    curNode.F = config->hweight * getCost(curNode.i, curNode.j, curagent.goal_i, curagent.goal_j);
+    curNode.F = getHValue(curNode.i, curNode.j);
     curNode.interval = constraints->getSafeInterval(curNode.i, curNode.j, 0);
     curNode.heading = curagent.start_heading;
     open[curNode.i].push_back(curNode);
@@ -439,7 +438,6 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
         open[curNode.i].pop_front();
         openSize--;
         close.insert({curNode.i * map.width + curNode.j, curNode});
-        closeSize++;
         for(Node s:findSuccessors(curNode, map))
             addOpen(s);
     }
@@ -448,22 +446,18 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
         makePrimaryPath(goalNode);
 #ifdef __linux__
         gettimeofday(&end, NULL);
-        resultPath.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
+        resultPath.runtime = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
 #else
         QueryPerformanceCounter(&end);
-        resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+        resultPath.runtime = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
 #endif
         resultPath.sections = hppath;
         makeSecondaryPath(goalNode);
-        resultPath.nodescreated = openSize + closeSize;
         resultPath.pathfound = true;
         resultPath.path = lppath;
-        resultPath.numberofsteps = closeSize;
         resultPath.pathlength = goalNode.g;
         sresult.pathfound = true;
-        sresult.pathlength += goalNode.g;
-        sresult.nodescreated += openSize + closeSize;
-        sresult.numberofsteps += closeSize;
+        sresult.flowtime += goalNode.g;
         sresult.makespan = std::max(sresult.makespan, goalNode.g);
         sresult.pathInfo[numOfCurAgent] = resultPath;
         sresult.agentsSolved++;
@@ -472,24 +466,19 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
     {
 #ifdef __linux__
         gettimeofday(&end, NULL);
-        resultPath.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
+        resultPath.runtime = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
 #else
         QueryPerformanceCounter(&end);
-        resultPath.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+        resultPath.runtime = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
 #endif
         std::cout<<"Path for agent "<<curagent.id<<" not found!\n";
         sresult.pathfound = false;
-        sresult.nodescreated += closeSize;
-        sresult.numberofsteps += closeSize;
-        resultPath.nodescreated = closeSize;
         resultPath.pathfound = false;
         resultPath.path.clear();
         resultPath.sections.clear();
         resultPath.pathlength = 0;
-        resultPath.numberofsteps = closeSize;
         sresult.pathInfo[numOfCurAgent] = resultPath;
     }
-    //std::cout<<numOfCurAgent<<" found\n";
     return resultPath.pathfound;
 }
 

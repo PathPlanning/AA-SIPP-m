@@ -14,10 +14,8 @@ class Config
 public:
     Config();
     int loglevel;
-    int metrictype;
     bool allowanyangle;
     bool planforturns;
-    double hweight;
     double timelimit;
     int rescheduling;
     int initialprioritization;

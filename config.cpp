@@ -5,8 +5,6 @@ Config::Config()
 {
     loglevel = CN_DEFAULT_LOGLVL;
     allowanyangle = CN_DEFAULT_ALLOWANYANGLE;
-    hweight = CN_DEFAULT_HWEIGHT;
-    metrictype = CN_DEFAULT_METRICTYPE;
     startsafeinterval = CN_DEFAULT_STARTSAFEINTERVAL;
     timelimit = CN_DEFAULT_TIMELIMIT;
     initialprioritization = CN_DEFAULT_INITIALPRIORITIZATION;
@@ -18,7 +16,6 @@ Config::Config()
 bool Config::getConfig(const char* fileName)
 {
     std::string value;
-    double weight;
     std::stringstream stream;
 
     XMLDocument doc;
@@ -64,44 +61,6 @@ bool Config::getConfig(const char* fileName)
         }
     }
 
-    element = algorithm->FirstChildElement(CNS_TAG_METRICTYPE);
-    if (!element)
-    {
-        if(allowanyangle == true)
-        {
-            std::cout << "Error! No '"<<CNS_TAG_METRICTYPE<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<< CNS_MT_EUCLID <<"'."<<std::endl;
-            metrictype = CN_MT_EUCLID;
-        }
-        else
-        {
-            std::cout << "Error! No '"<<CNS_TAG_METRICTYPE<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<< CNS_MT_MANHATTAN <<"'."<<std::endl;
-            metrictype = CN_MT_MANHATTAN;
-        }
-    }
-    else
-    {
-        value = element->GetText();
-        if(value == CNS_MT_EUCLID)
-            metrictype = CN_MT_EUCLID;
-        else if(value == CNS_MT_DIAGONAL)
-            metrictype = CN_MT_DIAGONAL;
-        else if(value == CNS_MT_MANHATTAN)
-            metrictype = CN_MT_MANHATTAN;
-        else
-        {
-            if(allowanyangle == true)
-            {
-                std::cout << "Warning! Wrong '"<<CNS_TAG_METRICTYPE<<"' value. It's set to '"<< CNS_MT_EUCLID <<"'."<<std::endl;
-                metrictype = CN_MT_EUCLID;
-            }
-            else
-            {
-                std::cout << "Warning! Wrong '"<<CNS_TAG_METRICTYPE<<"' value. It's set to '"<< CNS_MT_MANHATTAN <<"'."<<std::endl;
-                metrictype = CN_MT_MANHATTAN;
-            }
-        }
-    }
-
     element = algorithm->FirstChildElement(CNS_TAG_STARTSAFEINTERVAL);
     if (!element)
     {
@@ -111,10 +70,19 @@ bool Config::getConfig(const char* fileName)
     else
     {
         value = element->GetText();
-        stream<<value;
-        stream>>startsafeinterval;
-        stream.clear();
-        stream.str("");
+        if(value == "infinity")
+            startsafeinterval = CN_INFINITY;
+        else
+        {
+            stream<<value;
+            stream>>startsafeinterval;
+            stream.clear();
+            stream.str("");
+            if(startsafeinterval > CN_INFINITY)
+                startsafeinterval = CN_INFINITY;
+            else if(startsafeinterval < 0)
+                startsafeinterval = 0;
+        }
     }
 
     element = algorithm->FirstChildElement(CNS_TAG_PRIORITIZATION);
@@ -178,39 +146,6 @@ bool Config::getConfig(const char* fileName)
         }
     }
 
-    element = algorithm->FirstChildElement(CNS_TAG_HWEIGHT);
-    if (!element)
-    {
-        element = algorithm->FirstChildElement(CNS_TAG_WEIGHT);
-        if (!element)
-        {
-            std::cout << "Warning! No '"<<CNS_TAG_HWEIGHT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is to "<< CN_DEFAULT_HWEIGHT <<"."<<std::endl;
-            hweight = CN_DEFAULT_HWEIGHT;
-        }
-        else
-        {
-            value = element->GetText();
-            stream<<value;
-            stream>>weight;
-            stream.clear();
-            stream.str("");
-        }
-    }
-    else
-    {
-        value = element->GetText();
-        stream<<value;
-        stream>>weight;
-        stream.clear();
-        stream.str("");
-    }
-
-    if (weight == 0)
-    {
-        std::cout << "Warning! Wrong '"<<CNS_TAG_WEIGHT<<"' value. It's set to " << CN_DEFAULT_HWEIGHT <<"."<<std::endl;
-        weight = CN_DEFAULT_HWEIGHT;
-    }
-    hweight = weight;
 
     element = algorithm->FirstChildElement(CNS_TAG_PLANFORTURNS);
     if (!element)
@@ -221,10 +156,15 @@ bool Config::getConfig(const char* fileName)
     else
     {
         value = element->GetText();
-        stream<<value;
-        stream>>planforturns;
-        stream.clear();
-        stream.str("");
+        if(value == "true" || value == "1")
+            planforturns = true;
+        else if(value == "false" || value == "0")
+            planforturns = false;
+        else
+        {
+            std::cout << "Warning! Wrong '"<<CNS_TAG_PLANFORTURNS<<"' value. It's set to '"<<CNS_DEFAULT_PLANFORTURNS<<"'."<<std::endl;
+            planforturns = CN_DEFAULT_PLANFORTURNS;
+        }
     }
 
     element = algorithm->FirstChildElement(CNS_TAG_ADDITIONALWAIT);

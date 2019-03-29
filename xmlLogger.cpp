@@ -99,26 +99,11 @@ void XmlLogger::writeToLogSummary(const SearchResult &sresult)
     element = element->FirstChildElement(CNS_TAG_LOG);
     element->LinkEndChild(doc->NewElement(CNS_TAG_SUM));
     element = element->FirstChildElement(CNS_TAG_SUM);
-
-    float pathlenght(0);
-    unsigned int maxnodes(0), totalnodes(0);
-    for(unsigned int k = 0; k < sresult.pathInfo.size(); k++)
-        if(sresult.pathInfo[k].pathfound)
-        {
-            pathlenght += sresult.pathInfo[k].pathlength;
-            totalnodes += sresult.pathInfo[k].nodescreated;
-            if (sresult.pathInfo[k].nodescreated > maxnodes)
-                maxnodes = sresult.pathInfo[k].nodescreated;
-        }
-
+    element->SetAttribute(CNS_TAG_ATTR_RUNTIME, float(sresult.runtime));
     element->SetAttribute(CNS_TAG_ATTR_TRIES, sresult.tries);
-    element->SetAttribute(CNS_TAG_ATTR_AGENTSSOLVED, (std::to_string(float(sresult.agentsSolved*100)/sresult.agents)+"%").c_str());
-    element->SetAttribute(CNS_TAG_ATTR_MAXNODESCR, maxnodes);
-    element->SetAttribute(CNS_TAG_ATTR_TOTALNODES, totalnodes);
-    element->SetAttribute(CNS_TAG_ATTR_FLOWTIME, float(pathlenght));
-    element->SetAttribute(CNS_TAG_ATTR_AVGLENGTH, float(pathlenght/sresult.agentsSolved));
+    element->SetAttribute(CNS_TAG_ATTR_AGENTSSOLVED, ((std::to_string(sresult.agentsSolved) + " (" + std::to_string(float(sresult.agentsSolved*100)/sresult.agents)+"%)")).c_str());
+    element->SetAttribute(CNS_TAG_ATTR_FLOWTIME, float(sresult.flowtime));
     element->SetAttribute(CNS_TAG_ATTR_MAKESPAN, float(sresult.makespan));
-    element->SetAttribute(CNS_TAG_ATTR_TIME, float(sresult.time));
 }
 
 void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task, const Config &config)
@@ -155,15 +140,15 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task, co
         if(sresult.pathInfo[i].pathfound)
         {
             path->SetAttribute(CNS_TAG_ATTR_PATHFOUND, CNS_TAG_ATTR_TRUE);
+            path->SetAttribute(CNS_TAG_ATTR_RUNTIME, float(sresult.pathInfo[i].runtime));
             path->SetAttribute(CNS_TAG_ATTR_DURATION, float(sresult.pathInfo[i].pathlength));
         }
         else
         {
             path->SetAttribute(CNS_TAG_ATTR_PATHFOUND, CNS_TAG_ATTR_FALSE);
+            path->SetAttribute(CNS_TAG_ATTR_RUNTIME, float(sresult.pathInfo[i].runtime));
             path->SetAttribute(CNS_TAG_ATTR_DURATION, 0);
         }
-        path->SetAttribute(CNS_TAG_ATTR_NODES, sresult.pathInfo[i].nodescreated);
-        path->SetAttribute(CNS_TAG_ATTR_TIME, float(sresult.pathInfo[i].time));
         agent_elem->LinkEndChild(path);
         if (sresult.pathInfo[i].pathfound)
         {

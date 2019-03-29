@@ -9,17 +9,13 @@ struct ResultPathInfo
 {
     bool pathfound;
     double pathlength;
-    unsigned int nodescreated;
-    unsigned int numberofsteps;
-    double time;
+    double runtime;
     std::list<Node> path;
     std::vector<Node> sections;
 
     ResultPathInfo()
     {
-        nodescreated = 0;
-        numberofsteps = 0;
-        time = 0;
+        runtime = 0;
         pathfound = false;
         pathlength = 0;
         path.clear();
@@ -30,12 +26,9 @@ struct ResultPathInfo
 struct SearchResult
 {
     bool pathfound;
-    double pathlength;
     double makespan;
-    double flowlength;
-    unsigned int nodescreated;
-    unsigned int numberofsteps;
-    double time;
+    double flowtime;
+    double runtime;
     unsigned int agents;
     int agentsSolved;
     int tries;
@@ -44,10 +37,9 @@ struct SearchResult
     SearchResult() : pathInfo(1)
     {
         pathfound = false;
-        pathlength = 0;
-        nodescreated = 0;
-        numberofsteps = 0;
-        time = 0;
+        runtime = 0;
+        flowtime = 0;
+        makespan = 0;
         agents = 0;
     }
 

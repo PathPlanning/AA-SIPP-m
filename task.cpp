@@ -17,6 +17,13 @@ bool Task::getTask(const char *fileName)
     }
     double defaultSize(CN_DEFAULT_SIZE), defaultRSpeed(CN_DEFAULT_RSPEED), defaultMSpeed(CN_DEFAULT_MSPEED),
            defaultSHeading(CN_DEFAULT_SHEADING), defaultGHeading(CN_DEFAULT_GHEADING);
+
+    root = root->FirstChildElement(CNS_TAG_AGENTS);
+    if (!root)
+    {
+        std::cout << "No '"<<CNS_TAG_AGENTS<<"' element found in XML file."<<std::endl;
+        return false;
+    }
     XMLElement *element = root->FirstChildElement(CNS_TAG_DEF_PARAMS);
     if(element)
     {
@@ -53,12 +60,6 @@ bool Task::getTask(const char *fileName)
             defaultGHeading = CN_DEFAULT_GHEADING;
         }
     }
-    root = root->FirstChildElement(CNS_TAG_AGENTS);
-    if (!root)
-    {
-        std::cout << "No '"<<CNS_TAG_AGENTS<<"' element found in XML file."<<std::endl;
-        return false;
-    }
     element = root->FirstChildElement(CNS_TAG_AGENT);
     if(!element)
     {
@@ -87,7 +88,7 @@ bool Task::getTask(const char *fileName)
         else
             agent.rspeed = defaultRSpeed;
         if(element->Attribute(CNS_TAG_ATTR_MSPEED))
-            agent.mspeed = element->DoubleAttribute("CNS_TAG_ATTR_MSPEED");
+            agent.mspeed = element->DoubleAttribute(CNS_TAG_ATTR_MSPEED);
         else
             agent.mspeed = defaultMSpeed;
         if(element->Attribute(CNS_TAG_ATTR_SHEADING))

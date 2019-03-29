@@ -15,7 +15,7 @@ public:
     bool getObstacles(const char* fileName);
     std::vector<Node> getSections(int num) const;
     double getSize(int num) const;
-    int getID(int num) const;
+    std::string getID(int num) const;
     int getNumberOfObstacles() const { return obstacles.size(); }
 };
 

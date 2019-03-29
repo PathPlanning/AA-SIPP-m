@@ -45,7 +45,7 @@ private:
     void setPriorities(const Task &task);
     double getHValue(int i, int j);
     bool changePriorities(int bad_i);
-    unsigned int closeSize, openSize;
+    unsigned int openSize;
     std::list<Node> lppath;
     std::vector<std::list<Node>> open;
     std::unordered_multimap<int, Node> close;

@@ -14,8 +14,6 @@
 #define CN_DEFAULT_MSPEED                   1.0
 #define CN_DEFAULT_SHEADING                 0
 #define CN_DEFAULT_GHEADING                 -1 //i.e. whatever
-#define CN_DEFAULT_HWEIGHT                  1
-#define CN_DEFAULT_METRICTYPE               CN_MT_EUCLID
 #define CN_DEFAULT_RESCHEDULING             CN_RE_NO
 #define CN_DEFAULT_INITIALPRIORITIZATION    CN_IP_FIFO
 #define CNS_DEFAULT_INITIALPRIORITIZATION   CNS_IP_FIFO
@@ -38,18 +36,9 @@
 #define CN_LOGLVL_NORM	1
 #define CN_LOGLVL_ALL   2
 
-#define CNS_LOGLVL_NO	"no"
+#define CNS_LOGLVL_NO	"none"
 #define CNS_LOGLVL_NORM	"regular"
 #define CNS_LOGLVL_FULL "full"
-
-//metrictype
-#define CN_MT_EUCLID        1
-#define CN_MT_DIAGONAL      2
-#define CN_MT_MANHATTAN     3
-
-#define CNS_MT_EUCLID       "euclid"
-#define CNS_MT_DIAGONAL     "diagonal"
-#define CNS_MT_MANHATTAN    "manhattan"
 
 //initial prioritization
 #define CN_IP_SHORTESTF  1
@@ -75,45 +64,46 @@
  * XML file tags ---------------------------------------------------------------
  */
 #define CNS_TAG_ROOT "root"
-    #define CNS_TAG_DEF_PARAMS          "default_parameters"
-        #define CNS_TAG_ATTR_SIZE       "size"
-        #define CNS_TAG_ATTR_MOVESPEED  "movespeed"
-        #define CNS_TAG_ATTR_ROTATIONSPEED "rotationspeed"
-    #define CNS_TAG_AGENTS              "agents"
-    #define CNS_TAG_AGENT               "agent"
-    #define CNS_TAG_MAP                 "map"
-    #define CNS_TAG_GRID                "grid"
-        #define CNS_TAG_ROW             "row"
-    #define CNS_TAG_ALGORITHM           "algorithm"
-    #define CNS_TAG_WEIGHT              "weight"
-    #define CNS_TAG_HWEIGHT             "hweight"
-    #define CNS_TAG_ALLOW_AA            "allowanyangle"
-    #define CNS_TAG_PRIORITIZATION      "prioritization"
-    #define CNS_TAG_RESCHEDULING        "rescheduling"
-    #define CNS_TAG_STARTSAFEINTERVAL   "startsafeinterval"
-    #define CNS_TAG_TIMELIMIT           "timelimit"
-    #define CNS_TAG_METRICTYPE          "metrictype"
-    #define CNS_TAG_PLANFORTURNS        "planforturns"
-    #define CNS_TAG_ADDITIONALWAIT      "additionalwait"
-    #define CNS_TAG_OPTIONS             "options"
-    #define CNS_TAG_LOGLVL              "loglevel"
-    #define CNS_TAG_LOGPATH             "logpath"
-    #define CNS_TAG_LOGFILENAME         "logfilename"
-    #define CNS_TAG_LOG                 "log"
-        #define CNS_TAG_MAPFN           "mapfilename"
-        #define CNS_TAG_TASKFN          "taskfilename"
-        #define CNS_TAG_CONFIGFN        "configfilename"
-        #define CNS_TAG_OBSFN           "obstaclesfilename"
-        #define CNS_TAG_SUM             "summary"
-        #define CNS_TAG_PATH            "path"
-        #define CNS_TAG_ROW             "row"
-        #define CNS_TAG_AGENT           "agent"
-        #define CNS_TAG_LOWLEVEL        "lowlevel"
-            #define CNS_TAG_SECTION     "section"
-            #define CNS_TAG_STEP        "step"
-            #define CNS_TAG_OPEN        "open"
-            #define CNS_TAG_NODE        "node"
-            #define CNS_TAG_CLOSE       "close"
+    #define CNS_TAG_DEF_PARAMS              "defaultparameters"
+        #define CNS_TAG_ATTR_SIZE           "size"
+        #define CNS_TAG_ATTR_MOVESPEED      "movespeed"
+        #define CNS_TAG_ATTR_ROTATIONSPEED  "rotationspeed"
+    #define CNS_TAG_AGENTS                  "agents"
+    #define CNS_TAG_AGENT                   "agent"
+    #define CNS_TAG_MAP                     "map"
+    #define CNS_TAG_GRID                    "grid"
+        #define CNS_TAG_ROW                 "row"
+    #define CNS_TAG_ALGORITHM               "algorithm"
+    #define CNS_TAG_WEIGHT                  "weight"
+    #define CNS_TAG_HWEIGHT                 "hweight"
+    #define CNS_TAG_ALLOW_AA                "allowanyangle"
+    #define CNS_TAG_PRIORITIZATION          "prioritization"
+    #define CNS_TAG_RESCHEDULING            "rescheduling"
+    #define CNS_TAG_STARTSAFEINTERVAL       "startsafeinterval"
+    #define CNS_TAG_TIMELIMIT               "timelimit"
+    #define CNS_TAG_PLANFORTURNS            "planforturns"
+    #define CNS_TAG_ADDITIONALWAIT          "waitbeforemove"
+    #define CNS_TAG_OPTIONS                 "options"
+    #define CNS_TAG_LOGLVL                  "loglevel"
+    #define CNS_TAG_LOGPATH                 "logpath"
+    #define CNS_TAG_LOGFILENAME             "logfilename"
+    #define CNS_TAG_DYNAMICOBSTACLES        "dynamicobstacles"
+    #define CNS_TAG_OBSTACLE                "obstacle"
+    #define CNS_TAG_LOG                     "log"
+        #define CNS_TAG_MAPFN               "mapfilename"
+        #define CNS_TAG_TASKFN              "taskfilename"
+        #define CNS_TAG_CONFIGFN            "configfilename"
+        #define CNS_TAG_OBSFN               "obstaclesfilename"
+        #define CNS_TAG_SUM                 "summary"
+        #define CNS_TAG_PATH                "path"
+        #define CNS_TAG_ROW                 "row"
+        #define CNS_TAG_AGENT               "agent"
+        #define CNS_TAG_LOWLEVEL            "lowlevel"
+            #define CNS_TAG_SECTION         "section"
+            #define CNS_TAG_STEP            "step"
+            #define CNS_TAG_OPEN            "open"
+            #define CNS_TAG_NODE            "node"
+            #define CNS_TAG_CLOSE           "close"
 
 /*
  * End of XML files tags -------------------------------------------------------
@@ -129,7 +119,7 @@
     #define CNS_TAG_ATTR_NODES          "nodescreated"
     #define CNS_TAG_ATTR_DURATION       "duration"
     #define CNS_TAG_ATTR_PATHLENGTH     "pathlength"
-    #define CNS_TAG_ATTR_TIME           "time"
+    #define CNS_TAG_ATTR_RUNTIME        "runtime"
     #define CNS_TAG_ATTR_X              "x"
     #define CNS_TAG_ATTR_Y              "y"
     #define CNS_TAG_ATTR_NUM            "number"
