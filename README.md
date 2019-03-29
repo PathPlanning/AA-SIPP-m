@@ -77,8 +77,8 @@ Input file should contain:
     * `<logname>` - defines the name of log-file. If not specified the name of the log file is: "input file name" + "\_log" + input file extension.
     
 * Optional tag `<dynamicobstacles>`. Contains the trajectories of dynamic obstacles.
-   * Optional tag `<defaultparameters>`. It is used to change the default values for size and speeds od dynamic obstacles.
-   * `<obstacle>` &mdash; contains the trajcetory of one dynamic obstacle represented as a seqence of sections.
+   * Optional tag `<defaultparameters>`. It is used to change the default size value. Note that move speed and rotation speed can't be modified as their exact values already sewn inside duration attributes of the sections. The same can be said about the headings. 
+   * `<obstacle>` &mdash; contains the trajcetory of one dynamic obstacle represented as a seqence of sections. Can have its own `size` attribute.
       * `<section>` &mdash; describes a part of a trajectory. It must contain attributes `start.x`, `start.y`, `goal.x`, `goal.y` and `duration`. 
 ## Launch
 To launch the application you need to have an input XML-file with all required information. If it's all-in-one file:
