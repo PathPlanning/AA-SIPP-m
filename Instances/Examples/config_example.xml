@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<root>
+	<algorithm>
+		<allowanyangle>true</allowanyangle>
+		<rescheduling>random</rescheduling>
+		<startsafeinterval>3</startsafeinterval>
+		<prioritization>fifo</prioritization>
+		<timelimit>60</timelimit>
+		<planforturns>true</planforturns>
+		<waitbeforemove>0</waitbeforemove>
+	</algorithm>
+	<options>
+		<loglevel>1</loglevel>
+		<logpath />
+		<logfilename />
+	</options>
+</root>

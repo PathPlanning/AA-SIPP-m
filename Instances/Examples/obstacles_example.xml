@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<root>
+	<dynamicobstacles>
+		<defaultparameters size="0.4"/>
+        <obstacle id="0" size="0.5">
+            <section id="0" start.x="68" start.y="41" start.heading="180" goal.x="68" goal.y="41" goal.heading="355.03027" duration="3.8895614"/>
+            <section id="1" start.x="68" start.y="41" start.heading="355.03027" goal.x="22" goal.y="45" goal.heading="355.03027" duration="92.347168"/>
+            <section id="2" start.x="22" start.y="45" start.heading="355.03027" goal.x="22" goal.y="45" goal.heading="90" duration="2.1104386"/>
+        </obstacle>
+        <obstacle id="1" size="0.33333">
+            <section id="0" start.x="46" start.y="10" goal.x="46" goal.y="10" duration="2.9638679"/>
+            <section id="1" start.x="46" start.y="10" goal.x="36" goal.y="13" duration="62.64209"/>
+            <section id="2" start.x="36" start.y="13" goal.x="36" goal.y="13" duration="1.6123788"/>
+            <section id="3" start.x="36" start.y="13" goal.x="33" goal.y="24" duration="68.410797"/>
+            <section id="4" start.x="33" start.y="24" goal.x="33" goal.y="24" duration="1.7282243"/>
+            <section id="5" start.x="33" start.y="24" goal.x="24" goal.y="26" duration="55.31749"/>
+            <section id="6" start.x="24" start.y="26" goal.x="24" goal.y="26" duration="0.76468909"/>
+        </obstacle>
+        <obstacle id="2">
+            <section id="0" start.x="58" start.y="44" goal.x="58" goal.y="44" duration="5"/>
+            <section id="1" start.x="58" start.y="44" goal.x="68" goal.y="44" duration="60.00024"/>
+            <section id="2" start.x="68" start.y="44" goal.x="68" goal.y="44" duration="2.5"/>
+        </obstacle>
+	</dynamicobstacles>
+</root>

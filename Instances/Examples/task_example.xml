@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<root>
+	<agents number="7">
+		<defaultparameters size="0.4" movespeed="0.25" rotationspeed="0.2" start.heading="180" goal.heading="90"/>
+		<agent id="0" start.x="7" start.y="35" goal.x="0" goal.y="12" size="0.5"/>
+		<agent id="1" start.x="0" start.y="30" goal.x="28" goal.y="20" goal.heading="0"/>
+		<agent id="2" start.x="13" start.y="43" goal.x="68" goal.y="36" start.heading="40" goal.heading="40"/>
+		<agent id="3" start.x="28" start.y="1" goal.x="11" goal.y="38" movespeed="3" rotationspeed="2"/>
+		<agent id="4" start.x="53" start.y="9" goal.x="12" goal.y="45"/>
+		<agent id="5" start.x="37" start.y="37" goal.x="39" goal.y="11"/>
+		<agent id="6" start.x="53" start.y="40" goal.x="65" goal.y="43"/>
+	</agents>
+</root>
