@@ -14,6 +14,7 @@ class Config
 public:
     Config();
     int loglevel;
+    int connectedness;
     bool allowanyangle;
     bool planforturns;
     double timelimit;

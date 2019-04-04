@@ -41,13 +41,12 @@ double AA_SIPP::getCost(int a_i, int a_j, int b_i, int b_j)
 
 double AA_SIPP::getHValue(int i, int j)
 {
-    if(config->allowanyangle) //euclid
+    if(config->allowanyangle || config->connectedness > 3) //euclid
         return (sqrt(pow(i - curagent.goal_i, 2) + pow(j - curagent.goal_j, 2)))/curagent.mspeed;
-    else //manhattan
+    else if(config->connectedness == 2)//manhattan
         return (abs(i - curagent.goal_i) + abs(j - curagent.goal_j))/curagent.mspeed;
-    ///TODO
-    ///use diagonal heuristic for k=3
-    ///return (abs(abs(i - curagent.goal_i) - abs(j - curagent.goal_j)) + sqrt(2.0)*std::min(abs(i - curagent.goal_i), abs(j - curagent.goal_j)))/curagent.mspeed;
+    else //k=3, use diagonal
+        return (abs(abs(i - curagent.goal_i) - abs(j - curagent.goal_j)) + sqrt(2.0)*std::min(abs(i - curagent.goal_i), abs(j - curagent.goal_j)))/curagent.mspeed;
 
 }
 
@@ -75,17 +74,17 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
     std::vector<std::pair<double, double>> intervals;
     double h_value;
     auto parent = &(close.find(curNode.i*map.width + curNode.j)->second);
-    std::vector<std::pair<int, int>> offsets = {{0,1}, {1,0}, {0,-1}, {-1, 0}};
-    for(auto o:offsets)
-        if(lineofsight.checkTraversability(curNode.i+o.first,curNode.j+o.second,map))
+    std::vector<Node> moves = map.getValidMoves(curNode.i, curNode.j, config->connectedness, curagent.size);
+    for(auto m:moves)
+        if(lineofsight.checkTraversability(curNode.i + m.i,curNode.j + m.j,map))
         {
-            newNode.i = curNode.i + o.first;
-            newNode.j = curNode.j + o.second;
+            newNode.i = curNode.i + m.i;
+            newNode.j = curNode.j + m.j;
             constraints->updateCellSafeIntervals({newNode.i,newNode.j});
             newNode.heading = calcHeading(curNode, newNode);
             angleNode = curNode; //the same state, but with extended g-value
             angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//to compensate the amount of time required for rotation
-            newNode.g = angleNode.g + 1.0/curagent.mspeed;
+            newNode.g = angleNode.g + m.g/curagent.mspeed;
             newNode.Parent = &angleNode;
             h_value = getHValue(newNode.i, newNode.j);
 
@@ -322,9 +321,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
         constraints = new Constraints(map.width, map.height);
         for(int k = 0; k < obstacles.getNumberOfObstacles(); k++)
         {
-            std::vector<Node> sections = obstacles.getSections(k);
-            double size = obstacles.getSize(k);
-            constraints->addConstraints(sections, size);
+            constraints->addConstraints(obstacles.getSections(k), obstacles.getSize(k), obstacles.getMSpeed(k));
         }
         sresult.pathInfo.clear();
         sresult.pathInfo.resize(task.getNumberOfAgents());
@@ -354,7 +351,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
                 constraints->removeStartConstraint(cells);
             }
             if(findPath(numOfCurAgent, map))
-                constraints->addConstraints(sresult.pathInfo[current_priorities[numOfCurAgent]].sections, curagent.size);
+                constraints->addConstraints(sresult.pathInfo[current_priorities[numOfCurAgent]].sections, curagent.size, curagent.mspeed);
             else
             {
                 bad_i = current_priorities[numOfCurAgent];

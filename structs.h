@@ -16,6 +16,7 @@ struct conflict
     double g;
 };
 
+
 struct Agent
 {
     std::string id;
@@ -65,7 +66,9 @@ struct obstacle
 {
     std::string id;
     double size;
+    double mspeed;
     std::vector<Node> sections;
+    obstacle(){ id = -1; size = CN_DEFAULT_SIZE; mspeed = CN_DEFAULT_MSPEED; }
 };
 
 struct section
@@ -80,6 +83,7 @@ struct section
     double size;
     double g1;
     double g2;//is needed for goal and wait actions
+    double mspeed;
     bool operator == (const section &comp) const {return (i1 == comp.i1 && j1 == comp.j1 && g1 == comp.g1);}
 
 };

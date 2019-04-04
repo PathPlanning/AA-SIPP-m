@@ -62,7 +62,6 @@ void Constraints::updateCellSafeIntervals(std::pair<int, int> cell)
         for(int l = 0; l < constraints[cells[k].first][cells[k].second].size(); l++)
             if(std::find(secs.begin(), secs.end(), constraints[cells[k].first][cells[k].second][l]) == secs.end())
                 secs.push_back(constraints[cells[k].first][cells[k].second][l]);
-
     for(int k = 0; k < secs.size(); k++)
     {
         section sec = secs[k];
@@ -86,11 +85,11 @@ void Constraints::updateCellSafeIntervals(std::pair<int, int> cell)
         if(cls == 3)
         {
             interval.first = sec.g1;
-            interval.second = sec.g1 + (sqrt(radius*radius - dist*dist) - ha)/mspeed;
+            interval.second = sec.g1 + (sqrt(radius*radius - dist*dist) - ha)/sec.mspeed;
         }
         else if(cls == 4)
         {
-            interval.first = sec.g2 - sqrt(radius*radius - dist*dist)/mspeed + sqrt(db - dist*dist)/mspeed;
+            interval.first = sec.g2 - sqrt(radius*radius - dist*dist)/sec.mspeed + sqrt(db - dist*dist)/sec.mspeed;
             interval.second = sec.g2;
         }
         else if(da < radius*radius)
@@ -104,23 +103,22 @@ void Constraints::updateCellSafeIntervals(std::pair<int, int> cell)
             {
                 double hb = sqrt(db - dist*dist);
                 interval.first = sec.g1;
-                interval.second = sec.g2 - hb/mspeed + size/mspeed;
+                interval.second = sec.g2 - hb/sec.mspeed + size/sec.mspeed;
             }
         }
         else
         {
             if(db < radius*radius)
             {
-                interval.first = sec.g1 + ha/mspeed - size/mspeed;
+                interval.first = sec.g1 + ha/sec.mspeed - size/sec.mspeed;
                 interval.second = sec.g2;
             }
             else
             {
-                interval.first = sec.g1 + ha/mspeed - size/mspeed;
-                interval.second = sec.g1 + ha/mspeed + size/mspeed;
+                interval.first = sec.g1 + ha/sec.mspeed - size/sec.mspeed;
+                interval.second = sec.g1 + ha/sec.mspeed + size/sec.mspeed;
             }
         }
-
         for(unsigned int j = 0; j < safe_intervals[i2][j2].size(); j++)
         {
             if(safe_intervals[i2][j2][j].first <= interval.first && safe_intervals[i2][j2][j].second >= interval.first)
@@ -156,9 +154,13 @@ void Constraints::updateCellSafeIntervals(std::pair<int, int> cell)
                     j++;
                 }
                 if(safe_intervals[i2][j2][j].second < interval.second)
+                {
                     safe_intervals[i2][j2].erase(safe_intervals[i2][j2].begin() + j);
+                }
                 else
+                {
                     safe_intervals[i2][j2][j].first = interval.second;
+                }
             }
         }
     }
@@ -207,14 +209,14 @@ void Constraints::removeStartConstraint(std::vector<std::pair<int, int> > cells)
     return;
 }
 
-void Constraints::addConstraints(const std::vector<Node> &sections, double size)
+void Constraints::addConstraints(const std::vector<Node> &sections, double size, double mspeed)
 {
     std::vector<std::pair<int,int>> cells;
     LineOfSight los(size);
     section sec(sections.back(), sections.back());
     sec.g2 = CN_INFINITY;
     sec.size = size;
-
+    sec.mspeed = mspeed;
     cells = los.getCellsCrossedByLine(sec.i1, sec.j1, sec.i2, sec.j2);
     for(auto cell: cells)
         constraints[cell.first][cell.second].push_back(sec);
@@ -226,6 +228,7 @@ void Constraints::addConstraints(const std::vector<Node> &sections, double size)
         cells = los.getCellsCrossedByLine(sections[a-1].i, sections[a-1].j, sections[a].i, sections[a].j);
         sec = section(sections[a-1], sections[a]);
         sec.size = size;
+        sec.mspeed = mspeed;
         for(unsigned int i = 0; i < cells.size(); i++)
             constraints[cells[i].first][cells[i].second].push_back(sec);
         /*if(a+1 == sections.size())

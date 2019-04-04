@@ -21,6 +21,7 @@
 #define CNS_DEFAULT_LOGLVL                  CNS_LOGLVL_NORM
 #define CN_DEFAULT_TIMELIMIT                CN_INFINITY
 #define CNS_DEFAULT_TIMELIMIT               "'infinity' (no limit)"
+#define CN_DEFAULT_CONNECTEDNESS            2
 #define CN_DEFAULT_ALLOWANYANGLE            true
 #define CNS_DEFAULT_ALLOWANYANGLE           "true"
 #define CN_DEFAULT_PLANFORTURNS             false
@@ -76,6 +77,7 @@
     #define CNS_TAG_ALGORITHM               "algorithm"
     #define CNS_TAG_WEIGHT                  "weight"
     #define CNS_TAG_HWEIGHT                 "hweight"
+    #define CNS_TAG_CONNECTEDNESS           "connectedness"
     #define CNS_TAG_ALLOW_AA                "allowanyangle"
     #define CNS_TAG_PRIORITIZATION          "prioritization"
     #define CNS_TAG_RESCHEDULING            "rescheduling"

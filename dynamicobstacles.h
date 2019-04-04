@@ -6,6 +6,7 @@
 #include "tinyxml2.h"
 #include <string>
 #include <iostream>
+#include <math.h>
 
 class DynamicObstacles
 {
@@ -15,6 +16,7 @@ public:
     bool getObstacles(const char* fileName);
     std::vector<Node> getSections(int num) const;
     double getSize(int num) const;
+    double getMSpeed(int num) const;
     std::string getID(int num) const;
     int getNumberOfObstacles() const { return obstacles.size(); }
 };

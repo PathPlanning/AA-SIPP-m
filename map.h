@@ -9,6 +9,7 @@
 #include "structs.h"
 #include "tinyxml2.h"
 #include "gl_const.h"
+#include "lineofsight.h"
 
 class Map
 {
@@ -24,10 +25,7 @@ public:
     bool CellOnGrid (int i, int j) const;
     bool CellIsObstacle(int i, int j) const;
     int  getValue(int i, int j) const;
-    void addConstraint(int i,int j);
-    void removeConstraint(int i,int j);
-
-
+    std::vector<Node> getValidMoves(int i, int j, int k, double size) const;
 };
 
 #endif

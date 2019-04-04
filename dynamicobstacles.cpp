@@ -65,6 +65,13 @@ bool DynamicObstacles::getObstacles(const char *fileName)
             node.g += sec->DoubleAttribute(CNS_TAG_ATTR_DURATION);
             obs.sections.push_back(node);
         }
+        for(size_t i = 1; i < obs.sections.size(); i++)
+            if(obs.sections[i-1].i != obs.sections[i].i || obs.sections[i-1].j != obs.sections[i].j)
+            {
+                double dist = sqrt(pow(obs.sections[i-1].i - obs.sections[i].i, 2) + pow(obs.sections[i-1].j - obs.sections[i].j, 2));
+                obs.mspeed = dist/(obs.sections[i].g - obs.sections[i-1].g);
+                break;
+            }
         obstacles.push_back(obs);
     }
     return true;
@@ -80,6 +87,12 @@ double DynamicObstacles::getSize(int num) const
 {
     if(num >= 0 && num < obstacles.size())
         return obstacles[num].size;
+}
+
+double DynamicObstacles::getMSpeed(int num) const
+{
+    if(num >= 0 && num < obstacles.size())
+        return obstacles[num].mspeed;
 }
 
 std::string DynamicObstacles::getID(int num) const

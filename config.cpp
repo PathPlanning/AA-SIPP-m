@@ -182,8 +182,28 @@ bool Config::getConfig(const char* fileName)
         stream.str("");
         if(additionalwait < 0 || additionalwait > 100)
         {
-            std::cout << "Warning! Wrong value of '"<<CNS_TAG_ADDITIONALWAIT<<"' element. It should belong to the interval [0,100]. Its value is set to '"<<CN_DEFAULT_ADDITIONALWAIT<<"'"<<std::endl;
+            std::cout << "Warning! Wrong value of '"<<CNS_TAG_ADDITIONALWAIT<<"' element. It should belong to the interval [0,100]. Its value is set to '"<<CN_DEFAULT_ADDITIONALWAIT<<"'."<<std::endl;
             additionalwait = CN_DEFAULT_ADDITIONALWAIT;
+        }
+    }
+
+    element = algorithm->FirstChildElement(CNS_TAG_CONNECTEDNESS);
+    if (!element)
+    {
+        std::cout << "Warning! No '"<<CNS_TAG_CONNECTEDNESS<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CN_DEFAULT_CONNECTEDNESS<<"'."<<std::endl;
+        connectedness = CN_DEFAULT_CONNECTEDNESS;
+    }
+    else
+    {
+        value = element->GetText();
+        stream<<value;
+        stream>>connectedness;
+        stream.clear();
+        stream.str("");
+        if(connectedness < 2 || connectedness > 5)
+        {
+            std::cout << "Warning! Wrong value of '"<<CNS_TAG_CONNECTEDNESS<<"' element. Possible variants are 2, 3, 4 or 5 . Its value is set to '"<<CN_DEFAULT_CONNECTEDNESS<<"'."<<std::endl;
+            connectedness = CN_DEFAULT_CONNECTEDNESS;
         }
     }
 

@@ -17,7 +17,7 @@ public:
     void updateCellSafeIntervals(std::pair<int, int> cell);
     std::vector<std::pair<double, double> > getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w);
     std::vector<std::pair<double, double> > getSafeIntervals(Node curNode);
-    void addConstraints(const std::vector<Node> &sections, double size);
+    void addConstraints(const std::vector<Node> &sections, double size, double mspeed);
     std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w);
     std::pair<double,double> getSafeInterval(int i, int j, int n) {return safe_intervals[i][j][n];}
     void resetSafeIntervals(int width, int height);
