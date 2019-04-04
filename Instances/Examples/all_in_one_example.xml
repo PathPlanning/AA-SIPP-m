@@ -62,6 +62,7 @@
 	</map>
 	<algorithm>
 		<allowanyangle>true</allowanyangle>
+		<connectedness>2</connectedness>
 		<rescheduling>random</rescheduling>
 		<startsafeinterval>3</startsafeinterval>
 		<prioritization>fifo</prioritization>
