@@ -1,9 +1,22 @@
 # AA-SIPP(m)
 
 ## Description
-AA-SIPP(m) is a pathplanning algorithm that builds conflict-free any-angle trajectories on grids for a set of agents. It's a prioritized planner, e.g. all agents are assigned unique priorities and paths are planned one by one in accordance with the imposed ordering using AA-SIPP (any-angle SIPP) algorithm. The latter builds on top of the SIPP planner, which is tailored to path finding for a single agent moving amidst static and dynamic obstacles (other agents in this case).
+AA-SIPP(m) is a path planning algorithm that builds collision-free trajectories on grids for a set of agents. It's a prioritized planner, i.e. all agents are assigned unique priorities and paths are planned one by one in accordance with the imposed ordering using AA-SIPP (any-angle SIPP) algorithm. The latter builds on top of the SIPP planner, which is tailored to path finding for a single agent moving amidst static and dynamic obstacles (other agents in this case). One can opt to disable any-angle moves and plan for cardinal moves only.
 
-Algorithm supports XML files as input and output format. Input file contains map, coordinates of start and goal locations of all agents as well as the parameters of the algorithm (see __"Input and Output files"__ or [examples](https://github.com/PathPlanning/AA-SIPP-m/tree/master/Instances))
+While planning agents' headings, translating and rotating speeds, sizes are all taken into account.
+
+Agents are considered to be open disks of predefined radii. Radius of each agent can be specified and can be any positive real number, e.g. some agents can be bigger than the grid cells. They can be smaller as well.
+
+Agents' valid actions are (i) translate (ii) rotate in place (iii) wait in place. Moves' endpoints are tied to the centers of grid cells. Moves can be of arbitrary durations, i.e. the durations are not discretized into timesteps, e.g. duration of the translation action is moving speed (set by the user) times the length of the segment agent is traversing. Inertial effects are neglected so far, i.e. agents accelerate/decelerate instantaneously.
+
+Various techniques that enhance the performance of the prioritized planning are supported:
+- Start Safe Intervals (see LINK);
+- deterministic re-ordering in case of failure (following the heuristic rule described in LINK);
+- random re-ordering in case of failure.
+
+Algorithm's configuration as well as the muti-agent path finding instance one needs to solve are supposed to be encoded in XML-file(s) of predefined structure (see __"Input and Output files"__ or [examples](https://github.com/PathPlanning/AA-SIPP-m/tree/master/Instances)) and passed to the solver as command line argument(s). The result (paths and some additional information) is put to the output XML.
+The implementation is self-contained. Code is written in C++ and is meant to be cross-platform. Implementation relies only on C+11 standard and STL. Open-source library to work with XML (tinyXML) is included at the source level (i.e. .h and .cpp files are part of the project). 
+
 
 ## Getting Started
 
@@ -48,7 +61,7 @@ Input file should contain:
       * `rotationspeed` &mdash; attribute that defines how fast the agent can change its heading. Possible values (0, 10]. Speed 1.0 means that the agent can rotate for 180 degrees within one time unit. Other speeds are set as a coefficient to this ratio. This attribute makes sense only if option `<planforturns>` is active.
       * `start.heading`, `goal.heading` - attributes that defines the heading of agents. Possible values are [0, 360] degrees. Additional possible value for `goal.heading` is `-1` or `whatever` which means that goal's heading doesn't matter. Zero degrees corresponds to the direction of increasing of coordinate X. The angle value increases counterclockwise. These attributes make sense only if option `<planforturns>` is active.
 
-      If any of the parameters doesn't specified, the default value defined inside the code (in gl_const.h) is used. The default values are the following: `size`=`0.5`; `movespeed`=`1.0`; `rotationspedd`=`1.0`, `start.heading`=`0`; `goal.heading`=`-1`.
+      If any of the parameters doesn't specified, the default value defined inside the code (in gl_const.h) is used. The default values are the following: `size`=`0.5`; `movespeed`=`1.0`; `rotationspeed`=`1.0`, `start.heading`=`0`; `goal.heading`=`-1`.
    * Mandatory tag `<agent>` defines start and goal locations, size and speeds of one agent.
       * `id` &mdash; attribute that defines the identicator for agent. It is used only for notifications and can have any value. In cases when ID doesn't specified the number in the order of enumeration is used.
       * `start.x`, `start.y`, `goal.x`, `goal.y` &mdash; mandatory attributes that defines the coordinates of start and goal locations. Legal values for `start.x` and `goal.x` are [0, .., *width* - 1], for `start.y` and `goal.y` - [0, .., *height* - 1]. (0,0) coordinates correspond to the upper left corner of the grid. Two agents can't have equal start or goal location and the distance between their start and goal locations must be not lower than the sum of their sizes. Moreover these locations must be traversable with respect to the sizes of the agents.
@@ -77,8 +90,8 @@ Input file should contain:
     * `<logname>` - defines the name of log-file. If not specified the name of the log file is: "input file name" + "\_log" + input file extension.
     
 * Optional tag `<dynamicobstacles>`. Contains the trajectories of dynamic obstacles.
-   * Optional tag `<defaultparameters>`. It is used to change the default values for size and speeds od dynamic obstacles.
-   * `<obstacle>` &mdash; contains the trajcetory of one dynamic obstacle represented as a seqence of sections.
+   * Optional tag `<defaultparameters>`. It is used to change the default size value. Note that move speed and rotation speed can't be modified as their exact values already sewn inside duration attributes of the sections. The same can be said about the headings. 
+   * `<obstacle>` &mdash; contains the trajcetory of one dynamic obstacle represented as a seqence of sections. Can have its own `size` attribute.
       * `<section>` &mdash; describes a part of a trajectory. It must contain attributes `start.x`, `start.y`, `goal.x`, `goal.y` and `duration`. 
 ## Launch
 To launch the application you need to have an input XML-file with all required information. If it's all-in-one file:
