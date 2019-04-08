@@ -8,25 +8,25 @@
 #include <algorithm>
 #include <iostream>
 #include <lineofsight.h>
-#include <memory>
-#include <map.h>
+#include "map.h"
 
 class Constraints
 {
 public:
-    Constraints(const Map &map);
+    Constraints(int width, int height);
     ~Constraints(){}
     void updateCellSafeIntervals(std::pair<int, int> cell);
     std::vector<std::pair<double, double> > getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w);
     std::vector<std::pair<double, double> > getSafeIntervals(Node curNode);
-    void addConstraints(const std::vector<Node> &sections, double size, double mspeed);
-    std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w);
+    void addConstraints(const std::vector<Node> &sections, double size, double mspeed, const Map &map);
+    std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, const Map &map);
     std::pair<double,double> getSafeInterval(int i, int j, int n) {return safe_intervals[i][j][n];}
     void resetSafeIntervals(int width, int height);
     void addStartConstraint(int i, int j, int size, std::vector<std::pair<int, int>> cells, double agentsize = 0.5);
     void removeStartConstraint(std::vector<std::pair<int, int>> cells);
     void setSize(double size) {agentsize = size;}
-    void setParams(double size, double mspeed, double rspeed, double tweight) { agentsize = size; this->mspeed = mspeed; this->rspeed = rspeed; this->tweight = tweight; }
+    void setParams(double size, double mspeed, double rspeed, double tweight, double inflateintervals)
+    { agentsize = size; this->mspeed = mspeed; this->rspeed = rspeed; this->tweight = tweight; this->inflateintervals = inflateintervals; }
     double minDist(Point A, Point C, Point D);
 
 
@@ -38,7 +38,8 @@ private:
     double mspeed;
     double agentsize;
     double tweight;
-    std::shared_ptr<const Map> map_ptr;
+    double inflateintervals;
+
 };
 
 

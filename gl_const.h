@@ -28,6 +28,7 @@
 #define CNS_DEFAULT_PLANFORTURNS            "false"
 #define CN_DEFAULT_ADDITIONALWAIT           0
 #define CN_DEFAULT_STARTSAFEINTERVAL        0
+#define CN_DEFAULT_INFLATEINTERVALS          0
 
 #define CN_HEADING_WHATEVER                 -1
 #define CNS_HEADING_WHATEVER                "whatever"
@@ -85,6 +86,7 @@
     #define CNS_TAG_TIMELIMIT               "timelimit"
     #define CNS_TAG_PLANFORTURNS            "planforturns"
     #define CNS_TAG_ADDITIONALWAIT          "waitbeforemove"
+    #define CNS_TAG_INFLATEINTERVALS        "inflatecollisionintervals"
     #define CNS_TAG_OPTIONS                 "options"
     #define CNS_TAG_LOGLVL                  "loglevel"
     #define CNS_TAG_LOGPATH                 "logpath"

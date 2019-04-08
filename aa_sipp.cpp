@@ -90,7 +90,7 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
 
             if(angleNode.g <= angleNode.interval.second)
             {
-                intervals = constraints->findIntervals(newNode, EAT, close, map.width);
+                intervals = constraints->findIntervals(newNode, EAT, close, map);
                 for(unsigned int k = 0; k < intervals.size(); k++)
                 {
                     newNode.interval = intervals[k];
@@ -112,7 +112,7 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
                     newNode.Parent = &angleNode;
                     if(angleNode.g > angleNode.interval.second)
                         continue;
-                    intervals = constraints->findIntervals(newNode, EAT, close, map.width);
+                    intervals = constraints->findIntervals(newNode, EAT, close, map);
                     for(unsigned int k = 0; k < intervals.size(); k++)
                     {
                         newNode.interval = intervals[k];
@@ -318,10 +318,10 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
     setPriorities(task);
     do
     {
-        constraints = new Constraints(map);
+        constraints = new Constraints(map.width, map.height);
         for(int k = 0; k < obstacles.getNumberOfObstacles(); k++)
         {
-            constraints->addConstraints(obstacles.getSections(k), obstacles.getSize(k), obstacles.getMSpeed(k));
+            constraints->addConstraints(obstacles.getSections(k), obstacles.getSize(k), obstacles.getMSpeed(k), map);
         }
         sresult.pathInfo.clear();
         sresult.pathInfo.resize(task.getNumberOfAgents());
@@ -332,7 +332,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
         for(int k = 0; k < task.getNumberOfAgents(); k++)
         {
             curagent = task.getAgent(k);
-            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->planforturns);
+            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->planforturns, config->inflatecollisionintervals);
             lineofsight.setSize(curagent.size);
             if(config->startsafeinterval > 0)
             {
@@ -343,7 +343,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
         for(unsigned int numOfCurAgent = 0; numOfCurAgent < task.getNumberOfAgents(); numOfCurAgent++)
         {
             curagent = task.getAgent(current_priorities[numOfCurAgent]);
-            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->planforturns);
+            constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->planforturns, config->inflatecollisionintervals);
             lineofsight.setSize(curagent.size);
             if(config->startsafeinterval > 0)
             {
@@ -351,7 +351,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
                 constraints->removeStartConstraint(cells);
             }
             if(findPath(numOfCurAgent, map))
-                constraints->addConstraints(sresult.pathInfo[current_priorities[numOfCurAgent]].sections, curagent.size, curagent.mspeed);
+                constraints->addConstraints(sresult.pathInfo[current_priorities[numOfCurAgent]].sections, curagent.size, curagent.mspeed, map);
             else
             {
                 bad_i = current_priorities[numOfCurAgent];

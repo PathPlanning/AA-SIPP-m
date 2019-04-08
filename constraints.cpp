@@ -1,25 +1,24 @@
 #include "constraints.h"
 
-Constraints::Constraints(const Map &map)
+Constraints::Constraints(int width, int height)
 {
-    safe_intervals.resize(map.height);
-    for(int i = 0; i < map.height; i++)
+    safe_intervals.resize(height);
+    for(int i = 0; i < height; i++)
     {
-        safe_intervals[i].resize(map.width);
-        for(int j = 0; j < map.width; j++)
+        safe_intervals[i].resize(width);
+        for(int j = 0; j < width; j++)
         {
             safe_intervals[i][j].resize(0);
             safe_intervals[i][j].push_back({0,CN_INFINITY});
         }
     }
-    constraints.resize(map.height);
-    for(int i = 0; i < map.height; i++)
+    constraints.resize(height);
+    for(int i = 0; i < height; i++)
     {
-        constraints[i].resize(map.width);
-        for(int j = 0; j < map.width; j++)
+        constraints[i].resize(width);
+        for(int j = 0; j < width; j++)
             constraints[i][j].resize(0);
     }
-    map_ptr = std::make_shared<const Map> (map);
 }
 
 bool sort_function(std::pair<double, double> a, std::pair<double, double> b)
@@ -210,7 +209,7 @@ void Constraints::removeStartConstraint(std::vector<std::pair<int, int> > cells)
     return;
 }
 
-void Constraints::addConstraints(const std::vector<Node> &sections, double size, double mspeed)
+void Constraints::addConstraints(const std::vector<Node> &sections, double size, double mspeed, const Map &map)
 {
     std::vector<std::pair<int,int>> cells;
     LineOfSight los(size);
@@ -218,7 +217,7 @@ void Constraints::addConstraints(const std::vector<Node> &sections, double size,
     sec.g2 = CN_INFINITY;
     sec.size = size;
     sec.mspeed = mspeed;
-    cells = los.getCellsCrossedByLine(sec.i1, sec.j1, sec.i2, sec.j2, map_ptr);
+    cells = los.getCellsCrossedByLine(sec.i1, sec.j1, sec.i2, sec.j2, map);
     for(auto cell: cells)
         constraints[cell.first][cell.second].push_back(sec);
     if(sec.g1 == 0)
@@ -226,7 +225,7 @@ void Constraints::addConstraints(const std::vector<Node> &sections, double size,
             safe_intervals[cell.first][cell.second].clear();
     for(unsigned int a = 1; a < sections.size(); a++)
     {
-        cells = los.getCellsCrossedByLine(sections[a-1].i, sections[a-1].j, sections[a].i, sections[a].j, map_ptr);
+        cells = los.getCellsCrossedByLine(sections[a-1].i, sections[a-1].j, sections[a].i, sections[a].j, map);
         sec = section(sections[a-1], sections[a]);
         sec.size = size;
         sec.mspeed = mspeed;
@@ -239,14 +238,14 @@ void Constraints::addConstraints(const std::vector<Node> &sections, double size,
     }
 }
 
-std::vector<std::pair<double,double>> Constraints::findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, int w)
+std::vector<std::pair<double,double>> Constraints::findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, const Map &map)
 {
-    std::vector<std::pair<double,double>> curNodeIntervals = getSafeIntervals(curNode, close, w);
+    std::vector<std::pair<double,double>> curNodeIntervals = getSafeIntervals(curNode, close, map.width);
     if(curNodeIntervals.empty())
         return curNodeIntervals;
     EAT.clear();
     LineOfSight los(agentsize);
-    std::vector<std::pair<int,int>> cells = los.getCellsCrossedByLine(curNode.i, curNode.j, curNode.Parent->i, curNode.Parent->j, map_ptr);
+    std::vector<std::pair<int,int>> cells = los.getCellsCrossedByLine(curNode.i, curNode.j, curNode.Parent->i, curNode.Parent->j, map);
     std::vector<section> sections(0);
     section sec;
     for(unsigned int i = 0; i < cells.size(); i++)
@@ -258,7 +257,7 @@ std::vector<std::pair<double,double>> Constraints::findIntervals(Node curNode, s
             if(std::find(sections.begin(), sections.end(), sec) == sections.end())
                 sections.push_back(sec);
         }
-    auto range = close.equal_range(curNode.i*w + curNode.j);
+    auto range = close.equal_range(curNode.i*map.width + curNode.j);
 
     for(unsigned int i=0; i<curNodeIntervals.size(); i++)
     {
@@ -329,7 +328,7 @@ bool Constraints::hasCollision(const Node &curNode, double startTimeA, const sec
       B += VB*(startTimeA - startTimeB);
       startTimeB = startTimeA;
     }
-    double r(constraint.size + agentsize); //combined radius
+    double r(constraint.size + agentsize + inflateintervals); //combined radius
     Vector2D w(B - A);
     double c(w*w - r*r);
     if(c < 0)

@@ -207,6 +207,26 @@ bool Config::getConfig(const char* fileName)
         }
     }
 
+    element = algorithm->FirstChildElement(CNS_TAG_INFLATEINTERVALS);
+    if (!element)
+    {
+        std::cout << "Warning! No '"<<CNS_TAG_INFLATEINTERVALS<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CN_DEFAULT_INFLATEINTERVALS<<"'."<<std::endl;
+        inflatecollisionintervals = CN_DEFAULT_INFLATEINTERVALS;
+    }
+    else
+    {
+        value = element->GetText();
+        stream<<value;
+        stream>>inflatecollisionintervals;
+        stream.clear();
+        stream.str("");
+        if(inflatecollisionintervals < 0 || inflatecollisionintervals > 100)
+        {
+            std::cout << "Warning! Wrong value of '"<<CNS_TAG_INFLATEINTERVALS<<"' element. It should belong to the interval [0,100]. Its value is set to '"<<CN_DEFAULT_INFLATEINTERVALS<<"'."<<std::endl;
+            inflatecollisionintervals = CN_DEFAULT_INFLATEINTERVALS;
+        }
+    }
+
     XMLElement *options = root->FirstChildElement(CNS_TAG_OPTIONS);
     if(!options)
     {

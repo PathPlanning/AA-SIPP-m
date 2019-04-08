@@ -19,6 +19,7 @@ public:
     bool planforturns;
     double timelimit;
     int rescheduling;
+    double inflatecollisionintervals;
     int initialprioritization;
     double startsafeinterval;
     double additionalwait;
