@@ -318,7 +318,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
     setPriorities(task);
     do
     {
-        constraints = new Constraints(map.width, map.height);
+        constraints = new Constraints(map);
         for(int k = 0; k < obstacles.getNumberOfObstacles(); k++)
         {
             constraints->addConstraints(obstacles.getSections(k), obstacles.getSize(k), obstacles.getMSpeed(k));

@@ -1,24 +1,25 @@
 #include "constraints.h"
 
-Constraints::Constraints(int width, int height)
+Constraints::Constraints(const Map &map)
 {
-    safe_intervals.resize(height);
-    for(int i = 0; i < height; i++)
+    safe_intervals.resize(map.height);
+    for(int i = 0; i < map.height; i++)
     {
-        safe_intervals[i].resize(width);
-        for(int j = 0; j < width; j++)
+        safe_intervals[i].resize(map.width);
+        for(int j = 0; j < map.width; j++)
         {
             safe_intervals[i][j].resize(0);
             safe_intervals[i][j].push_back({0,CN_INFINITY});
         }
     }
-    constraints.resize(height);
-    for(int i = 0; i < height; i++)
+    constraints.resize(map.height);
+    for(int i = 0; i < map.height; i++)
     {
-        constraints[i].resize(width);
-        for(int j = 0; j < width; j++)
+        constraints[i].resize(map.width);
+        for(int j = 0; j < map.width; j++)
             constraints[i][j].resize(0);
     }
+    map_ptr = std::make_shared<const Map> (map);
 }
 
 bool sort_function(std::pair<double, double> a, std::pair<double, double> b)
@@ -217,7 +218,7 @@ void Constraints::addConstraints(const std::vector<Node> &sections, double size,
     sec.g2 = CN_INFINITY;
     sec.size = size;
     sec.mspeed = mspeed;
-    cells = los.getCellsCrossedByLine(sec.i1, sec.j1, sec.i2, sec.j2);
+    cells = los.getCellsCrossedByLine(sec.i1, sec.j1, sec.i2, sec.j2, map_ptr);
     for(auto cell: cells)
         constraints[cell.first][cell.second].push_back(sec);
     if(sec.g1 == 0)
@@ -225,7 +226,7 @@ void Constraints::addConstraints(const std::vector<Node> &sections, double size,
             safe_intervals[cell.first][cell.second].clear();
     for(unsigned int a = 1; a < sections.size(); a++)
     {
-        cells = los.getCellsCrossedByLine(sections[a-1].i, sections[a-1].j, sections[a].i, sections[a].j);
+        cells = los.getCellsCrossedByLine(sections[a-1].i, sections[a-1].j, sections[a].i, sections[a].j, map_ptr);
         sec = section(sections[a-1], sections[a]);
         sec.size = size;
         sec.mspeed = mspeed;
@@ -245,7 +246,7 @@ std::vector<std::pair<double,double>> Constraints::findIntervals(Node curNode, s
         return curNodeIntervals;
     EAT.clear();
     LineOfSight los(agentsize);
-    std::vector<std::pair<int,int>> cells = los.getCellsCrossedByLine(curNode.i, curNode.j, curNode.Parent->i, curNode.Parent->j);
+    std::vector<std::pair<int,int>> cells = los.getCellsCrossedByLine(curNode.i, curNode.j, curNode.Parent->i, curNode.Parent->j, map_ptr);
     std::vector<section> sections(0);
     section sec;
     for(unsigned int i = 0; i < cells.size(); i++)

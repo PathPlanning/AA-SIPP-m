@@ -8,11 +8,13 @@
 #include <algorithm>
 #include <iostream>
 #include <lineofsight.h>
+#include <memory>
+#include <map.h>
 
 class Constraints
 {
 public:
-    Constraints(int width, int height);
+    Constraints(const Map &map);
     ~Constraints(){}
     void updateCellSafeIntervals(std::pair<int, int> cell);
     std::vector<std::pair<double, double> > getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w);
@@ -36,7 +38,7 @@ private:
     double mspeed;
     double agentsize;
     double tweight;
-
+    std::shared_ptr<const Map> map_ptr;
 };
 
 
