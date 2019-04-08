@@ -62,7 +62,7 @@ double AA_SIPP::calcHeading(const Node &node, const Node &son)
 {
     double heading = acos((son.j - node.j)/getCost(son.i, son.j, node.i, node.j))*180/PI;
     if(node.i < son.i)
-        heading += 180;
+        heading = 360 - heading;
     return heading;
 }
 
