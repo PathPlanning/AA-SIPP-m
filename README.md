@@ -81,6 +81,7 @@ Input file should contain:
     * `<startsafeinterval>` &mdash; defines the size of additional constraints in the start locations of low-prioirity agents. Helps to find a solution for instances with many agents without rescheduling. Possible values: `0` - no startsafeintervals; `n` - the size of constraints, counts in conditional time units. By default the value is `0`.
     * `<planforturns>` &mdash; defines the option of taking into account the headings of agents and the time required to change them. Possible values `true` or `false`. The cost of changing the heading is defined by the attributes `rotationspeed` that were described above. By default the value is `false`.
    * `<waitbeforemove>` &mdash; defines additional delay that each agent performs before starting to move along the next section. Possible values are [0;100]. By default the value is `0`.
+   * `<inflatecollisionintervals>` &mdash; this option increases the time between the moments when the agent and the dynamic obstacles (or high-priority agents) pass through the same areas of the space. Possible values are [0;100]. By default the value is `0`.
    
 * Optional tag `<options>`. Options that are not related to search.
     * `<loglevel>` &mdash; defines the level of detalization of log-file. Default value is "1". Possible values:
