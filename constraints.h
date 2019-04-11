@@ -23,7 +23,7 @@ public:
     std::pair<double,double> getSafeInterval(int i, int j, int n) {return safe_intervals[i][j][n];}
     void resetSafeIntervals(int width, int height);
     void addStartConstraint(int i, int j, int size, std::vector<std::pair<int, int>> cells, double agentsize = 0.5);
-    void removeStartConstraint(std::vector<std::pair<int, int>> cells);
+    void removeStartConstraint(std::vector<std::pair<int, int>> cells, int start_i, int start_j);
     void setSize(double size) {agentsize = size;}
     void setParams(double size, double mspeed, double rspeed, double tweight, double inflateintervals)
     { agentsize = size; this->mspeed = mspeed; this->rspeed = rspeed; this->tweight = tweight; this->inflateintervals = inflateintervals; }

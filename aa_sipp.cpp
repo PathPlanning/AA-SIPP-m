@@ -348,7 +348,7 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
             if(config->startsafeinterval > 0)
             {
                 auto cells = lineofsight.getCells(curagent.start_i, curagent.start_j);
-                constraints->removeStartConstraint(cells);
+                constraints->removeStartConstraint(cells, curagent.start_i, curagent.start_j);
             }
             if(findPath(current_priorities[numOfCurAgent], map))
                 constraints->addConstraints(sresult.pathInfo[current_priorities[numOfCurAgent]].sections, curagent.size, curagent.mspeed, map);

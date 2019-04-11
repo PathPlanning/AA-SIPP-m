@@ -202,13 +202,15 @@ void Constraints::addStartConstraint(int i, int j, int size, std::vector<std::pa
     return;
 }
 
-void Constraints::removeStartConstraint(std::vector<std::pair<int, int> > cells)
+void Constraints::removeStartConstraint(std::vector<std::pair<int, int> > cells, int start_i, int start_j)
 {
     for(auto cell: cells)
-    {
-        while(!constraints[cell.first][cell.second].empty() && constraints[cell.first][cell.second].begin()->g1 < CN_EPSILON)
-            constraints[cell.first][cell.second].erase(constraints[cell.first][cell.second].begin());
-    }
+        for(size_t k = 0; k < constraints[cell.first][cell.second].size(); k++)
+            if(constraints[cell.first][cell.second][k].i1 == start_i && constraints[cell.first][cell.second][k].j1 == start_j && constraints[cell.first][cell.second][k].g1 < CN_EPSILON)
+            {
+                constraints[cell.first][cell.second].erase(constraints[cell.first][cell.second].begin() + k);
+                k--;
+            }
     return;
 }
 
