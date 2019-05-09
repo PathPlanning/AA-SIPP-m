@@ -1,11 +1,11 @@
 # AA-SIPP(m)
 
 ## Description
-AA-SIPP(m) is a path planning algorithm that builds collision-free trajectories on grids for a set of agents. It's a prioritized planner, i.e. all agents are assigned unique priorities and paths are planned one by one in accordance with the imposed ordering using AA-SIPP (any-angle SIPP) algorithm. The latter builds on top of the SIPP planner, which is tailored to path finding for a single agent moving amidst static and dynamic obstacles (other agents in this case). One can opt to disable any-angle moves and plan for cardinal moves only.
+AA-SIPP(m) is a path planning algorithm that builds collision-free trajectories for a set of agents in 2D environment represented as a grid. It's a prioritized planner, i.e. all agents are assigned unique priorities and paths are planned one by one in accordance with the imposed ordering using AA-SIPP (any-angle SIPP) algorithm. The latter builds on top of the SIPP planner, which is tailored to path finding for a single agent moving amidst static and dynamic obstacles (other agents in this case). One can opt to disable any-angle moves and plan for 2^k (k=1,2,3,4,5) moves only, i.e. k=2 - cardinal only moves, k=3 - cardinal and diagonal moves, etc.
 
-While planning agents' headings, translating and rotating speeds, sizes are all taken into account.
+Planning is carried out in (x, y, \theta) configuration space. Agents' headings, translating and rotating speeds, sizes are taken into account.
 
-Agents are considered to be open disks of predefined radii. Radius of each agent can be specified and can be any positive real number, e.g. some agents can be bigger than the grid cells. They can be smaller as well.
+Agents are considered to be open disks of predefined radii. Radius of each agent can be specified and can be any positive real number, e.g. some agents can be bigger than the grid cells. They can be smaller as well. "Open disks" means that when the distance between the agent of radius r_1 and the agent of radius r_2 equals r_1 + r_2 no collision occurs, the distance has to be less than r_1 + r_2 for the collision to occur. 
 
 Agents' valid actions are (i) translate (ii) rotate in place (iii) wait in place. Moves' endpoints are tied to the centers of grid cells. Moves can be of arbitrary durations, i.e. the durations are not discretized into timesteps, e.g. duration of the translation action is moving speed (set by the user) times the length of the segment agent is traversing. Inertial effects are neglected so far, i.e. agents accelerate/decelerate instantaneously.
 
@@ -14,7 +14,8 @@ Various techniques that enhance the performance of the prioritized planning are 
 - deterministic re-ordering in case of failure (following the heuristic rule described in LINK);
 - random re-ordering in case of failure.
 
-Algorithm's configuration as well as the muti-agent path finding instance one needs to solve are supposed to be encoded in XML-file(s) of predefined structure (see __"Input and Output files"__ or [examples](https://github.com/PathPlanning/AA-SIPP-m/tree/master/Instances)) and passed to the solver as command line argument(s). The result (paths and some additional information) is put to the output XML.
+The MAPF instance to be solves (as well as algorithm's options) is supposed to be encoded in XML-file(s) of predefined structure (see __"Input and Output files"__ or [examples](https://github.com/PathPlanning/AA-SIPP-m/tree/master/Instances)) and passed to the solver as command line argument(s). The result (paths and some additional information) is output to the (distinct) XML-file as well.
+
 The implementation is self-contained. Code is written in C++ and is meant to be cross-platform. Implementation relies only on C+11 standard and STL. Open-source library to work with XML (tinyXML) is included at the source level (i.e. .h and .cpp files are part of the project). 
 
 
