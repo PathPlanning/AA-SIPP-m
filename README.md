@@ -9,9 +9,13 @@ Agents are considered to be open disks of predefined radii. Radius of each agent
 
 Agents' valid actions are (i) translate (ii) rotate in place (iii) wait in place. Moves' endpoints are tied to the centers of grid cells. Moves can be of arbitrary durations, i.e. the durations are not discretized into timesteps, e.g. duration of the translation action is moving speed (set by the user) times the length of the segment agent is traversing. Inertial effects are neglected so far, i.e. agents accelerate/decelerate instantaneously.
 
+<p align="center">
+  <img src="Pics/Environment.png" width="300" title="Example of the environment" alt="Example of the environment">
+</p>
+
 Various techniques that enhance the performance of the prioritized planning are supported:
-- Start Safe Intervals (see LINK);
-- deterministic re-ordering in case of failure (following the heuristic rule described in LINK);
+- Start Safe Intervals (see [link](http://ifaamas.org/Proceedings/aamas2018/pdfs/p2177.pdf));
+- deterministic re-ordering in case of failure (following the heuristic rule described [here](http://ifaamas.org/Proceedings/aamas2018/pdfs/p2177.pdf));
 - random re-ordering in case of failure.
 
 The MAPF instance to be solves (as well as algorithm's options) is supposed to be encoded in XML-file(s) of predefined structure (see __"Input and Output files"__ or [examples](https://github.com/PathPlanning/AA-SIPP-m/tree/master/Instances)) and passed to the solver as command line argument(s). The result (paths and some additional information) is output to the (distinct) XML-file as well.
