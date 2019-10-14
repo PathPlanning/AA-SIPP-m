@@ -16,11 +16,11 @@ public:
     Constraints(int width, int height);
     ~Constraints(){}
     void updateCellSafeIntervals(std::pair<int, int> cell);
-    std::vector<std::pair<double, double> > getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w);
-    std::vector<std::pair<double, double> > getSafeIntervals(Node curNode);
+    std::vector<SafeInterval> getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w);
+    std::vector<SafeInterval> getSafeIntervals(Node curNode);
     void addConstraints(const std::vector<Node> &sections, double size, double mspeed, const Map &map);
-    std::vector<std::pair<double, double> > findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, const Map &map);
-    std::pair<double,double> getSafeInterval(int i, int j, int n) {return safe_intervals[i][j][n];}
+    std::vector<SafeInterval> findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, const Map &map);
+    SafeInterval getSafeInterval(int i, int j, int n) {return safe_intervals[i][j][n];}
     void resetSafeIntervals(int width, int height);
     void addStartConstraint(int i, int j, int size, std::vector<std::pair<int, int>> cells, double agentsize = 0.5);
     void removeStartConstraint(std::vector<std::pair<int, int>> cells, int start_i, int start_j);
@@ -33,7 +33,7 @@ public:
 private:
     bool hasCollision(const Node &curNode, double startTimeA, const section &constraint, bool &goal_collision);
     std::vector<std::vector<std::vector<section>>> constraints;
-    std::vector<std::vector<std::vector<std::pair<double,double>>>> safe_intervals;
+    std::vector<std::vector<std::vector<SafeInterval>>> safe_intervals;
     double rspeed;
     double mspeed;
     double agentsize;

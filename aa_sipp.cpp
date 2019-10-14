@@ -18,7 +18,7 @@ bool AA_SIPP::stopCriterion(const Node &curNode, Node &goalNode)
         std::cout << "OPEN list is empty! ";
         return true;
     }
-    if(curNode.i == curagent.goal_i && curNode.j == curagent.goal_j && curNode.interval.second == CN_INFINITY)
+    if(curNode.i == curagent.goal_i && curNode.j == curagent.goal_j && curNode.interval.end == CN_INFINITY)
     {
         if(!config->planforturns || curagent.goal_heading == CN_HEADING_WHATEVER)
             goalNode = curNode;
@@ -71,7 +71,7 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
     Node newNode, angleNode;
     std::list<Node> successors;
     std::vector<double> EAT;
-    std::vector<std::pair<double, double>> intervals;
+    std::vector<SafeInterval> intervals;
     double h_value;
     auto parent = &(close.find(curNode.i*map.width + curNode.j)->second);
     std::vector<Node> moves = map.getValidMoves(curNode.i, curNode.j, config->connectedness, curagent.size);
@@ -88,7 +88,7 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
             newNode.Parent = &angleNode;
             h_value = getHValue(newNode.i, newNode.j);
 
-            if(angleNode.g <= angleNode.interval.second)
+            if(angleNode.g <= angleNode.interval.end)
             {
                 intervals = constraints->findIntervals(newNode, EAT, close, map);
                 for(unsigned int k = 0; k < intervals.size(); k++)
@@ -110,7 +110,7 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
                     angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//count new additional time required for rotation
                     newNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;
                     newNode.Parent = &angleNode;
-                    if(angleNode.g > angleNode.interval.second)
+                    if(angleNode.g > angleNode.interval.end)
                         continue;
                     intervals = constraints->findIntervals(newNode, EAT, close, map);
                     for(unsigned int k = 0; k < intervals.size(); k++)
@@ -124,6 +124,7 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
                 }
             }
         }
+
     return successors;
 }
 
@@ -178,7 +179,7 @@ void AA_SIPP::addOpen(Node &newNode)
             }
         }
 
-        if (iter->j == newNode.j && fabs(iter->interval.first - newNode.interval.first) < CN_EPSILON)
+        if (iter->j == newNode.j && iter->interval.id == newNode.interval.id)
         {
             if((iter->g - newNode.g + getRCost(iter->heading, newNode.heading)) < CN_EPSILON)//if existing state dominates new one
                 return;

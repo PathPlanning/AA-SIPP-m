@@ -49,6 +49,14 @@ struct movement
     int s_dir;
 };
 
+struct SafeInterval
+{
+    double begin;
+    double end;
+    int id;
+    SafeInterval(double begin_=0, double end_=CN_INFINITY, int id_=0):begin(begin_), end(end_), id(id_) {}
+};
+
 struct Node
 {
     Node(int _i=-1, int _j=-1, double _g=-1, double _F=-1):i(_i),j(_j),g(_g),F(_F),Parent(nullptr){}
@@ -59,7 +67,7 @@ struct Node
     double  F;
     double  heading;
     Node*   Parent;
-    std::pair<double,double> interval;
+    SafeInterval interval;
 };
 
 struct obstacle
