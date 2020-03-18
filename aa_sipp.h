@@ -32,7 +32,7 @@ private:
     Node findMin(int size);
     bool stopCriterion(const Node &curNode, Node &goalNode);
     bool testGoal(const Node &curNode, Node &goalNode);
-    double getCost(int a_i, int a_j, int b_i, int b_j);
+    double getCost(double a_i, double a_j, double b_i, double b_j);
     double getRCost(double headingA, double headingB);
     double calcHeading(const Node &node, const Node &son);
     std::list<Node> findSuccessors(const Node curNode, const Map &map);
@@ -48,7 +48,7 @@ private:
     bool changePriorities(int bad_i);
     unsigned int openSize;
     std::list<Node> lppath;
-    std::vector<std::list<Node>> open;
+    OPEN_container open;
     std::unordered_multimap<int, Node> close;
     std::vector<Node> hppath;
     std::vector<std::vector<int>> priorities;

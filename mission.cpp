@@ -22,7 +22,7 @@ void Mission::setFileNames(const char *taskName, const char *mapName, const char
 
 bool Mission::getMap()
 {
-    return m_map.getMap(mapName);
+    return m_map.get_grid(mapName);
 }
 
 bool Mission::getTask()
@@ -65,6 +65,7 @@ void Mission::createLog()
 void Mission::startSearch()
 {
     //std::cout<<"SEARCH STARTED\n";
+    m_task.make_ids(m_map.width);
     sr = m_pSearch->startSearch(m_map, m_task, m_obstacles);
 }
 

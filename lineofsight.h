@@ -53,14 +53,26 @@ public:
     }
 
     template <class T>
-    std::vector<std::pair<int, int>> getCellsCrossedByLine(int x1, int y1, int x2, int y2, const T &map)
+    std::vector<int> getCellsCrossedByLine(int id1, int id2, const T &map)
     {
+        int x1,y1,x2,y2;
         std::vector<std::pair<int, int>> lineCells(0);
+        std::vector<int> ids;
+        if(map.map_is_roadmap)
+        {
+            ids.push_back(id1);
+            ids.push_back(id2);
+            return ids;
+        }
+        x1 = map.get_ij(id1).first;
+        y1 = map.get_ij(id1).second;
+        x2 = map.get_ij(id2).first;
+        y2 = map.get_ij(id2).second;
         if(x1 == x2 && y1 == y2)
         {
-            for(auto cell:cells)
-                lineCells.push_back({x1+cell.first, y1+cell.second});
-            return lineCells;
+            for(auto cell: cells)
+                ids.push_back(map.get_id(x1+cell.first, y1+cell.second));
+            return ids;
         }
         int delta_x = std::abs(x1 - x2);
         int delta_y = std::abs(y1 - y2);
@@ -164,7 +176,9 @@ public:
                 lineCells.erase(it);
                 it = lineCells.begin();
             }
-        return lineCells;
+        for(auto cell:lineCells)
+            ids.push_back(map.get_id(cell.first, cell.second));
+        return ids;
     }
     //returns all cells that are affected by agent during moving along a line
 
@@ -286,12 +300,15 @@ public:
         return true;
     }
     //checks line-of-sight between a line
-    std::vector<std::pair<int, int>> getCells(int i, int j)
+    template <class T>
+    std::vector<int> getCells(int id,  const T &map)
     {
-        std::vector<std::pair<int, int>> cells;
-        for(int k=0; k<this->cells.size(); k++)
-            cells.push_back({i+this->cells[k].first,j+this->cells[k].second});
-        return cells;
+        std::vector<int> ids;
+        int i = map.get_ij(id).first;
+        int j = map.get_ij(id).second;
+        for(auto cell:cells)
+            ids.push_back(map.get_id(i+cell.first,j+cell.second));
+        return ids;
     }
 private:
     double agentSize;

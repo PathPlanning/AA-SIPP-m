@@ -1,24 +1,9 @@
 #include "constraints.h"
 
-Constraints::Constraints(int width, int height)
+Constraints::Constraints(int size)
 {
-    safe_intervals.resize(height);
-    for(int i = 0; i < height; i++)
-    {
-        safe_intervals[i].resize(width);
-        for(int j = 0; j < width; j++)
-        {
-            safe_intervals[i][j].resize(0);
-            safe_intervals[i][j].push_back({0,CN_INFINITY});
-        }
-    }
-    constraints.resize(height);
-    for(int i = 0; i < height; i++)
-    {
-        constraints[i].resize(width);
-        for(int j = 0; j < width; j++)
-            constraints[i][j].resize(0);
-    }
+    safe_intervals.resize(size, {0,CN_INFINITY});
+    constraints.resize(size);
 }
 
 bool sort_function(std::pair<double, double> a, std::pair<double, double> b)
@@ -37,37 +22,28 @@ double Constraints::minDist(Point A, Point C, Point D)
         return fabs((C.i - D.i)*A.j + (D.j - C.j)*A.i + (C.j*D.i - D.j*C.i))/sqrt(pow(C.i - D.i, 2) + pow(C.j - D.j, 2));
 }
 
-void Constraints::resetSafeIntervals(int width, int height)
+void Constraints::resetSafeIntervals(int size)
 {
-    safe_intervals.resize(height);
-    for(int i = 0; i < height; i++)
-    {
-        safe_intervals[i].resize(width);
-        for(int j = 0; j < width; j++)
-        {
-            safe_intervals[i][j].resize(0);
-            safe_intervals[i][j].push_back({0,CN_INFINITY});
-        }
-    }
+    safe_intervals.resize(size, {0, CN_INFINITY});
 }
 
-void Constraints::updateCellSafeIntervals(std::pair<int, int> cell)
+void Constraints::updateCellSafeIntervals(Node n, const Map& map)
 {
-    if(safe_intervals[cell.first][cell.second].size() > 1)
+    if(safe_intervals[n.id].size() > 1)
         return;
     LineOfSight los(agentsize);
-    std::vector<std::pair<int, int>> cells = los.getCells(cell.first, cell.second);
+    std::vector<int> cells = los.getCells(n.id, map);
     std::vector<section> secs;
     for(int k = 0; k < cells.size(); k++)
-        for(int l = 0; l < constraints[cells[k].first][cells[k].second].size(); l++)
-            if(std::find(secs.begin(), secs.end(), constraints[cells[k].first][cells[k].second][l]) == secs.end())
-                secs.push_back(constraints[cells[k].first][cells[k].second][l]);
+        for(int l = 0; l < constraints[cells[k]].size(); l++)
+            if(std::find(secs.begin(), secs.end(), constraints[cells[k]][l]) == secs.end())
+                secs.push_back(constraints[cells[k]][l]);
 
     for(int k = 0; k < secs.size(); k++)
     {
         section sec = secs[k];
         double radius = agentsize + sec.size;
-        int i0(secs[k].i1), j0(secs[k].j1), i1(secs[k].i2), j1(secs[k].j2), i2(cell.first), j2(cell.second);
+        int i0(secs[k].i1), j0(secs[k].j1), i1(secs[k].i2), j1(secs[k].j2), i2(n.i), j2(n.j);
         SafeInterval interval;
         double dist, mindist;
         if(i0 == i1 && j0 == j1 && i0 == i2 && j0 == j2)
@@ -120,53 +96,53 @@ void Constraints::updateCellSafeIntervals(std::pair<int, int> cell)
                 interval.end = sec.g1 + ha/sec.mspeed + size/sec.mspeed;
             }
         }
-        for(unsigned int j = 0; j < safe_intervals[i2][j2].size(); j++)
+        for(unsigned int j = 0; j < safe_intervals[n.id].size(); j++)
         {
-            if(safe_intervals[i2][j2][j].begin < interval.begin + CN_EPSILON && safe_intervals[i2][j2][j].end + CN_EPSILON > interval.begin)
+            if(safe_intervals[n.id][j].begin < interval.begin + CN_EPSILON && safe_intervals[n.id][j].end + CN_EPSILON > interval.begin)
             {
-                if(fabs(safe_intervals[i2][j2][j].begin - interval.begin) < CN_EPSILON)
+                if(fabs(safe_intervals[n.id][j].begin - interval.begin) < CN_EPSILON)
                 {
-                    safe_intervals[i2][j2].insert(safe_intervals[i2][j2].begin() + j, SafeInterval(safe_intervals[i2][j2][j].begin,safe_intervals[i2][j2][j].begin));
+                    safe_intervals[n.id].insert(safe_intervals[n.id].begin() + j, SafeInterval(safe_intervals[n.id][j].begin,safe_intervals[n.id][j].begin));
                     j++;
-                    if(safe_intervals[i2][j2][j].end < interval.end)
-                        safe_intervals[i2][j2].erase(safe_intervals[i2][j2].begin() + j);
+                    if(safe_intervals[n.id][j].end < interval.end)
+                        safe_intervals[n.id].erase(safe_intervals[n.id].begin() + j);
                     else
-                        safe_intervals[i2][j2][j].begin = interval.end;
+                        safe_intervals[n.id][j].begin = interval.end;
                 }
-                else if(safe_intervals[i2][j2][j].end < interval.end)
-                    safe_intervals[i2][j2][j].end = interval.begin;
+                else if(safe_intervals[n.id][j].end < interval.end)
+                    safe_intervals[n.id][j].end = interval.begin;
                 else
                 {
                     std::pair<double,double> new1, new2;
-                    new1.first = safe_intervals[i2][j2][j].begin;
+                    new1.first = safe_intervals[n.id][j].begin;
                     new1.second = interval.begin;
                     new2.first = interval.end;
-                    new2.second = safe_intervals[i2][j2][j].end;
-                    safe_intervals[i2][j2].erase(safe_intervals[i2][j2].begin() + j);
+                    new2.second = safe_intervals[n.id][j].end;
+                    safe_intervals[n.id].erase(safe_intervals[n.id].begin() + j);
                     if(new2.first < CN_INFINITY)
-                        safe_intervals[i2][j2].insert(safe_intervals[i2][j2].begin() + j, SafeInterval(new2.first, new2.second));
-                    safe_intervals[i2][j2].insert(safe_intervals[i2][j2].begin() + j, SafeInterval(new1.first, new1.second));
+                        safe_intervals[n.id].insert(safe_intervals[n.id].begin() + j, SafeInterval(new2.first, new2.second));
+                    safe_intervals[n.id].insert(safe_intervals[n.id].begin() + j, SafeInterval(new1.first, new1.second));
                 }
             }
-            else if(safe_intervals[i2][j2][j].begin > interval.begin - CN_EPSILON && safe_intervals[i2][j2][j].begin < interval.end)
+            else if(safe_intervals[n.id][j].begin > interval.begin - CN_EPSILON && safe_intervals[n.id][j].begin < interval.end)
             {
-                if(fabs(safe_intervals[i2][j2][j].begin - interval.begin) < CN_EPSILON)
+                if(fabs(safe_intervals[n.id][j].begin - interval.begin) < CN_EPSILON)
                 {
-                    safe_intervals[i2][j2].insert(safe_intervals[i2][j2].begin() + j, SafeInterval(safe_intervals[i2][j2][j].begin,safe_intervals[i2][j2][j].begin));
+                    safe_intervals[n.id].insert(safe_intervals[n.id].begin() + j, SafeInterval(safe_intervals[n.id][j].begin,safe_intervals[n.id][j].begin));
                     j++;
                 }
-                if(safe_intervals[i2][j2][j].end < interval.end)
+                if(safe_intervals[n.id][j].end < interval.end)
                 {
-                    safe_intervals[i2][j2].erase(safe_intervals[i2][j2].begin() + j);
+                    safe_intervals[n.id].erase(safe_intervals[n.id].begin() + j);
                 }
                 else
                 {
-                    safe_intervals[i2][j2][j].begin = interval.end;
+                    safe_intervals[n.id][j].begin = interval.end;
                 }
             }
         }
-        for(unsigned int j = 0; j < safe_intervals[i2][j2].size(); j++)
-            safe_intervals[i2][j2][j].id = j;
+        for(unsigned int j = 0; j < safe_intervals[n.id].size(); j++)
+            safe_intervals[n.id][j].id = j;
     }
 }
 
@@ -174,45 +150,46 @@ std::vector<SafeInterval> Constraints::getSafeIntervals(Node curNode, const std:
 {
     std::vector<SafeInterval> intervals(0);
     auto range = close.equal_range(curNode.i*w + curNode.j);
-    for(unsigned int i = 0; i < safe_intervals[curNode.i][curNode.j].size(); i++)
-        if(safe_intervals[curNode.i][curNode.j][i].end >= curNode.g
-                && safe_intervals[curNode.i][curNode.j][i].begin <= (curNode.Parent->interval.end + curNode.g - curNode.Parent->g))
+    for(unsigned int i = 0; i < safe_intervals[curNode.id].size(); i++)
+        if(safe_intervals[curNode.id][i].end >= curNode.g
+                && safe_intervals[curNode.id][i].begin <= (curNode.Parent->interval.end + curNode.g - curNode.Parent->g))
         {
             bool has = false;
             for(auto it = range.first; it != range.second; it++)
-                if(it->second.interval.begin == safe_intervals[curNode.i][curNode.j][i].begin)
+                if(it->second.interval.id == safe_intervals[curNode.id][i].id)
                 if((it->second.g + tweight*fabs(curNode.heading - it->second.heading)/(180*rspeed)) - curNode.g < CN_EPSILON)//take into account turning cost
                 {
                     has = true;
                     break;
                 }
             if(!has)
-                intervals.push_back(safe_intervals[curNode.i][curNode.j][i]);
+                intervals.push_back(safe_intervals[curNode.id][i]);
         }
     return intervals;
 }
 
 std::vector<SafeInterval> Constraints::getSafeIntervals(Node curNode)
 {
-    return safe_intervals[curNode.i][curNode.j];
+    return safe_intervals[curNode.id];
 }
 
-void Constraints::addStartConstraint(int i, int j, int size, std::vector<std::pair<int, int> > cells, double agentsize)
+void Constraints::addStartConstraint(int id, double i, double j, int size, std::vector<int> cells, double agentsize)
 {
-    section sec(i, j, i, j, 0, size);
+    section sec(id, id, 0, size);
+    sec.set_ij(i,j,i,j);
     sec.size = agentsize;
     for(auto cell: cells)
-        constraints[cell.first][cell.second].insert(constraints[cell.first][cell.second].begin(),sec);
+        constraints[cell].insert(constraints[cell].begin(),sec);
     return;
 }
 
-void Constraints::removeStartConstraint(std::vector<std::pair<int, int> > cells, int start_i, int start_j)
+void Constraints::removeStartConstraint(std::vector<int> cells, int id)
 {
     for(auto cell: cells)
-        for(size_t k = 0; k < constraints[cell.first][cell.second].size(); k++)
-            if(constraints[cell.first][cell.second][k].i1 == start_i && constraints[cell.first][cell.second][k].j1 == start_j && constraints[cell.first][cell.second][k].g1 < CN_EPSILON)
+        for(size_t k = 0; k < constraints[cell].size(); k++)
+            if(constraints[cell][k].id1 == id && constraints[cell][k].g1 < CN_EPSILON)
             {
-                constraints[cell.first][cell.second].erase(constraints[cell.first][cell.second].begin() + k);
+                constraints[cell].erase(constraints[cell].begin() + k);
                 k--;
             }
     return;
@@ -220,26 +197,26 @@ void Constraints::removeStartConstraint(std::vector<std::pair<int, int> > cells,
 
 void Constraints::addConstraints(const std::vector<Node> &sections, double size, double mspeed, const Map &map)
 {
-    std::vector<std::pair<int,int>> cells;
+    std::vector<int> cells;
     LineOfSight los(size);
     section sec(sections.back(), sections.back());
     sec.g2 = CN_INFINITY;
     sec.size = size;
     sec.mspeed = mspeed;
-    cells = los.getCellsCrossedByLine(sec.i1, sec.j1, sec.i2, sec.j2, map);
+    cells = los.getCellsCrossedByLine(sec.id1, sec.id2, map);
     for(auto cell: cells)
-        constraints[cell.first][cell.second].push_back(sec);
+        constraints[cell].push_back(sec);
     if(sec.g1 == 0)
         for(auto cell: cells)
-            safe_intervals[cell.first][cell.second].clear();
+            safe_intervals[cell].clear();
     for(unsigned int a = 1; a < sections.size(); a++)
     {
-        cells = los.getCellsCrossedByLine(sections[a-1].i, sections[a-1].j, sections[a].i, sections[a].j, map);
+        cells = los.getCellsCrossedByLine(sections[a-1].id, sections[a].id, map);
         sec = section(sections[a-1], sections[a]);
         sec.size = size;
         sec.mspeed = mspeed;
         for(unsigned int i = 0; i < cells.size(); i++)
-            constraints[cells[i].first][cells[i].second].push_back(sec);
+            constraints[cells[i]].push_back(sec);
         /*if(a+1 == sections.size())
             updateSafeIntervals(cells,sec,true);
         else
@@ -254,13 +231,13 @@ std::vector<SafeInterval> Constraints::findIntervals(Node curNode, std::vector<d
         return curNodeIntervals;
     EAT.clear();
     LineOfSight los(agentsize);
-    std::vector<std::pair<int,int>> cells = los.getCellsCrossedByLine(curNode.i, curNode.j, curNode.Parent->i, curNode.Parent->j, map);
+    std::vector<int> cells = los.getCellsCrossedByLine(curNode.id, curNode.Parent->id, map);
     std::vector<section> sections(0);
     section sec;
     for(unsigned int i = 0; i < cells.size(); i++)
-        for(unsigned int j = 0; j < constraints[cells[i].first][cells[i].second].size(); j++)
+        for(unsigned int j = 0; j < constraints[cells[i]].size(); j++)
         {
-            sec = constraints[cells[i].first][cells[i].second][j];
+            sec = constraints[cells[i]][j];
             if(sec.g2 < curNode.Parent->g || sec.g1 > (curNode.Parent->interval.end + curNode.g - curNode.Parent->g))
                 continue;
             if(std::find(sections.begin(), sections.end(), sec) == sections.end())
@@ -359,7 +336,7 @@ bool Constraints::hasCollision(const Node &curNode, double startTimeA, const sec
     double ctime = (b - sqrt(dscr))/a;
     if(ctime > -CN_EPSILON && ctime < std::min(endTimeB,endTimeA) - startTimeA + CN_EPSILON)
     {
-        if(constraint.g2 == CN_INFINITY)
+        if(fabs(constraint.g2 - CN_INFINITY) < CN_EPSILON)
             goal_collision = true;
         return true;
     }

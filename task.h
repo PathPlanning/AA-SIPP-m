@@ -16,6 +16,8 @@ public:
     bool getTask(const char* fileName);
     Agent getAgent(unsigned int id) const;
     unsigned int getNumberOfAgents() const;
+    void make_ids(int width);
+    void make_ij(const Map &map);
     bool validateTask(const Map &map);
 };
 

@@ -11,7 +11,29 @@ Map::~Map()
     Grid.clear();
 }
 
-bool Map::getMap(const char* FileName)
+bool Map::get_map(const char* FileName)
+{
+    tinyxml2::XMLElement *root = nullptr;
+    tinyxml2::XMLDocument doc;
+    if (doc.LoadFile(FileName) != tinyxml2::XMLError::XML_SUCCESS)
+    {
+        std::cout << "Error opening XML file!" << std::endl;
+        return false;
+    }
+    root = doc.FirstChildElement(CNS_TAG_ROOT);
+    if (root)
+    {
+        map_is_roadmap = false;
+        return get_grid(FileName);
+    }
+    else
+    {
+        map_is_roadmap = true;
+        return get_roadmap(FileName);
+    }
+}
+
+bool Map::get_grid(const char* FileName)
 {
     XMLDocument doc;
     if(doc.LoadFile(FileName) != XMLError::XML_SUCCESS)
@@ -131,38 +153,115 @@ int Map::getValue(int i, int j) const
     return Grid[i][j];
 }
 
-std::vector<Node> Map::getValidMoves(int i, int j, int k, double size) const
+std::vector<Node> Map::getValidMoves(Node curNode, int k, double size) const
 {
-   LineOfSight los;
-   los.setSize(size);
-   std::vector<Node> moves;
-   if(k == 2)
-       moves = {Node(0,1,1.0),   Node(1,0,1.0),         Node(-1,0,1.0), Node(0,-1,1.0)};
-   else if(k == 3)
-       moves = {Node(0,1,1.0),   Node(1,1,sqrt(2.0)),   Node(1,0,1.0),  Node(1,-1,sqrt(2.0)),
-                Node(0,-1,1.0),  Node(-1,-1,sqrt(2.0)), Node(-1,0,1.0), Node(-1,1,sqrt(2.0))};
-   else if(k == 4)
-       moves = {Node(0,1,1.0),          Node(1,1,sqrt(2.0)),    Node(1,0,1.0),          Node(1,-1,sqrt(2.0)),
-                Node(0,-1,1.0),         Node(-1,-1,sqrt(2.0)),  Node(-1,0,1.0),         Node(-1,1,sqrt(2.0)),
-                Node(1,2,sqrt(5.0)),    Node(2,1,sqrt(5.0)),    Node(2,-1,sqrt(5.0)),   Node(1,-2,sqrt(5.0)),
-                Node(-1,-2,sqrt(5.0)),  Node(-2,-1,sqrt(5.0)),  Node(-2,1,sqrt(5.0)),   Node(-1,2,sqrt(5.0))};
-   else
-       moves = {Node(0,1,1.0),          Node(1,1,sqrt(2.0)),    Node(1,0,1.0),          Node(1,-1,sqrt(2.0)),
-                Node(0,-1,1.0),         Node(-1,-1,sqrt(2.0)),  Node(-1,0,1.0),         Node(-1,1,sqrt(2.0)),
-                Node(1,2,sqrt(5.0)),    Node(2,1,sqrt(5.0)),    Node(2,-1,sqrt(5.0)),   Node(1,-2,sqrt(5.0)),
-                Node(-1,-2,sqrt(5.0)),  Node(-2,-1,sqrt(5.0)),  Node(-2,1,sqrt(5.0)),   Node(-1,2,sqrt(5.0)),
-                Node(1,3,sqrt(10.0)),   Node(2,3,sqrt(13.0)),   Node(3,2,sqrt(13.0)),   Node(3,1,sqrt(10.0)),
-                Node(3,-1,sqrt(10.0)),  Node(3,-2,sqrt(13.0)),  Node(2,-3,sqrt(13.0)),  Node(1,-3,sqrt(10.0)),
-                Node(-1,-3,sqrt(10.0)), Node(-2,-3,sqrt(13.0)), Node(-3,-2,sqrt(13.0)), Node(-3,-1,sqrt(10.0)),
-                Node(-3,1,sqrt(10.0)),  Node(-3,2,sqrt(13.0)),  Node(-2,3,sqrt(13.0)),  Node(-1,3,sqrt(10.0))};
-   std::vector<bool> valid(moves.size(), true);
-   for(int k = 0; k < moves.size(); k++)
-       if(!CellOnGrid(i + moves[k].i, j + moves[k].j) || CellIsObstacle(i + moves[k].i, j + moves[k].j)
-               || !los.checkLine(i, j, i + moves[k].i, j + moves[k].j, *this))
-           valid[k] = false;
-   std::vector<Node> v_moves = {};
-   for(int k = 0; k < valid.size(); k++)
-       if(valid[k])
-           v_moves.push_back(moves[k]);
-   return v_moves;
+    std::vector<Node> v_moves = {};
+    if(!map_is_roadmap)
+    {
+        LineOfSight los;
+        los.setSize(size);
+        std::vector<Node> moves;
+        if(k == 2)
+            moves = {Node(0,1,1.0),   Node(1,0,1.0),         Node(-1,0,1.0), Node(0,-1,1.0)};
+        else if(k == 3)
+            moves = {Node(0,1,1.0),   Node(1,1,sqrt(2.0)),   Node(1,0,1.0),  Node(1,-1,sqrt(2.0)),
+                     Node(0,-1,1.0),  Node(-1,-1,sqrt(2.0)), Node(-1,0,1.0), Node(-1,1,sqrt(2.0))};
+        else if(k == 4)
+            moves = {Node(0,1,1.0),          Node(1,1,sqrt(2.0)),    Node(1,0,1.0),          Node(1,-1,sqrt(2.0)),
+                     Node(0,-1,1.0),         Node(-1,-1,sqrt(2.0)),  Node(-1,0,1.0),         Node(-1,1,sqrt(2.0)),
+                     Node(1,2,sqrt(5.0)),    Node(2,1,sqrt(5.0)),    Node(2,-1,sqrt(5.0)),   Node(1,-2,sqrt(5.0)),
+                     Node(-1,-2,sqrt(5.0)),  Node(-2,-1,sqrt(5.0)),  Node(-2,1,sqrt(5.0)),   Node(-1,2,sqrt(5.0))};
+        else
+            moves = {Node(0,1,1.0),          Node(1,1,sqrt(2.0)),    Node(1,0,1.0),          Node(1,-1,sqrt(2.0)),
+                     Node(0,-1,1.0),         Node(-1,-1,sqrt(2.0)),  Node(-1,0,1.0),         Node(-1,1,sqrt(2.0)),
+                     Node(1,2,sqrt(5.0)),    Node(2,1,sqrt(5.0)),    Node(2,-1,sqrt(5.0)),   Node(1,-2,sqrt(5.0)),
+                     Node(-1,-2,sqrt(5.0)),  Node(-2,-1,sqrt(5.0)),  Node(-2,1,sqrt(5.0)),   Node(-1,2,sqrt(5.0)),
+                     Node(1,3,sqrt(10.0)),   Node(2,3,sqrt(13.0)),   Node(3,2,sqrt(13.0)),   Node(3,1,sqrt(10.0)),
+                     Node(3,-1,sqrt(10.0)),  Node(3,-2,sqrt(13.0)),  Node(2,-3,sqrt(13.0)),  Node(1,-3,sqrt(10.0)),
+                     Node(-1,-3,sqrt(10.0)), Node(-2,-3,sqrt(13.0)), Node(-3,-2,sqrt(13.0)), Node(-3,-1,sqrt(10.0)),
+                     Node(-3,1,sqrt(10.0)),  Node(-3,2,sqrt(13.0)),  Node(-2,3,sqrt(13.0)),  Node(-1,3,sqrt(10.0))};
+        std::vector<bool> valid(moves.size(), true);
+        for(int k = 0; k < moves.size(); k++)
+            if(!CellOnGrid(curNode.i + moves[k].i, curNode.j + moves[k].j) || CellIsObstacle(curNode.i + moves[k].i, curNode.j + moves[k].j)
+                    || !los.checkLine(curNode.i, curNode.j, curNode.i + moves[k].i, curNode.j + moves[k].j, *this))
+                valid[k] = false;
+        for(int k = 0; k < valid.size(); k++)
+            if(valid[k])
+                v_moves.push_back(moves[k]);
+    }
+    else
+        v_moves = valid_moves[curNode.id];
+    return v_moves;
+}
+
+bool Map::get_roadmap(const char *FileName)
+{
+    tinyxml2::XMLDocument doc;
+    if (doc.LoadFile(FileName) != tinyxml2::XMLError::XML_SUCCESS)
+    {
+        std::cout << "Error opening XML file!" << std::endl;
+        return false;
+    }
+    tinyxml2::XMLElement *root = 0, *element = 0, *data;
+    std::string value;
+    std::stringstream stream;
+    root = doc.FirstChildElement("graphml")->FirstChildElement("graph");
+    for(element = root->FirstChildElement("node"); element; element = element->NextSiblingElement("node"))
+    {
+        data = element->FirstChildElement();
+
+        stream.str("");
+        stream.clear();
+        stream << data->GetText();
+        stream >> value;
+        auto it = value.find_first_of(",");
+        stream.str("");
+        stream.clear();
+        stream << value.substr(0, it);
+        double i;
+        stream >> i;
+        stream.str("");
+        stream.clear();
+        value.erase(0, ++it);
+        stream << value;
+        double j;
+        stream >> j;
+        gNode node;
+        node.i = i;
+        node.j = j;
+        nodes.push_back(node);
+    }
+    for(element = root->FirstChildElement("edge"); element; element = element->NextSiblingElement("edge"))
+    {
+        std::string source = std::string(element->Attribute("source"));
+        std::string target = std::string(element->Attribute("target"));
+        source.erase(source.begin(),++source.begin());
+        target.erase(target.begin(),++target.begin());
+        int id1, id2;
+        stream.str("");
+        stream.clear();
+        stream << source;
+        stream >> id1;
+        stream.str("");
+        stream.clear();
+        stream << target;
+        stream >> id2;
+        nodes[id1].neighbors.push_back(id2);
+    }
+    for(gNode cur:nodes)
+    {
+        Node node;
+        std::vector<Node> neighbors;
+        neighbors.clear();
+        for(int i = 0; i < cur.neighbors.size(); i++)
+        {
+            node.i = nodes[cur.neighbors[i]].i;
+            node.j = nodes[cur.neighbors[i]].j;
+            node.id = cur.neighbors[i];
+            neighbors.push_back(node);
+        }
+        valid_moves.push_back(neighbors);
+    }
+    size = nodes.size();
+    return true;
 }

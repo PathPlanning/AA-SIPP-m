@@ -3,7 +3,6 @@
 AA_SIPP::AA_SIPP(const Config &config)
 {
     this->config = std::make_shared<const Config> (config);
-    openSize = 0;
     constraints = nullptr;
 }
 
@@ -13,12 +12,12 @@ AA_SIPP::~AA_SIPP()
 
 bool AA_SIPP::stopCriterion(const Node &curNode, Node &goalNode)
 {
-    if(openSize == 0)
+    if(open.size() == 0)
     {
         std::cout << "OPEN list is empty! ";
         return true;
     }
-    if(curNode.i == curagent.goal_i && curNode.j == curagent.goal_j && curNode.interval.end == CN_INFINITY)
+    if(curNode.id == curagent.goal_id && fabs(curNode.interval.end - CN_INFINITY) < CN_EPSILON)
     {
         if(!config->planforturns || curagent.goal_heading == CN_HEADING_WHATEVER)
             goalNode = curNode;
@@ -34,7 +33,7 @@ bool AA_SIPP::stopCriterion(const Node &curNode, Node &goalNode)
     return false;
 }
 
-double AA_SIPP::getCost(int a_i, int a_j, int b_i, int b_j)
+double AA_SIPP::getCost(double a_i, double a_j, double b_i, double b_j)
 {
     return sqrt((a_i - b_i) * (a_i - b_i) + (a_j - b_j) * (a_j - b_j));
 }
@@ -73,18 +72,19 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
     std::vector<double> EAT;
     std::vector<SafeInterval> intervals;
     double h_value;
-    auto parent = &(close.find(curNode.i*map.width + curNode.j)->second);
-    std::vector<Node> moves = map.getValidMoves(curNode.i, curNode.j, config->connectedness, curagent.size);
+    auto parent = &(close.find(curNode.id)->second);
+    std::vector<Node> moves = map.getValidMoves(curNode, config->connectedness, curagent.size);
     for(auto m:moves)
         if(lineofsight.checkTraversability(curNode.i + m.i,curNode.j + m.j,map))
         {
             newNode.i = curNode.i + m.i;
             newNode.j = curNode.j + m.j;
-            constraints->updateCellSafeIntervals({newNode.i,newNode.j});
+            newNode.id = newNode.i*map.width + newNode.j;
+            constraints->updateCellSafeIntervals(newNode, map);
             newNode.heading = calcHeading(curNode, newNode);
             angleNode = curNode; //the same state, but with extended g-value
             angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//to compensate the amount of time required for rotation
-            newNode.g = angleNode.g + m.g/curagent.mspeed;
+            newNode.g = angleNode.g + getCost(newNode.i, newNode.j, curNode.i, curNode.j)/curagent.mspeed;
             newNode.Parent = &angleNode;
             h_value = getHValue(newNode.i, newNode.j);
 
@@ -94,6 +94,7 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
                 for(unsigned int k = 0; k < intervals.size(); k++)
                 {
                     newNode.interval = intervals[k];
+                    newNode.interval_id = newNode.interval.id;
                     newNode.Parent = parent;
                     newNode.g = EAT[k];
                     newNode.F = newNode.g + h_value;
@@ -119,6 +120,7 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
                         newNode.Parent = parent->Parent;
                         newNode.g = EAT[k];
                         newNode.F = newNode.g + h_value;
+                        newNode.interval_id = newNode.interval.id;
                         successors.push_front(newNode);
                     }
                 }
@@ -130,79 +132,33 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
 
 Node AA_SIPP::findMin(int size)
 {
-    Node min;
-    min.F = std::numeric_limits<double>::max();
-    for(int i = 0; i < size; i++)
-    {
-        if(!open[i].empty() && open[i].begin()->F - CN_EPSILON < min.F)
-        {
-            if (fabs(open[i].begin()->F - min.F) < CN_EPSILON)
-            {
-                if (min.g < open[i].begin()->g)
-                    min = *open[i].begin();
-            }
-            else
-                min = *open[i].begin();
-        }
-    }
+    Node min = *open.get<0>().begin();
+    open.get<0>().erase(open.get<0>().begin());
     return min;
 }
 
 void AA_SIPP::addOpen(Node &newNode)
 {
-    if (open[newNode.i].empty())
+    auto range = open.get<1>().equal_range(boost::make_tuple<int, int>(newNode.id, newNode.interval_id));
+    auto it = range.first;
+    bool dominated = false;
+    while(it != range.second)
     {
-        open[newNode.i].push_back(newNode);
-        openSize++;
-        return;
-    }
-
-    std::list<Node>::iterator iter, pos, delpos;
-    bool posFound(false);
-    pos = open[newNode.i].end();
-    for(iter = open[newNode.i].begin(); iter != open[newNode.i].end(); ++iter)
-    {
-        if ((newNode.F - CN_EPSILON < iter->F) && !posFound)
+        if((it->g - newNode.g + getRCost(it->heading, newNode.heading)) < CN_EPSILON)//if existing state dominates new one
         {
-            if (fabs(iter->F - newNode.F) < CN_EPSILON)
-            {
-                if (newNode.g > iter->g)
-                {
-                    pos = iter;
-                    posFound = true;
-                }
-            }
-            else
-            {
-                pos = iter;
-                posFound = true;
-            }
+            dominated = true;
         }
-
-        if (iter->j == newNode.j && iter->interval.id == newNode.interval.id)
+        else if((newNode.g + getRCost(it->heading, newNode.heading) - it->g) < CN_EPSILON)//if new state dominates the existing one
         {
-            if((iter->g - newNode.g + getRCost(iter->heading, newNode.heading)) < CN_EPSILON)//if existing state dominates new one
-                return;
-            if((newNode.g - iter->g + getRCost(iter->heading, newNode.heading)) < CN_EPSILON)//if new state dominates the existing one
-            {
-                if(pos == iter)
-                {
-                    iter->F = newNode.F;
-                    iter->g = newNode.g;
-                    iter->interval = newNode.interval;
-                    iter->Parent = newNode.Parent;
-                    iter->heading = newNode.heading;
-                    return;
-                }
-                delpos = iter;
-                iter--;
-                open[newNode.i].erase(delpos);
-                openSize--;
-            }
+            auto iter(it);
+            it++;
+            open.get<1>().erase(iter);
+            continue;
         }
+        it++;
     }
-    open[newNode.i].insert(pos, newNode);
-    openSize++;
+    if(!dominated)
+        open.insert(newNode);
     return;
 }
 
@@ -275,10 +231,11 @@ bool AA_SIPP::changePriorities(int bad_i)
         std::mt19937 g(rand());
         std::shuffle(current_priorities.begin(),current_priorities.end(), g);
         bool unique = false;
-        int maxtries(1000000), tries(0);
+        int maxtries(1000), tries(0);
         while(!unique && tries < maxtries)
         {
             tries++;
+            unique = true;
             for(unsigned int i = 0; i < priorities.size(); i++)
             {
                 for(unsigned int j = 0; j < priorities[i].size(); j++)
@@ -294,7 +251,6 @@ bool AA_SIPP::changePriorities(int bad_i)
                     break;
                 }
             }
-            unique = true;
         }
         return unique;
     }
@@ -315,11 +271,10 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
     int tries(0), bad_i(0);
     double timespent(0);
     priorities.clear();
-    open.resize(map.height);
     setPriorities(task);
     do
     {
-        constraints = new Constraints(map.width, map.height);
+        constraints = new Constraints(map.size);
         for(int k = 0; k < obstacles.getNumberOfObstacles(); k++)
         {
             constraints->addConstraints(obstacles.getSections(k), obstacles.getSize(k), obstacles.getMSpeed(k), map);
@@ -337,8 +292,8 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
             lineofsight.setSize(curagent.size);
             if(config->startsafeinterval > 0)
             {
-                auto cells = lineofsight.getCells(curagent.start_i,curagent.start_j);
-                constraints->addStartConstraint(curagent.start_i, curagent.start_j, config->startsafeinterval, cells, curagent.size);
+                auto cells = lineofsight.getCells(curagent.start_id, map);
+                constraints->addStartConstraint(curagent.start_id, curagent.start_i, curagent.start_j, config->startsafeinterval, cells, curagent.size);
             }
         }
         for(unsigned int numOfCurAgent = 0; numOfCurAgent < task.getNumberOfAgents(); numOfCurAgent++)
@@ -348,8 +303,8 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
             lineofsight.setSize(curagent.size);
             if(config->startsafeinterval > 0)
             {
-                auto cells = lineofsight.getCells(curagent.start_i, curagent.start_j);
-                constraints->removeStartConstraint(cells, curagent.start_i, curagent.start_j);
+                auto cells = lineofsight.getCells(curagent.start_id, map);
+                constraints->removeStartConstraint(cells, curagent.start_id);
             }
             if(findPath(current_priorities[numOfCurAgent], map))
                 constraints->addConstraints(sresult.pathInfo[current_priorities[numOfCurAgent]].sections, curagent.size, curagent.mspeed, map);
@@ -418,24 +373,23 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
     QueryPerformanceFrequency(&freq);
 #endif
     close.clear();
-    for(unsigned int i = 0; i< open.size(); i++)
-        open[i].clear();
+    open.clear();
     ResultPathInfo resultPath;
-    openSize = 0;
-    constraints->resetSafeIntervals(map.width, map.height);
-    constraints->updateCellSafeIntervals({curagent.start_i, curagent.start_j});
+    constraints->resetSafeIntervals(map.size);
     Node curNode(curagent.start_i, curagent.start_j, 0, 0), goalNode(curagent.goal_i, curagent.goal_j, CN_INFINITY, CN_INFINITY);
+    goalNode.id = curagent.goal_id;
+    curNode.id = curagent.start_id;
     curNode.F = getHValue(curNode.i, curNode.j);
-    curNode.interval = constraints->getSafeInterval(curNode.i, curNode.j, 0);
+    curNode.interval = constraints->getSafeInterval(curNode.id, 0);
+    curNode.interval_id = curNode.interval.id;
     curNode.heading = curagent.start_heading;
-    open[curNode.i].push_back(curNode);
-    openSize++;
+    constraints->updateCellSafeIntervals(curNode, map);
+    open.insert(curNode);
     while(!stopCriterion(curNode, goalNode))
     {
         curNode = findMin(map.height);
-        open[curNode.i].pop_front();
-        openSize--;
-        close.insert({curNode.i * map.width + curNode.j, curNode});
+        //std::cout<<curNode.i<<" "<<curNode.j<<" "<<curNode.id<<" "<<curNode.interval_id<<"\n";
+        close.insert({curNode.id, curNode});
         for(Node s:findSuccessors(curNode, map))
             addOpen(s);
     }

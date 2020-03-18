@@ -4,6 +4,12 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/composite_key.hpp>
+using namespace boost::multi_index;
 
 struct conflict
 {
@@ -20,16 +26,18 @@ struct conflict
 struct Agent
 {
     std::string id;
-    int start_i;
-    int start_j;
+    double start_i;
+    double start_j;
+    int start_id;
     double start_heading;
-    int goal_i;
-    int goal_j;
+    double goal_i;
+    double goal_j;
+    int goal_id;
     double goal_heading;
     double size;
     double rspeed;
     double mspeed;
-    Agent(){ start_i = -1; start_j = -1; goal_i = -1; goal_j = -1;
+    Agent(){ start_i = -1; start_j = -1; start_id = -1; goal_i = -1; goal_j = -1; goal_id = -1;
              size = CN_DEFAULT_SIZE; mspeed = CN_DEFAULT_MSPEED; rspeed = CN_DEFAULT_RSPEED;
              start_heading = CN_DEFAULT_SHEADING; goal_heading = CN_DEFAULT_GHEADING; }
 };
@@ -57,17 +65,31 @@ struct SafeInterval
     SafeInterval(double begin_=0, double end_=CN_INFINITY, int id_=0):begin(begin_), end(end_), id(id_) {}
 };
 
+struct gNode
+{
+    int id;
+    double i;
+    double j;
+    std::vector<int> neighbors;
+    gNode(double i_ = -1, double j_ = -1):i(i_), j(j_) {}
+    ~gNode() { neighbors.clear(); }
+};
+
 struct Node
 {
-    Node(int _i=-1, int _j=-1, double _g=-1, double _F=-1):i(_i),j(_j),g(_g),F(_F),Parent(nullptr){}
+    Node(double _i=-1, double _j=-1, double _g=-1, double _F=-1):i(_i),j(_j),g(_g),F(_F),Parent(nullptr){}
     ~Node(){ Parent = nullptr; }
-    int     i, j;
-    double  size;
-    double  g;
-    double  F;
-    double  heading;
+    int     id, interval_id;
+    double  i, j, size, g, F, heading;
     Node*   Parent;
     SafeInterval interval;
+    bool operator< (const Node& other) const
+    {
+        if(fabs(this->F - other.F) < CN_EPSILON) //breaking-ties
+            return this->g > other.g; //g-max
+        else
+            return this->F < other.F;
+    }
 };
 
 struct obstacle
@@ -81,18 +103,18 @@ struct obstacle
 
 struct section
 {
-    section(int _i1=-1, int _j1=-1, int _i2=-1, int _j2=-1, double _g1=-1, double _g2=-1)
-        :i1(_i1), j1(_j1), i2(_i2), j2(_j2), g1(_g1), g2(_g2){}
-    section(const Node &a, const Node &b):i1(a.i), j1(a.j), i2(b.i), j2(b.j), g1(a.g), g2(b.g){}
-    int i1;
-    int j1;
-    int i2;
-    int j2;
+    section(int _id1=-1, int _id2=-1, double _g1=-1, double _g2=-1)
+        :id1(_id1), id2(_id2), g1(_g1), g2(_g2){}
+    section(const Node &a, const Node &b):id1(a.id), id2(b.id), g1(a.g), g2(b.g), i1(a.i), j1(a.j), i2(b.i), j2(b.j) {}
+    int id1;
+    int id2;
+    void set_ij(double _i1=-1, double _j1=-1, double _i2=-1, double _j2=-1) {i1=_i1; i2=_i2; j1=_j1; j2=_j2;}
+    double i1, i2, j1, j2;
     double size;
     double g1;
     double g2;//is needed for goal and wait actions
     double mspeed;
-    bool operator == (const section &comp) const {return (i1 == comp.i1 && j1 == comp.j1 && g1 == comp.g1);}
+    bool operator == (const section &comp) const {return (id1 == comp.id1 && id2 == comp.id2 && fabs(g1 - comp.g1) < CN_EPSILON);}
 
 };
 
@@ -140,4 +162,14 @@ public:
         return 7;//BETWEEN;
     }
 };
+
+
+typedef multi_index_container<
+        Node,
+        indexed_by<
+                    //ordered_non_unique<BOOST_MULTI_INDEX_MEMBER(Node, double, F)>,
+                    ordered_non_unique<identity<Node>>,
+                    hashed_non_unique<composite_key<Node, BOOST_MULTI_INDEX_MEMBER(Node, int, id),BOOST_MULTI_INDEX_MEMBER(Node, int, interval_id)>>
+        >
+> OPEN_container;
 #endif
