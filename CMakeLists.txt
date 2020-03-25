@@ -2,6 +2,9 @@ cmake_minimum_required( VERSION 2.8 )
 
 project( AA-SIPP-m )
 
+set(Boost_USE_STATIC_LIBS OFF) 
+find_package(Boost COMPONENTS multi_index)
+include_directories( ${Boost_INCLUDE_DIRS} )
 include_directories( "." )
 
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -Wall -Wextra" )
