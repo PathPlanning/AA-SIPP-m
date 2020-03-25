@@ -29,7 +29,7 @@ public:
 private:
 
     void addOpen(Node &newNode);
-    Node findMin(int size);
+    Node findMin();
     bool stopCriterion(const Node &curNode, Node &goalNode);
     bool testGoal(const Node &curNode, Node &goalNode);
     double getCost(double a_i, double a_j, double b_i, double b_j);

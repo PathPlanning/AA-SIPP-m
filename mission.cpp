@@ -22,12 +22,12 @@ void Mission::setFileNames(const char *taskName, const char *mapName, const char
 
 bool Mission::getMap()
 {
-    return m_map.get_grid(mapName);
+    return m_map.get_roadmap(mapName);
 }
 
 bool Mission::getTask()
 {
-    return (m_task.getTask(taskName) && m_task.validateTask(m_map));
+    return (m_task.getTask(taskName));// && m_task.validateTask(m_map));
 }
 
 bool Mission::getConfig()
@@ -65,7 +65,6 @@ void Mission::createLog()
 void Mission::startSearch()
 {
     //std::cout<<"SEARCH STARTED\n";
-    m_task.make_ids(m_map.width);
     sr = m_pSearch->startSearch(m_map, m_task, m_obstacles);
 }
 
@@ -84,7 +83,7 @@ void Mission::saveSearchResultsToLog()
     m_pLogger->writeToLogSummary(sr);
     if(sr.pathfound)
     {
-        m_pLogger->writeToLogMap(m_map, sr);
+        //m_pLogger->writeToLogMap(m_map, sr);
         m_pLogger->writeToLogPath(sr, m_task, m_config);
     }
     m_pLogger->saveLog();

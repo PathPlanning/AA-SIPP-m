@@ -74,7 +74,8 @@ bool Task::getTask(const char *fileName)
         agent.start_j = element->IntAttribute(CNS_TAG_ATTR_SX);
         agent.goal_i = element->IntAttribute(CNS_TAG_ATTR_GY);
         agent.goal_j = element->IntAttribute(CNS_TAG_ATTR_GX);
-
+        agent.start_id = element->IntAttribute("start_id");
+        agent.goal_id = element->IntAttribute("goal_id");
         if(element->Attribute(CNS_TAG_ATTR_ID))
             agent.id = element->Attribute(CNS_TAG_ATTR_ID);
         else

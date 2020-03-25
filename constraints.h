@@ -22,8 +22,8 @@ public:
     std::vector<SafeInterval> findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, const Map &map);
     SafeInterval getSafeInterval(int id, int n) {return safe_intervals[id][n];}
     void resetSafeIntervals(int size);
-    void addStartConstraint(int id, double i, double j, int size, std::vector<int> cells, double agentsize = 0.5);
-    void removeStartConstraint(std::vector<int> cells, int id);
+    void addStartConstraint(int id, double i, double j, int size, double agentsize = 0.5);
+    void removeStartConstraint(int id);
     void setSize(double size) {agentsize = size;}
     void setParams(double size, double mspeed, double rspeed, double tweight, double inflateintervals)
     { agentsize = size; this->mspeed = mspeed; this->rspeed = rspeed; this->tweight = tweight; this->inflateintervals = inflateintervals; }
@@ -32,7 +32,7 @@ public:
 
 private:
     bool hasCollision(const Node &curNode, double startTimeA, const section &constraint, bool &goal_collision);
-    std::vector<std::vector<section>> constraints;
+    std::vector<section> constraints;
     std::vector<std::vector<SafeInterval>> safe_intervals;
     double rspeed;
     double mspeed;

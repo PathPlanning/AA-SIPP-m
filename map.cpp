@@ -156,7 +156,7 @@ int Map::getValue(int i, int j) const
 std::vector<Node> Map::getValidMoves(Node curNode, int k, double size) const
 {
     std::vector<Node> v_moves = {};
-    if(!map_is_roadmap)
+    /*if(!map_is_roadmap)
     {
         LineOfSight los;
         los.setSize(size);
@@ -189,8 +189,8 @@ std::vector<Node> Map::getValidMoves(Node curNode, int k, double size) const
             if(valid[k])
                 v_moves.push_back(moves[k]);
     }
-    else
-        v_moves = valid_moves[curNode.id];
+    else*/
+    v_moves = valid_moves[curNode.id];
     return v_moves;
 }
 
@@ -205,7 +205,8 @@ bool Map::get_roadmap(const char *FileName)
     tinyxml2::XMLElement *root = 0, *element = 0, *data;
     std::string value;
     std::stringstream stream;
-    root = doc.FirstChildElement("graphml")->FirstChildElement("graph");
+    root = doc.FirstChildElement("root")->FirstChildElement("graphml")->FirstChildElement("graph");
+    nodes.push_back(gNode());
     for(element = root->FirstChildElement("node"); element; element = element->NextSiblingElement("node"))
     {
         data = element->FirstChildElement();
@@ -247,6 +248,7 @@ bool Map::get_roadmap(const char *FileName)
         stream << target;
         stream >> id2;
         nodes[id1].neighbors.push_back(id2);
+        nodes[id2].neighbors.push_back(id1);
     }
     for(gNode cur:nodes)
     {

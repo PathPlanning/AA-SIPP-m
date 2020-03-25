@@ -3,7 +3,7 @@
 Constraints::Constraints(int size)
 {
     safe_intervals.resize(size, {0,CN_INFINITY});
-    constraints.resize(size);
+    constraints.clear();
 }
 
 bool sort_function(std::pair<double, double> a, std::pair<double, double> b)
@@ -24,29 +24,26 @@ double Constraints::minDist(Point A, Point C, Point D)
 
 void Constraints::resetSafeIntervals(int size)
 {
-    safe_intervals.resize(size, {0, CN_INFINITY});
+    safe_intervals.resize(size);
+    for(auto &si:safe_intervals)
+    {
+        si.clear();
+        si.push_back(SafeInterval(0, CN_INFINITY, 0));
+    }
 }
 
 void Constraints::updateCellSafeIntervals(Node n, const Map& map)
 {
     if(safe_intervals[n.id].size() > 1)
         return;
-    LineOfSight los(agentsize);
-    std::vector<int> cells = los.getCells(n.id, map);
-    std::vector<section> secs;
-    for(int k = 0; k < cells.size(); k++)
-        for(int l = 0; l < constraints[cells[k]].size(); l++)
-            if(std::find(secs.begin(), secs.end(), constraints[cells[k]][l]) == secs.end())
-                secs.push_back(constraints[cells[k]][l]);
-
-    for(int k = 0; k < secs.size(); k++)
+    for(int k = 0; k < constraints.size(); k++)
     {
-        section sec = secs[k];
+        section sec = constraints[k];
         double radius = agentsize + sec.size;
-        int i0(secs[k].i1), j0(secs[k].j1), i1(secs[k].i2), j1(secs[k].j2), i2(n.i), j2(n.j);
+        double i0(constraints[k].i1), j0(constraints[k].j1), i1(constraints[k].i2), j1(constraints[k].j2), i2(n.i), j2(n.j);
         SafeInterval interval;
         double dist, mindist;
-        if(i0 == i1 && j0 == j1 && i0 == i2 && j0 == j2)
+        if(fabs(i0 - i1) < CN_EPSILON && fabs(j0 - j1) < CN_EPSILON && fabs(i0 - i2) < CN_EPSILON && fabs(j0 - j2) < CN_EPSILON)
             mindist = 0;
         else
             mindist = minDist(Point(i2,j2), Point(i0,j0), Point(i1,j1));
@@ -55,8 +52,8 @@ void Constraints::updateCellSafeIntervals(Node n, const Map& map)
         Point point(i2,j2), p0(i0,j0), p1(i1,j1);
         int cls = point.classify(p0, p1);
         dist = fabs((i0 - i1)*j2 + (j1 - j0)*i2 + (j0*i1 - i0*j1))/sqrt(pow(i0 - i1, 2) + pow(j0 - j1, 2));
-        int da = (i0 - i2)*(i0 - i2) + (j0 - j2)*(j0 - j2);
-        int db = (i1 - i2)*(i1 - i2) + (j1 - j2)*(j1 - j2);
+        double da = (i0 - i2)*(i0 - i2) + (j0 - j2)*(j0 - j2);
+        double db = (i1 - i2)*(i1 - i2) + (j1 - j2)*(j1 - j2);
         double ha = sqrt(da - dist*dist);
         double size = sqrt(radius*radius - dist*dist);
         if(cls == 3)
@@ -149,7 +146,7 @@ void Constraints::updateCellSafeIntervals(Node n, const Map& map)
 std::vector<SafeInterval> Constraints::getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w)
 {
     std::vector<SafeInterval> intervals(0);
-    auto range = close.equal_range(curNode.i*w + curNode.j);
+    auto range = close.equal_range(curNode.id);
     for(unsigned int i = 0; i < safe_intervals[curNode.id].size(); i++)
         if(safe_intervals[curNode.id][i].end >= curNode.g
                 && safe_intervals[curNode.id][i].begin <= (curNode.Parent->interval.end + curNode.g - curNode.Parent->g))
@@ -173,54 +170,41 @@ std::vector<SafeInterval> Constraints::getSafeIntervals(Node curNode)
     return safe_intervals[curNode.id];
 }
 
-void Constraints::addStartConstraint(int id, double i, double j, int size, std::vector<int> cells, double agentsize)
+void Constraints::addStartConstraint(int id, double i, double j, int size, double agentsize)
 {
     section sec(id, id, 0, size);
     sec.set_ij(i,j,i,j);
     sec.size = agentsize;
-    for(auto cell: cells)
-        constraints[cell].insert(constraints[cell].begin(),sec);
+    constraints.insert(constraints.begin(),sec);
     return;
 }
 
-void Constraints::removeStartConstraint(std::vector<int> cells, int id)
+void Constraints::removeStartConstraint(int id)
 {
-    for(auto cell: cells)
-        for(size_t k = 0; k < constraints[cell].size(); k++)
-            if(constraints[cell][k].id1 == id && constraints[cell][k].g1 < CN_EPSILON)
-            {
-                constraints[cell].erase(constraints[cell].begin() + k);
-                k--;
-            }
+    for(size_t k = 0; k < constraints.size(); k++)
+        if(constraints[k].id1 == id && constraints[k].g1 < CN_EPSILON)
+        {
+            constraints.erase(constraints.begin() + k);
+            k--;
+        }
     return;
 }
 
 void Constraints::addConstraints(const std::vector<Node> &sections, double size, double mspeed, const Map &map)
 {
-    std::vector<int> cells;
-    LineOfSight los(size);
     section sec(sections.back(), sections.back());
     sec.g2 = CN_INFINITY;
     sec.size = size;
     sec.mspeed = mspeed;
-    cells = los.getCellsCrossedByLine(sec.id1, sec.id2, map);
-    for(auto cell: cells)
-        constraints[cell].push_back(sec);
+    constraints.push_back(sec);
     if(sec.g1 == 0)
-        for(auto cell: cells)
-            safe_intervals[cell].clear();
+        safe_intervals[sec.id1].clear();
     for(unsigned int a = 1; a < sections.size(); a++)
     {
-        cells = los.getCellsCrossedByLine(sections[a-1].id, sections[a].id, map);
         sec = section(sections[a-1], sections[a]);
         sec.size = size;
         sec.mspeed = mspeed;
-        for(unsigned int i = 0; i < cells.size(); i++)
-            constraints[cells[i]].push_back(sec);
-        /*if(a+1 == sections.size())
-            updateSafeIntervals(cells,sec,true);
-        else
-            updateSafeIntervals(cells,sec,false);*/
+        constraints.push_back(sec);
     }
 }
 
@@ -230,20 +214,18 @@ std::vector<SafeInterval> Constraints::findIntervals(Node curNode, std::vector<d
     if(curNodeIntervals.empty())
         return curNodeIntervals;
     EAT.clear();
-    LineOfSight los(agentsize);
-    std::vector<int> cells = los.getCellsCrossedByLine(curNode.id, curNode.Parent->id, map);
     std::vector<section> sections(0);
     section sec;
-    for(unsigned int i = 0; i < cells.size(); i++)
-        for(unsigned int j = 0; j < constraints[cells[i]].size(); j++)
-        {
-            sec = constraints[cells[i]][j];
-            if(sec.g2 < curNode.Parent->g || sec.g1 > (curNode.Parent->interval.end + curNode.g - curNode.Parent->g))
-                continue;
-            if(std::find(sections.begin(), sections.end(), sec) == sections.end())
-                sections.push_back(sec);
-        }
-    auto range = close.equal_range(curNode.i*map.width + curNode.j);
+    for(unsigned int j = 0; j < constraints.size(); j++)
+    {
+        sec = constraints[j];
+        //if(sec.g2 < curNode.Parent->g || sec.g1 > (curNode.Parent->interval.end + curNode.g - curNode.Parent->g))
+        //    continue;
+        //if(sqrt(pow(sec.i1 - curNode.Parent->i,2) + pow(sec.j1 - curNode.Parent->j,2)) > (curNode.g - curNode.Parent->g + sec.g2 - sec.g1))
+        //    continue;
+        sections.push_back(sec);
+    }
+    auto range = close.equal_range(curNode.id);
 
     for(unsigned int i=0; i<curNodeIntervals.size(); i++)
     {
@@ -279,7 +261,7 @@ std::vector<SafeInterval> Constraints::findIntervals(Node curNode, std::vector<d
         {
             bool has = false;
             for(auto rit = range.first; rit != range.second; rit++)
-                if(rit->second.interval.begin == curNodeIntervals[i].begin)
+                if(rit->second.interval.id == curNodeIntervals[i].id)
                 if((rit->second.g + tweight*fabs(curNode.heading - rit->second.heading)/(180*rspeed) - cur_interval.begin) < CN_EPSILON)//take into account turning cost
                 {
                     has = true;

@@ -41,7 +41,7 @@ bool Config::getConfig(const char* fileName)
 
     XMLElement *element;
 
-    element = algorithm->FirstChildElement(CNS_TAG_ALLOW_AA);
+    /*element = algorithm->FirstChildElement(CNS_TAG_ALLOW_AA);
     if (!element)
     {
         std::cout << "Error! No '"<<CNS_TAG_ALLOW_AA<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set '"<<CNS_DEFAULT_ALLOWANYANGLE<<"'."<<std::endl;
@@ -59,9 +59,9 @@ bool Config::getConfig(const char* fileName)
             std::cout << "Warning! Wrong '"<<CNS_TAG_ALLOW_AA<<"' value. It's set to '"<<CNS_DEFAULT_ALLOWANYANGLE<<"'."<<std::endl;
             allowanyangle = CN_DEFAULT_ALLOWANYANGLE;
         }
-    }
+    }*/
 
-    element = algorithm->FirstChildElement(CNS_TAG_STARTSAFEINTERVAL);
+    /*element = algorithm->FirstChildElement(CNS_TAG_STARTSAFEINTERVAL);
     if (!element)
     {
         std::cout << "Warning! No '"<<CNS_TAG_STARTSAFEINTERVAL<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CN_DEFAULT_STARTSAFEINTERVAL<<"'."<<std::endl;
@@ -83,7 +83,7 @@ bool Config::getConfig(const char* fileName)
             else if(startsafeinterval < 0)
                 startsafeinterval = 0;
         }
-    }
+    }*/
 
     element = algorithm->FirstChildElement(CNS_TAG_PRIORITIZATION);
     if (!element)
@@ -187,7 +187,7 @@ bool Config::getConfig(const char* fileName)
         }
     }
 
-    element = algorithm->FirstChildElement(CNS_TAG_CONNECTEDNESS);
+    /*element = algorithm->FirstChildElement(CNS_TAG_CONNECTEDNESS);
     if (!element)
     {
         std::cout << "Warning! No '"<<CNS_TAG_CONNECTEDNESS<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CN_DEFAULT_CONNECTEDNESS<<"'."<<std::endl;
@@ -205,9 +205,9 @@ bool Config::getConfig(const char* fileName)
             std::cout << "Warning! Wrong value of '"<<CNS_TAG_CONNECTEDNESS<<"' element. Possible variants are 2, 3, 4 or 5 . Its value is set to '"<<CN_DEFAULT_CONNECTEDNESS<<"'."<<std::endl;
             connectedness = CN_DEFAULT_CONNECTEDNESS;
         }
-    }
+    }*/
 
-    element = algorithm->FirstChildElement(CNS_TAG_INFLATEINTERVALS);
+    /*element = algorithm->FirstChildElement(CNS_TAG_INFLATEINTERVALS);
     if (!element)
     {
         std::cout << "Warning! No '"<<CNS_TAG_INFLATEINTERVALS<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CN_DEFAULT_INFLATEINTERVALS<<"'."<<std::endl;
@@ -225,7 +225,7 @@ bool Config::getConfig(const char* fileName)
             std::cout << "Warning! Wrong value of '"<<CNS_TAG_INFLATEINTERVALS<<"' element. It should belong to the interval [0,100]. Its value is set to '"<<CN_DEFAULT_INFLATEINTERVALS<<"'."<<std::endl;
             inflatecollisionintervals = CN_DEFAULT_INFLATEINTERVALS;
         }
-    }
+    }*/
 
     XMLElement *options = root->FirstChildElement(CNS_TAG_OPTIONS);
     if(!options)

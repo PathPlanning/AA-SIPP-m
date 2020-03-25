@@ -43,6 +43,16 @@ struct SearchResult
         agents = 0;
     }
 
+    void reset(int size)
+    {
+        pathInfo.clear();
+        pathInfo.resize(size);
+        agents = size;
+        agentsSolved = 0;
+        flowtime = 0;
+        makespan = 0;
+    }
+
     ~SearchResult()
     {
         pathInfo.clear();
