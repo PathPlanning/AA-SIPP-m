@@ -131,4 +131,4 @@ In case of using separate input files the output file by default will be named a
 
 `Instances` folder contains an example of input and output files. It also contains the collections of instances that were used in corresponding conference papers for experimental evaluation.
 
-[![Build Status](https://travis-ci.org/PathPlanning/AA-SIPP-m.svg?branch=master)](https://travis-ci.org/PathPlanning/AA-SIPP-m)
+[![Build Status](https://travis-ci.org/PathPlanning/AA-SIPP-m.svg?branch=roadmaps)](https://travis-ci.org/PathPlanning/AA-SIPP-m/tree/roadmaps)
