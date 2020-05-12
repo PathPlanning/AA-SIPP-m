@@ -13,7 +13,6 @@ set( SOURCE_FILES
      xmlLogger.cpp 
      mission.cpp 
      map.cpp 
-	 task.cpp
      config.cpp 
 	 dynamicobstacles.cpp
      aa_sipp.cpp
@@ -27,7 +26,6 @@ set( HEADER_FILES
      xmlLogger.h 
      mission.h 
      map.h 
-	 task.h
 	 dynamicobstacles.h
      config.h 
      aa_sipp.h 
