@@ -18,7 +18,7 @@ bool AA_SIPP::stopCriterion(const Node &curNode, Node &goalNode)
         std::cout << "OPEN list is empty! ";
         return true;
     }
-    if(curNode.i == curagent.goal_i && curNode.j == curagent.goal_j && curNode.interval.end == CN_INFINITY)
+    if(!curagent.find_task && curNode.i == curagent.goal_i && curNode.j == curagent.goal_j && curNode.interval.end == CN_INFINITY)
     {
         if(!config->planforturns || curagent.goal_heading == CN_HEADING_WHATEVER)
             goalNode = curNode;
@@ -28,6 +28,11 @@ bool AA_SIPP::stopCriterion(const Node &curNode, Node &goalNode)
             goalNode.g = curNode.g + getRCost(curNode.heading, curagent.goal_heading);
             goalNode.F = curNode.F + getRCost(curNode.heading, curagent.goal_heading);
         }
+    }
+    if(curagent.find_task && curNode.i == curagent.task_i && curNode.j == curagent.task_j)
+    {
+        goalNode = curNode;
+        //goalNode.g = curNode.g + getRCost(curNode.heading, curagent.goal_heading);
     }
     if(goalNode.F - CN_EPSILON < curNode.F)
         return true;
@@ -41,12 +46,24 @@ double AA_SIPP::getCost(int a_i, int a_j, int b_i, int b_j)
 
 double AA_SIPP::getHValue(int i, int j)
 {
-    if(config->allowanyangle || config->connectedness > 3) //euclid
-        return (sqrt(pow(i - curagent.goal_i, 2) + pow(j - curagent.goal_j, 2)))/curagent.mspeed;
-    else if(config->connectedness == 2)//manhattan
-        return (abs(i - curagent.goal_i) + abs(j - curagent.goal_j))/curagent.mspeed;
-    else //k=3, use diagonal
-        return (abs(abs(i - curagent.goal_i) - abs(j - curagent.goal_j)) + sqrt(2.0)*std::min(abs(i - curagent.goal_i), abs(j - curagent.goal_j)))/curagent.mspeed;
+    if(!curagent.find_task)
+    {
+        if(config->allowanyangle || config->connectedness > 3) //euclid
+            return (sqrt(pow(i - curagent.goal_i, 2) + pow(j - curagent.goal_j, 2)))/curagent.mspeed;
+        else if(config->connectedness == 2)//manhattan
+            return (abs(i - curagent.goal_i) + abs(j - curagent.goal_j))/curagent.mspeed;
+        else //k=3, use diagonal
+            return (abs(abs(i - curagent.goal_i) - abs(j - curagent.goal_j)) + sqrt(2.0)*std::min(abs(i - curagent.goal_i), abs(j - curagent.goal_j)))/curagent.mspeed;
+    }
+    else
+    {
+        if(config->allowanyangle || config->connectedness > 3) //euclid
+            return (sqrt(pow(i - curagent.task_i, 2) + pow(j - curagent.task_j, 2)))/curagent.mspeed;
+        else if(config->connectedness == 2)//manhattan
+            return (abs(i - curagent.task_i) + abs(j - curagent.task_j))/curagent.mspeed;
+        else //k=3, use diagonal
+            return (abs(abs(i - curagent.task_i) - abs(j - curagent.task_j)) + sqrt(2.0)*std::min(abs(i - curagent.task_i), abs(j - curagent.task_j)))/curagent.mspeed;
+    }
 
 }
 
@@ -75,6 +92,18 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
     double h_value;
     auto parent = &(close.find(curNode.i*map.width + curNode.j)->second);
     std::vector<Node> moves = map.getValidMoves(curNode.i, curNode.j, config->connectedness, curagent.size);
+    /*if(curagent.find_task && ((abs(curNode.i - curagent.task_i)==1 && curNode.j==curagent.task_j) || (abs(curNode.j - curagent.task_j)==1 && curNode.i==curagent.task_i)))
+    {
+        newNode.i = curagent.task_i;
+        newNode.j = curagent.task_j;
+        newNode.Parent = parent;
+        newNode.heading = calcHeading(curNode, newNode);
+        newNode.g = curNode.g + 1.0/curagent.mspeed + getRCost(angleNode.heading, newNode.heading) + config->additionalwait;
+        newNode.F = newNode.g + getHValue(newNode.i, newNode.j);
+        newNode.interval = SafeInterval();
+        if(curNode.g + getRCost(angleNode.heading, newNode.heading) + config->additionalwait <= curNode.Parent->interval.end)
+            successors.push_back(newNode);
+    }*/
     for(auto m:moves)
         if(lineofsight.checkTraversability(curNode.i + m.i,curNode.j + m.j,map))
         {
@@ -86,8 +115,19 @@ std::list<Node> AA_SIPP::findSuccessors(const Node curNode, const Map &map)
             angleNode.g += getRCost(angleNode.heading, newNode.heading) + config->additionalwait;//to compensate the amount of time required for rotation
             newNode.g = angleNode.g + m.g/curagent.mspeed;
             newNode.Parent = &angleNode;
-            h_value = getHValue(newNode.i, newNode.j);
-
+            if(curagent.find_task)
+            {
+                //if(config->initialprioritization == CN_IP_SHORTESTF)
+                //    h_value = h.getValue(curagent.task_id, newNode.i, newNode.j);//getHValue(newNode.i, newNode.j);
+                //else
+                    h_value = getHValue(newNode.i, newNode.j);
+                /*if(h_value == getHValue(newNode.i, newNode.j))
+                    h_equal++;
+                else
+                    h_dif++;*/
+            }
+            else
+                h_value = getHValue(newNode.i, newNode.j);
             if(angleNode.g <= angleNode.interval.end)
             {
                 intervals = constraints->findIntervals(newNode, EAT, close, map);
@@ -206,40 +246,77 @@ void AA_SIPP::addOpen(Node &newNode)
     return;
 }
 
-void AA_SIPP::setPriorities(const Task& task)
+void AA_SIPP::setPriorities(const Instance& instance, const Map& map)
 {
     current_priorities.clear();
-    current_priorities.resize(task.getNumberOfAgents(), -1);
+    current_priorities.resize(instance.getNumberOfTasks(), -1);
     if(config->initialprioritization == CN_IP_FIFO)
-        for(int i = 0; i < task.getNumberOfAgents(); i++)
+        for(int i = 0; i < instance.getNumberOfTasks(); i++)
             current_priorities[i] = i;
-    else if(config->initialprioritization != CN_IP_RANDOM)
+    else if(config->initialprioritization == CN_IP_DISTANCE)
     {
-        std::vector<double> dists(task.getNumberOfAgents(), -1);
-        for(int i = 0; i < task.getNumberOfAgents(); i++)
-            dists[i] = sqrt(pow(task.getAgent(i).start_i - task.getAgent(i).goal_i, 2) + pow(task.getAgent(i).start_j - task.getAgent(i).goal_j, 2));
-        int k = task.getNumberOfAgents() - 1;
-        while(k >= 0)
+        std::vector<bool> busy_tasks(instance.getNumberOfTasks(), false);
+        for(int i = 0; i < instance.getNumberOfAgents(); i++)
         {
-            double mindist = CN_INFINITY;
-            int min_i = -1;
-            for(unsigned int i = 0; i < dists.size(); i++)
-                if(mindist > dists[i])
+            std::vector<double> dists(instance.getNumberOfTasks(), -1);
+            Agent a = instance.getAgent(i);
+            for(int j = 0; j < instance.getNumberOfTasks(); j++)
+                dists[j] = sqrt(pow(a.start_i - instance.getTask(j).i, 2) + pow(a.start_j - instance.getTask(j).goal_j, 2));
+            double min_dist = std::numeric_limits<double>::max();
+            int task_id = -1;
+            for(int j = 0; j < instance.getNumberOfTasks(); j++)
+            {
+                if(min_dist > dists[j] && !busy_tasks[j])
                 {
-                    min_i = i;
-                    mindist = dists[i];
+                    min_dist = dists[j];
+                    task_id = j;
                 }
-            if(config->initialprioritization == CN_IP_LONGESTF)
-                current_priorities[k] = min_i;
-            else
-                current_priorities[task.getNumberOfAgents() - k - 1] = min_i;
-            dists[min_i] = CN_INFINITY;
-            k--;
+            }
+            if(task_id>=0)
+            {
+                current_priorities[i] = task_id;
+                busy_tasks[task_id] = true;
+            }
         }
+
+    }
+    else if(config->initialprioritization == CN_IP_COST)
+    {
+        std::vector<bool> busy_tasks(instance.getNumberOfTasks(), false);
+        h = Heuristic(instance.getNumberOfAgents(), map.height, map.width);
+        std::vector<std::pair<int, int>> agents;
+        for(int j=0; j<instance.getNumberOfAgents(); j++)
+            agents.push_back(std::make_pair(instance.getAgent(j).start_i, instance.getAgent(j).start_j));
+        for(int j=0; j<instance.getNumberOfTasks(); j++)
+        {
+            h.count(map, instance.getTask(j), j, config->connectedness, agents, config->allowanyangle);
+        }
+        for(int i = 0; i < instance.getNumberOfAgents(); i++)
+        {
+            std::vector<double> dists(instance.getNumberOfTasks(), -1);
+            for(int j=0; j<instance.getNumberOfTasks(); j++)
+                dists[j] = h.getValue(j, agents[i].first, agents[i].second);
+            double min_dist = std::numeric_limits<double>::max();
+            int task_id = -1;
+            for(int j = 0; j < instance.getNumberOfTasks(); j++)
+            {
+                if(min_dist > dists[j] && !busy_tasks[j])
+                {
+                    min_dist = dists[j];
+                    task_id = j;
+                }
+            }
+            if(task_id >= 0)
+            {
+                current_priorities[i] = task_id;
+                busy_tasks[task_id] = true;
+            }
+        }
+
     }
     else //random
     {
-        for(int i = 0; i < task.getNumberOfAgents(); i++)
+        for(int i = 0; i < instance.getNumberOfTasks(); i++)
             current_priorities[i] = i;
         std::mt19937 g(rand());
         std::shuffle(current_priorities.begin(), current_priorities.end(), g);
@@ -300,9 +377,22 @@ bool AA_SIPP::changePriorities(int bad_i)
     }
 }
 
-SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstacles)
+SearchResult AA_SIPP::startSearch(Map &map, Instance &instance, DynamicObstacles &obstacles)
 {
-
+    bool solution_found(false);
+    int tries(0), bad_i(0);
+    double timespent(0);
+    priorities.clear();
+    open.resize(map.height);
+#ifdef __linux__
+    timeval begin2;
+    gettimeofday(&begin2, NULL);
+#else
+    LARGE_INTEGER begin2, freq2;
+    QueryPerformanceCounter(&begin2);
+    QueryPerformanceFrequency(&freq2);
+#endif
+    setPriorities(instance, map);
 #ifdef __linux__
     timeval begin, end;
     gettimeofday(&begin, NULL);
@@ -311,28 +401,23 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
     QueryPerformanceCounter(&begin);
     QueryPerformanceFrequency(&freq);
 #endif
-    bool solution_found(false);
-    int tries(0), bad_i(0);
-    double timespent(0);
-    priorities.clear();
-    open.resize(map.height);
-    setPriorities(task);
     do
     {
+        h_equal=h_dif=0;
         constraints = new Constraints(map.width, map.height);
         for(int k = 0; k < obstacles.getNumberOfObstacles(); k++)
         {
             constraints->addConstraints(obstacles.getSections(k), obstacles.getSize(k), obstacles.getMSpeed(k), map);
         }
         sresult.pathInfo.clear();
-        sresult.pathInfo.resize(task.getNumberOfAgents());
-        sresult.agents = task.getNumberOfAgents();
+        sresult.pathInfo.resize(instance.getNumberOfAgents());
+        sresult.agents = instance.getNumberOfAgents();
         sresult.agentsSolved = 0;
         sresult.flowtime = 0;
         sresult.makespan = 0;
-        for(int k = 0; k < task.getNumberOfAgents(); k++)
+        for(int k = 0; k < instance.getNumberOfAgents(); k++)
         {
-            curagent = task.getAgent(k);
+            curagent = instance.getAgent(k);
             constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->planforturns, config->inflatecollisionintervals);
             lineofsight.setSize(curagent.size);
             if(config->startsafeinterval > 0)
@@ -341,9 +426,21 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
                 constraints->addStartConstraint(curagent.start_i, curagent.start_j, config->startsafeinterval, cells, curagent.size);
             }
         }
-        for(unsigned int numOfCurAgent = 0; numOfCurAgent < task.getNumberOfAgents(); numOfCurAgent++)
+
+        for(unsigned int numOfCurAgent = 0; numOfCurAgent < instance.getNumberOfAgents(); numOfCurAgent++)
         {
-            curagent = task.getAgent(current_priorities[numOfCurAgent]);
+            for(int k = 0; k < instance.getNumberOfTasks(); k++)
+                map.remove_task(instance.getTask(k).goal_i,instance.getTask(k).goal_j);
+            curagent = instance.getAgent(numOfCurAgent);
+            Task task = instance.getTask(current_priorities[numOfCurAgent]);
+            map.add_task(curagent.start_i, curagent.start_j);
+            map.add_task(task.i, task.j);
+            map.add_task(task.goal_i, task.goal_j);
+            curagent.task_i = task.i;
+            curagent.task_j = task.j;
+            curagent.goal_i = task.goal_i;
+            curagent.goal_j = task.goal_j;
+            curagent.task_id = current_priorities[numOfCurAgent];
             constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->planforturns, config->inflatecollisionintervals);
             lineofsight.setSize(curagent.size);
             if(config->startsafeinterval > 0)
@@ -351,17 +448,38 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
                 auto cells = lineofsight.getCells(curagent.start_i, curagent.start_j);
                 constraints->removeStartConstraint(cells, curagent.start_i, curagent.start_j);
             }
-            if(findPath(current_priorities[numOfCurAgent], map))
-                constraints->addConstraints(sresult.pathInfo[current_priorities[numOfCurAgent]].sections, curagent.size, curagent.mspeed, map);
+            curagent.find_task = true;
+            std::vector<Node> path;
+            if(findPath(numOfCurAgent, map))
+            {
+                curagent.task_g = sresult.pathInfo[numOfCurAgent].sections.back().g;
+                curagent.task_heading = sresult.pathInfo[numOfCurAgent].sections.back().heading;
+                path = sresult.pathInfo[numOfCurAgent].sections;
+            }
             else
             {
-                bad_i = current_priorities[numOfCurAgent];
+                bad_i = numOfCurAgent;
+                map.remove_task(task.i, task.j);
                 break;
             }
-            if(numOfCurAgent + 1 == task.getNumberOfAgents())
+            curagent.find_task = false;
+            if(findPath(numOfCurAgent, map))
+            {
+                for(auto s:sresult.pathInfo[numOfCurAgent].sections)
+                    path.push_back(s);
+                sresult.pathInfo[numOfCurAgent].sections = path;
+                constraints->addConstraints(sresult.pathInfo[numOfCurAgent].sections, curagent.size, curagent.mspeed, map);
+            }
+            else
+            {
+                bad_i = numOfCurAgent;
+                map.remove_task(task.i, task.j);
+                break;
+            }
+            if(numOfCurAgent + 1 == instance.getNumberOfAgents())
                 solution_found = true;
+            map.remove_task(task.i, task.j);
         }
-
         delete constraints;
         tries++;
 #ifdef __linux__
@@ -382,11 +500,12 @@ SearchResult AA_SIPP::startSearch(Map &map, Task &task, DynamicObstacles &obstac
 #else
     QueryPerformanceCounter(&end);
     sresult.runtime = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+    sresult.inittime = static_cast<double long>(end.QuadPart-begin2.QuadPart) / freq2.QuadPart - sresult.runtime;
 #endif
     sresult.tries = tries;
     if(sresult.pathfound)
     {
-        std::vector<conflict> confs = CheckConflicts(task);
+        std::vector<conflict> confs = CheckConflicts(instance);
         for(unsigned int i = 0; i < confs.size(); i++)
             std::cout<<confs[i].i<<" "<<confs[i].j<<" "<<confs[i].g<<" "<<confs[i].agent1<<" "<<confs[i].agent2<<"\n";
     }
@@ -428,6 +547,15 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
     curNode.F = getHValue(curNode.i, curNode.j);
     curNode.interval = constraints->getSafeInterval(curNode.i, curNode.j, 0);
     curNode.heading = curagent.start_heading;
+    if(!curagent.find_task)
+    {
+        curNode.i = curagent.task_i;
+        curNode.j = curagent.task_j;
+        curNode.heading = curagent.task_heading;
+        curNode.g = curagent.task_g + 1.0;
+        curNode.interval = SafeInterval();
+        curNode.F = curNode.g + getHValue(curNode.i, curNode.j);
+    }
     open[curNode.i].push_back(curNode);
     openSize++;
     while(!stopCriterion(curNode, goalNode))
@@ -458,7 +586,8 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
         sresult.flowtime += goalNode.g;
         sresult.makespan = std::max(sresult.makespan, goalNode.g);
         sresult.pathInfo[numOfCurAgent] = resultPath;
-        sresult.agentsSolved++;
+        if(!curagent.find_task)
+            sresult.agentsSolved++;
     }
     else
     {
@@ -480,7 +609,7 @@ bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
     return resultPath.pathfound;
 }
 
-std::vector<conflict> AA_SIPP::CheckConflicts(const Task &task)
+std::vector<conflict> AA_SIPP::CheckConflicts(const Instance &instance)
 {
     std::vector<conflict> conflicts(0);
     conflict conf;
@@ -557,7 +686,7 @@ std::vector<conflict> AA_SIPP::CheckConflicts(const Task &task)
             {
                 if(!sresult.pathInfo[j].pathfound || !sresult.pathInfo[i].pathfound)
                     continue;
-                sumsize = task.getAgent(i).size + task.getAgent(j).size;
+                sumsize = instance.getAgent(i).size + instance.getAgent(j).size;
                 conflict a, b;
                 if(positions[i].size() > k)
                     a = positions[i][k];

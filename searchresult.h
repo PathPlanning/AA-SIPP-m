@@ -29,6 +29,7 @@ struct SearchResult
     double makespan;
     double flowtime;
     double runtime;
+    double inittime;
     unsigned int agents;
     int agentsSolved;
     int tries;

@@ -17,7 +17,8 @@ set( SOURCE_FILES
      config.cpp 
 	 dynamicobstacles.cpp
      aa_sipp.cpp
-     constraints.cpp )
+     constraints.cpp 
+	 instance.cpp)
 
 set( HEADER_FILES 
      tinyxml2.h
@@ -31,6 +32,8 @@ set( HEADER_FILES
      config.h 
      aa_sipp.h 
      structs.h
-     constraints.h )
+     constraints.h 
+	 instance.h
+	 heuristic.h)
 
 add_executable( AA-SIPP-m ${SOURCE_FILES} ${HEADER_FILES} )

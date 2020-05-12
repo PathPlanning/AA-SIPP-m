@@ -25,9 +25,9 @@ bool Mission::getMap()
     return m_map.getMap(mapName);
 }
 
-bool Mission::getTask()
+bool Mission::getTask(int a)
 {
-    return (m_task.getTask(taskName) && m_task.validateTask(m_map));
+    return (m_task.getInstance(taskName,a));// && m_task.validateTask(m_map));
 }
 
 bool Mission::getConfig()
@@ -70,7 +70,6 @@ void Mission::startSearch()
 
 void Mission::printSearchResultsToConsole()
 {
-    //std::cout<<bool(sr.agentsSolved/sr.agents)<<" "<<sr.time<<" "<<sr.makespan<<" "<<sr.pathlength<<" "<<sr.flowlength<<"\n";
     std::cout<<"Results:\nTask solved: "<<bool(sr.agentsSolved/sr.agents)<<"\nTries: "<<sr.tries<<"\nRuntime: "<<sr.runtime<<"\nAgents solved: "<<sr.agentsSolved<<" ("<<(float)sr.agentsSolved*100/sr.agents<<"%)\nFlowtime: "<<sr.flowtime<<"\nMakespan: "<<sr.makespan<<"\n";
 }
 
@@ -83,7 +82,7 @@ void Mission::saveSearchResultsToLog()
     m_pLogger->writeToLogSummary(sr);
     if(sr.pathfound)
     {
-        m_pLogger->writeToLogMap(m_map, sr);
+        //m_pLogger->writeToLogMap(m_map, sr);
         m_pLogger->writeToLogPath(sr, m_task, m_config);
     }
     m_pLogger->saveLog();

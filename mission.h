@@ -6,7 +6,7 @@
 #include "xmlLogger.h"
 #include "searchresult.h"
 #include "aa_sipp.h"
-#include "task.h"
+#include "instance.h"
 #include "dynamicobstacles.h"
 
 class Mission
@@ -16,7 +16,7 @@ public:
     ~Mission();
 
     bool getMap();
-    bool getTask();
+    bool getTask(int a);
     bool getConfig();
     bool getObstacles();
     void createLog();
@@ -28,7 +28,7 @@ public:
 
 private:
     Map              m_map;
-    Task             m_task;
+    Instance         m_task;
     Config           m_config;
     DynamicObstacles m_obstacles;
     AA_SIPP*         m_pSearch;

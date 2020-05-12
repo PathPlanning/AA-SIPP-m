@@ -106,7 +106,7 @@ void XmlLogger::writeToLogSummary(const SearchResult &sresult)
     element->SetAttribute(CNS_TAG_ATTR_MAKESPAN, float(sresult.makespan));
 }
 
-void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task, const Config &config)
+void XmlLogger::writeToLogPath(const SearchResult &sresult, const Instance &task, const Config &config)
 {
     if (loglevel == CN_LOGLVL_NO)
         return;
@@ -122,8 +122,8 @@ void XmlLogger::writeToLogPath(const SearchResult &sresult, const Task &task, co
         agent_elem->SetAttribute(CNS_TAG_ATTR_SY, agent.start_i);
         if(config.planforturns)
             agent_elem->SetAttribute(CNS_TAG_ATTR_SH, float(agent.start_heading));
-        agent_elem->SetAttribute(CNS_TAG_ATTR_GX, agent.goal_j);
-        agent_elem->SetAttribute(CNS_TAG_ATTR_GY, agent.goal_i);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_GX, sresult.pathInfo[i].sections.back().j);
+        agent_elem->SetAttribute(CNS_TAG_ATTR_GY, sresult.pathInfo[i].sections.back().i);
         if(config.planforturns)
         {
             if(agent.goal_heading < 0)

@@ -16,12 +16,22 @@ struct conflict
     double g;
 };
 
+struct Task
+{
+    int i;
+    int j;
+    int goal_i;
+    int goal_j;
+    Task(int _i=-1, int _j=-1, int _goal_i=-1, int _goal_j=-1):i(_i), j(_j), goal_i(_goal_i), goal_j(_goal_j){}
+};
 
 struct Agent
 {
     std::string id;
     int start_i;
     int start_j;
+    int task_i;
+    int task_j;
     double start_heading;
     int goal_i;
     int goal_j;
@@ -29,6 +39,10 @@ struct Agent
     double size;
     double rspeed;
     double mspeed;
+    bool find_task;
+    int task_id;
+    double task_g;
+    double task_heading;
     Agent(){ start_i = -1; start_j = -1; goal_i = -1; goal_j = -1;
              size = CN_DEFAULT_SIZE; mspeed = CN_DEFAULT_MSPEED; rspeed = CN_DEFAULT_RSPEED;
              start_heading = CN_DEFAULT_SHEADING; goal_heading = CN_DEFAULT_GHEADING; }
@@ -68,6 +82,16 @@ struct Node
     double  heading;
     Node*   Parent;
     SafeInterval interval;
+};
+
+struct hNode
+{
+    hNode(int _i=-1, int _j=-1, double _g=-1, double _F=-1):i(_i),j(_j),g(_g) {p_i=-1; p_j=-1;}
+    ~hNode(){ }
+    int     i, j;
+    double  g;
+    int p_i;
+    int p_j;
 };
 
 struct obstacle

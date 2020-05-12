@@ -43,13 +43,13 @@
 #define CNS_LOGLVL_FULL "full"
 
 //initial prioritization
-#define CN_IP_SHORTESTF  1
-#define CN_IP_LONGESTF   2
+#define CN_IP_COST       1
+#define CN_IP_DISTANCE   2
 #define CN_IP_RANDOM     3
 #define CN_IP_FIFO       4
 
-#define CNS_IP_SHORTESTF "shortest_first"
-#define CNS_IP_LONGESTF  "longest_first"
+#define CNS_IP_COST      "cost"
+#define CNS_IP_DISTANCE  "distance"
 #define CNS_IP_RANDOM    "random"
 #define CNS_IP_FIFO      "fifo"
 

@@ -5,13 +5,15 @@
 #include "lineofsight.h"
 #include "config.h"
 #include "searchresult.h"
-#include "task.h"
+#include "instance.h"
 #include "dynamicobstacles.h"
 #include <math.h>
 #include <memory>
 #include <algorithm>
 #include <unordered_map>
 #include <random>
+#include "heuristic.h"
+#include <chrono>
 #ifdef __linux__
     #include <sys/time.h>
 #else
@@ -24,7 +26,7 @@ public:
 
     AA_SIPP(const Config &config);
     ~AA_SIPP();
-    SearchResult startSearch(Map &map, Task &task, DynamicObstacles &obstacles);
+    SearchResult startSearch(Map &map, Instance &instance, DynamicObstacles &obstacles);
     SearchResult sresult;
 private:
 
@@ -42,8 +44,8 @@ private:
     void addConstraints(){}
     Node resetParent(Node current, Node Parent, const Map &map);
     bool findPath(unsigned int numOfCurAgent, const Map &map);
-    std::vector<conflict> CheckConflicts(const Task &task);//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
-    void setPriorities(const Task &task);
+    std::vector<conflict> CheckConflicts(const Instance &instance);//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
+    void setPriorities(const Instance &instance, const Map &map);
     double getHValue(int i, int j);
     bool changePriorities(int bad_i);
     unsigned int openSize;
@@ -57,6 +59,8 @@ private:
     Agent curagent;
     Constraints *constraints;
     std::shared_ptr<const Config> config;
+    Heuristic h;
+    int h_equal, h_dif;
 };
 
 #endif // AA_SIPP_H

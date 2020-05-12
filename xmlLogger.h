@@ -4,7 +4,7 @@
 #include <iostream>
 #include "tinyxml2.h"
 #include <string>
-#include "task.h"
+#include "instance.h"
 #include "config.h"
 #include "searchresult.h"
 #include <fstream>
@@ -24,7 +24,7 @@ public:
     void writeToLogInput(const char* taskName, const char* mapName, const char* configName, const char* obstaclesName);
     void writeToLogFile(const char* fileName);
     void writeToLogSummary(const SearchResult &sr);
-    void writeToLogPath(const SearchResult &sresult, const Task &task, const Config &config);
+    void writeToLogPath(const SearchResult &sresult, const Instance &task, const Config &config);
     void writeToLogMap(const Map &map, const SearchResult &sresult);
     void saveLog();
 };

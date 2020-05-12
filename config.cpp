@@ -96,10 +96,10 @@ bool Config::getConfig(const char* fileName)
         value = element->GetText();
         if(value == CNS_IP_FIFO)
             initialprioritization = CN_IP_FIFO;
-        else if(value == CNS_IP_LONGESTF)
-            initialprioritization = CN_IP_LONGESTF;
-        else if(value == CNS_IP_SHORTESTF)
-            initialprioritization = CN_IP_SHORTESTF;
+        else if(value == CNS_IP_DISTANCE)
+            initialprioritization = CN_IP_DISTANCE;
+        else if(value == CNS_IP_COST)
+            initialprioritization = CN_IP_COST;
         else if(value == CNS_IP_RANDOM)
             initialprioritization = CN_IP_RANDOM;
         else
@@ -167,7 +167,7 @@ bool Config::getConfig(const char* fileName)
         }
     }
 
-    element = algorithm->FirstChildElement(CNS_TAG_ADDITIONALWAIT);
+    /*element = algorithm->FirstChildElement(CNS_TAG_ADDITIONALWAIT);
     if (!element)
     {
         std::cout << "Warning! No '"<<CNS_TAG_ADDITIONALWAIT<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CN_DEFAULT_ADDITIONALWAIT<<"'."<<std::endl;
@@ -185,7 +185,7 @@ bool Config::getConfig(const char* fileName)
             std::cout << "Warning! Wrong value of '"<<CNS_TAG_ADDITIONALWAIT<<"' element. It should belong to the interval [0,100]. Its value is set to '"<<CN_DEFAULT_ADDITIONALWAIT<<"'."<<std::endl;
             additionalwait = CN_DEFAULT_ADDITIONALWAIT;
         }
-    }
+    }*/
 
     element = algorithm->FirstChildElement(CNS_TAG_CONNECTEDNESS);
     if (!element)
@@ -207,7 +207,7 @@ bool Config::getConfig(const char* fileName)
         }
     }
 
-    element = algorithm->FirstChildElement(CNS_TAG_INFLATEINTERVALS);
+   /*element = algorithm->FirstChildElement(CNS_TAG_INFLATEINTERVALS);
     if (!element)
     {
         std::cout << "Warning! No '"<<CNS_TAG_INFLATEINTERVALS<<"' element found inside '"<<CNS_TAG_ALGORITHM<<"' section. Its value is set to '"<<CN_DEFAULT_INFLATEINTERVALS<<"'."<<std::endl;
@@ -225,7 +225,7 @@ bool Config::getConfig(const char* fileName)
             std::cout << "Warning! Wrong value of '"<<CNS_TAG_INFLATEINTERVALS<<"' element. It should belong to the interval [0,100]. Its value is set to '"<<CN_DEFAULT_INFLATEINTERVALS<<"'."<<std::endl;
             inflatecollisionintervals = CN_DEFAULT_INFLATEINTERVALS;
         }
-    }
+    }*/
 
     XMLElement *options = root->FirstChildElement(CNS_TAG_OPTIONS);
     if(!options)
