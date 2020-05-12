@@ -13,11 +13,11 @@ set( SOURCE_FILES
      xmlLogger.cpp 
      mission.cpp 
      map.cpp 
+     task.cpp
      config.cpp 
-	 dynamicobstacles.cpp
+     dynamicobstacles.cpp
      aa_sipp.cpp
-     constraints.cpp 
-	 instance.cpp)
+     constraints.cpp )
 
 set( HEADER_FILES 
      tinyxml2.h
@@ -26,12 +26,11 @@ set( HEADER_FILES
      xmlLogger.h 
      mission.h 
      map.h 
-	 dynamicobstacles.h
+     task.h
+     dynamicobstacles.h
      config.h 
      aa_sipp.h 
      structs.h
-     constraints.h 
-	 instance.h
-	 heuristic.h)
+     constraints.h )
 
 add_executable( AA-SIPP-m ${SOURCE_FILES} ${HEADER_FILES} )
