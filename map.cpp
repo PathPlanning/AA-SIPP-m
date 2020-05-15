@@ -108,12 +108,12 @@ bool Map::getMap(const char* FileName)
 
 bool Map::CellIsTraversable(int i, int j) const
 {
-    return (Grid[i][j] == 0);
+    return (Grid[i][j] != CN_OBSTL);
 }
 
 bool Map::CellIsObstacle(int i, int j) const
 {
-    return (Grid[i][j] != 0);
+    return (Grid[i][j] == CN_OBSTL);
 }
 
 bool Map::CellOnGrid(int i, int j) const

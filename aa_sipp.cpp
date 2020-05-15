@@ -429,20 +429,18 @@ SearchResult AA_SIPP::startSearch(Map &map, Instance &instance, DynamicObstacles
 
         for(unsigned int numOfCurAgent = 0; numOfCurAgent < instance.getNumberOfAgents(); numOfCurAgent++)
         {
-            for(int k = 0; k < instance.getNumberOfTasks(); k++)
-                map.remove_task(instance.getTask(k).goal_i,instance.getTask(k).goal_j);
             curagent = instance.getAgent(numOfCurAgent);
+            lineofsight.setSize(curagent.size);
             Task task = instance.getTask(current_priorities[numOfCurAgent]);
-            map.add_task(curagent.start_i, curagent.start_j);
-            map.add_task(task.i, task.j);
-            map.add_task(task.goal_i, task.goal_j);
             curagent.task_i = task.i;
             curagent.task_j = task.j;
             curagent.goal_i = task.goal_i;
             curagent.goal_j = task.goal_j;
             curagent.task_id = current_priorities[numOfCurAgent];
+            auto task_cells = lineofsight.getCells(curagent.task_i, curagent.task_j);
+            for(auto c:task_cells)
+                map.add_task(c.first, c.second);
             constraints->setParams(curagent.size, curagent.mspeed, curagent.rspeed, config->planforturns, config->inflatecollisionintervals);
-            lineofsight.setSize(curagent.size);
             if(config->startsafeinterval > 0)
             {
                 auto cells = lineofsight.getCells(curagent.start_i, curagent.start_j);
@@ -459,7 +457,8 @@ SearchResult AA_SIPP::startSearch(Map &map, Instance &instance, DynamicObstacles
             else
             {
                 bad_i = numOfCurAgent;
-                map.remove_task(task.i, task.j);
+                for(auto c:task_cells)
+                    map.remove_task(c.first, c.second);
                 break;
             }
             curagent.find_task = false;
@@ -473,12 +472,14 @@ SearchResult AA_SIPP::startSearch(Map &map, Instance &instance, DynamicObstacles
             else
             {
                 bad_i = numOfCurAgent;
-                map.remove_task(task.i, task.j);
+                for(auto c:task_cells)
+                    map.remove_task(c.first, c.second);
                 break;
             }
             if(numOfCurAgent + 1 == instance.getNumberOfAgents())
                 solution_found = true;
-            map.remove_task(task.i, task.j);
+            for(auto c:task_cells)
+                map.remove_task(c.first, c.second);
         }
         delete constraints;
         tries++;
@@ -527,7 +528,6 @@ Node AA_SIPP::resetParent(Node current, Node Parent, const Map &map)
 
 bool AA_SIPP::findPath(unsigned int numOfCurAgent, const Map &map)
 {
-
 #ifdef __linux__
     timeval begin, end;
     gettimeofday(&begin, NULL);

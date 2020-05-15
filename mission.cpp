@@ -27,7 +27,7 @@ bool Mission::getMap()
 
 bool Mission::getTask(int a)
 {
-    return (m_task.getInstance(taskName,a));// && m_task.validateTask(m_map));
+    return (m_task.getInstance(taskName,a) && m_task.validateTask(m_map));
 }
 
 bool Mission::getConfig()

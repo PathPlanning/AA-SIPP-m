@@ -25,8 +25,8 @@ public:
     bool CellOnGrid (int i, int j) const;
     bool CellIsObstacle(int i, int j) const;
     int  getValue(int i, int j) const;
-    void add_task(int i, int j) {Grid[i][j]=0;}
-    void remove_task(int i, int j) {Grid[i][j]=CN_OBSTL;}
+    void add_task(int i, int j) {if(Grid[i][j] == CN_OBSTL) Grid[i][j] = 2;}
+    void remove_task(int i, int j) {if(Grid[i][j] == 2) Grid[i][j] = CN_OBSTL;}
     std::vector<Node> getValidMoves(int i, int j, int k, double size) const;
 };
 

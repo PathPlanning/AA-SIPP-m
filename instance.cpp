@@ -153,12 +153,15 @@ bool Instance::validateTask(const Map &map)
         los.setSize(a.size);
         if(!los.checkTraversability(a.start_i, a.start_j, map))
         {
-            std::cout<<"Error! Start position of agent "<<a.id<<" is invalid.\n";
+            std::cout<<"Error! Start position ("<<a.start_i<<","<<a.start_j<<") of agent "<<a.id<<" is invalid.\n";
             return false;
         }
-        if(!los.checkTraversability(a.goal_i, a.goal_j, map))
+    }
+    for(auto t: tasks)
+    {
+        if(!los.checkTraversability(t.goal_i, t.goal_j, map))
         {
-            std::cout<<"Error! Goal position of agent "<<a.id<<" is invalid.\n";
+            std::cout<<"Error! Goal position ("<<t.goal_i<<","<<t.goal_j<<" is invalid.\n";
             return false;
         }
     }
@@ -171,9 +174,14 @@ bool Instance::validateTask(const Map &map)
                 std::cout<<"Error! Start positions of agents "<< a1.id <<" and "<< a2.id <<" are placed too close.\n";
                 return false;
             }
-            if(sqrt(pow(a1.goal_i - a2.goal_i, 2) + pow(a1.goal_j - a2.goal_j, 2)) < (a1.size + a2.size))
+        }
+    for(int i = 0; i < tasks.size(); i++)
+        for(int j = i + 1; j < tasks.size(); j++)
+        {
+            Task t1 = tasks[i], t2 = tasks[j];
+            if(sqrt(pow(t1.goal_i - t2.goal_i, 2) + pow(t1.goal_j - t2.goal_j, 2)) < (agents[i].size + agents[j].size))
             {
-                std::cout<<"Error! Goal positions of agents "<< a1.id <<" and "<< a2.id <<" are placed too close.\n";
+                std::cout<<"Error! Goal positions of tasks "<< i <<" and "<< j <<" are placed too close.\n";
                 return false;
             }
         }
