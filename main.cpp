@@ -13,7 +13,8 @@ int main(int argc, char* argv[])
         mission.setFileNames(argv[1], argv[2], argv[3], nullptr);
     mission.getConfig();
     mission.getMap();
-    mission.getTask(agents);
+    if(!mission.getTask(agents))
+        return 1;
     mission.createSearch();
     mission.createLog();
     mission.startSearch();
