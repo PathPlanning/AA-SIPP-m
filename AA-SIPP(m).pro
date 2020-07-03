@@ -2,6 +2,7 @@ TARGET = AAt-SIPP-m
 CONFIG   += console
 CONFIG   -= app_bundle
 QMAKE_CXXFLAGS += -std=c++0x
+INCLUDEPATH += C:/Users/Dell/Documents/boost_1_72_0
 TEMPLATE = app
 win32 {
 QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++
@@ -18,6 +19,7 @@ SOURCES += main.cpp \
     dynamicobstacles.cpp
 
 HEADERS += \
+    primitive.h \
     tinyxml2.h \
     searchresult.h \
     gl_const.h \

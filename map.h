@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <sstream>
 #include <vector>
-#include "structs.h"
 #include "tinyxml2.h"
 #include "gl_const.h"
 #include "lineofsight.h"
@@ -25,7 +24,6 @@ public:
     bool CellOnGrid (int i, int j) const;
     bool CellIsObstacle(int i, int j) const;
     int  getValue(int i, int j) const;
-    std::vector<Node> getValidMoves(int i, int j, int k, double size) const;
 };
 
 #endif

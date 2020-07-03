@@ -9,6 +9,8 @@
 #include <iostream>
 #include <lineofsight.h>
 #include "map.h"
+#include "primitive.h"
+#include "dynamicobstacles.h"
 
 class Constraints
 {
@@ -16,29 +18,23 @@ public:
     Constraints(int width, int height);
     ~Constraints(){}
     void updateCellSafeIntervals(std::pair<int, int> cell);
-    std::vector<SafeInterval> getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w);
+    std::vector<SafeInterval> getSafeIntervals(Node curNode, const ClosedList &close);
     std::vector<SafeInterval> getSafeIntervals(Node curNode);
-    void addConstraints(const std::vector<Node> &sections, double size, double mspeed, const Map &map);
-    std::vector<SafeInterval> findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, const Map &map);
+    void addConstraints(const std::vector<Primitive> &primitives, double size, double mspeed, const Map &map);
+    std::vector<SafeInterval> findIntervals(Node curNode, std::vector<double> &EAT, const ClosedList &close, const OpenContainer &open);
     SafeInterval getSafeInterval(int i, int j, int n) {return safe_intervals[i][j][n];}
     void resetSafeIntervals(int width, int height);
-    void addStartConstraint(int i, int j, int size, std::vector<std::pair<int, int>> cells, double agentsize = 0.5);
-    void removeStartConstraint(std::vector<std::pair<int, int>> cells, int start_i, int start_j);
     void setSize(double size) {agentsize = size;}
-    void setParams(double size, double mspeed, double rspeed, double tweight, double inflateintervals)
-    { agentsize = size; this->mspeed = mspeed; this->rspeed = rspeed; this->tweight = tweight; this->inflateintervals = inflateintervals; }
-    double minDist(Point A, Point C, Point D);
-
+    void setObstacles(DynamicObstacles *obs) {obstacles = obs;}
 
 private:
-    bool hasCollision(const Node &curNode, double startTimeA, const section &constraint, bool &goal_collision);
-    std::vector<std::vector<std::vector<section>>> constraints;
+    void getEAT(Node curNode, double &startTime, double open_node_g);
+    std::vector<std::vector<std::vector<int>>> constraints;
     std::vector<std::vector<std::vector<SafeInterval>>> safe_intervals;
-    double rspeed;
-    double mspeed;
+    std::vector<std::vector<std::vector<SafeInterval>>> collision_intervals;
     double agentsize;
-    double tweight;
-    double inflateintervals;
+    int prim_id;
+    DynamicObstacles *obstacles;
 
 };
 

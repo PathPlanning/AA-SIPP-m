@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <unordered_map>
 #include <random>
+#include "primitive.h"
+#include <fstream>
 #ifdef __linux__
     #include <sys/time.h>
 #else
@@ -28,35 +30,27 @@ public:
     SearchResult sresult;
 private:
 
-    void addOpen(Node &newNode);
-    Node findMin(int size);
     bool stopCriterion(const Node &curNode, Node &goalNode);
-    bool testGoal(const Node &curNode, Node &goalNode);
-    double getCost(int a_i, int a_j, int b_i, int b_j);
-    double getRCost(double headingA, double headingB);
-    double calcHeading(const Node &node, const Node &son);
     std::list<Node> findSuccessors(const Node curNode, const Map &map);
     void makePrimaryPath(Node curNode);
-    void makeSecondaryPath(Node curNode);
-    void calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal);
-    void addConstraints(){}
-    Node resetParent(Node current, Node Parent, const Map &map);
+    void makeSecondaryPath();
     bool findPath(unsigned int numOfCurAgent, const Map &map);
-    std::vector<conflict> CheckConflicts(const Task &task);//bruteforce checker. It splits final(already built) trajectories into sequences of points and checks distances between them
     void setPriorities(const Task &task);
     double getHValue(int i, int j);
     bool changePriorities(int bad_i);
     unsigned int openSize;
-    std::list<Node> lppath;
-    std::vector<std::list<Node>> open;
-    std::unordered_multimap<int, Node> close;
-    std::vector<Node> hppath;
+    std::vector<TerminalPoint> point_path;
+    std::vector<Primitive> primitives_path;
     std::vector<std::vector<int>> priorities;
     std::vector<int> current_priorities;
     LineOfSight lineofsight;
     Agent curagent;
     Constraints *constraints;
     std::shared_ptr<const Config> config;
+    Primitives primitives;
+    OpenContainer Open;
+    ClosedList closed;
+    double intervals_time, cells_time;
 };
 
 #endif // AA_SIPP_H

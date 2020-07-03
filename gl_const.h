@@ -3,6 +3,7 @@
 
 //constants
 #define PI                  3.14159265359
+#define CN_RESOLUTION       1e-6
 #define CN_EPSILON          1e-9
 #define CN_INFINITY         1e+9
 #define CN_LOG              "_log"
@@ -17,7 +18,7 @@
 #define CN_DEFAULT_RESCHEDULING             CN_RE_NO
 #define CN_DEFAULT_INITIALPRIORITIZATION    CN_IP_FIFO
 #define CNS_DEFAULT_INITIALPRIORITIZATION   CNS_IP_FIFO
-#define CN_DEFAULT_LOGLVL                   CN_LOGLVL_NORM
+#define CN_DEFAULT_LOGLVL                   CN_LOGLVL_PRIMS
 #define CNS_DEFAULT_LOGLVL                  CNS_LOGLVL_NORM
 #define CN_DEFAULT_TIMELIMIT                CN_INFINITY
 #define CNS_DEFAULT_TIMELIMIT               "'infinity' (no limit)"
@@ -34,9 +35,11 @@
 #define CNS_HEADING_WHATEVER                "whatever"
 
 //loglevel
-#define CN_LOGLVL_NO	0
-#define CN_LOGLVL_NORM	1
-#define CN_LOGLVL_ALL   2
+#define CN_LOGLVL_NO        0
+#define CN_LOGLVL_PRIMS     1
+#define CN_LOGLVL_POINTS    2
+#define CN_LOGLVL_BOTH      3
+#define CN_LOGLVL_ALL       4
 
 #define CNS_LOGLVL_NO	"none"
 #define CNS_LOGLVL_NORM	"regular"

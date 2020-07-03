@@ -3,11 +3,14 @@
 Constraints::Constraints(int width, int height)
 {
     safe_intervals.resize(height);
+    collision_intervals.resize(height);
     for(int i = 0; i < height; i++)
     {
         safe_intervals[i].resize(width);
+        collision_intervals[i].resize(width);
         for(int j = 0; j < width; j++)
         {
+            collision_intervals[i][j].clear();
             safe_intervals[i][j].resize(0);
             safe_intervals[i][j].push_back({0,CN_INFINITY});
         }
@@ -19,32 +22,20 @@ Constraints::Constraints(int width, int height)
         for(int j = 0; j < width; j++)
             constraints[i][j].resize(0);
     }
-}
-
-bool sort_function(std::pair<double, double> a, std::pair<double, double> b)
-{
-    return a.first < b.first;
-}
-
-double Constraints::minDist(Point A, Point C, Point D)
-{
-    int classA = A.classify(C, D);
-    if(classA == 3)
-        return sqrt(pow(A.i - C.i, 2) + pow(A.j - C.j, 2));
-    else if(classA == 4)
-        return sqrt(pow(A.i - D.i, 2) + pow(A.j - D.j, 2));
-    else
-        return fabs((C.i - D.i)*A.j + (D.j - C.j)*A.i + (C.j*D.i - D.j*C.i))/sqrt(pow(C.i - D.i, 2) + pow(C.j - D.j, 2));
+    prim_id=0;
 }
 
 void Constraints::resetSafeIntervals(int width, int height)
 {
     safe_intervals.resize(height);
+    collision_intervals.resize(height);
     for(int i = 0; i < height; i++)
     {
         safe_intervals[i].resize(width);
+        collision_intervals[i].resize(width);
         for(int j = 0; j < width; j++)
         {
+            collision_intervals[i][j].clear();
             safe_intervals[i][j].resize(0);
             safe_intervals[i][j].push_back({0,CN_INFINITY});
         }
@@ -53,73 +44,25 @@ void Constraints::resetSafeIntervals(int width, int height)
 
 void Constraints::updateCellSafeIntervals(std::pair<int, int> cell)
 {
-    if(safe_intervals[cell.first][cell.second].size() > 1)
-        return;
     LineOfSight los(agentsize);
     std::vector<std::pair<int, int>> cells = los.getCells(cell.first, cell.second);
-    std::vector<section> secs;
+    std::vector<int> prim_ids;
     for(int k = 0; k < cells.size(); k++)
         for(int l = 0; l < constraints[cells[k].first][cells[k].second].size(); l++)
-            if(std::find(secs.begin(), secs.end(), constraints[cells[k].first][cells[k].second][l]) == secs.end())
-                secs.push_back(constraints[cells[k].first][cells[k].second][l]);
-
-    for(int k = 0; k < secs.size(); k++)
+            if(std::find(prim_ids.begin(), prim_ids.end(), constraints[cells[k].first][cells[k].second][l]) == prim_ids.end())
+                prim_ids.push_back(constraints[cells[k].first][cells[k].second][l]);
+    std::vector<Primitive> prims;
+    for(int i:prim_ids)
+        prims.push_back(obstacles->getPrimitive(i));
+    for(int k = 0; k < prims.size(); k++)
     {
-        section sec = secs[k];
-        double radius = agentsize + sec.size;
-        int i0(secs[k].i1), j0(secs[k].j1), i1(secs[k].i2), j1(secs[k].j2), i2(cell.first), j2(cell.second);
-        SafeInterval interval;
-        double dist, mindist;
-        if(i0 == i1 && j0 == j1 && i0 == i2 && j0 == j2)
-            mindist = 0;
-        else
-            mindist = minDist(Point(i2,j2), Point(i0,j0), Point(i1,j1));
-        if(mindist >= radius)
+        Primitive prim = prims[k];
+        double radius = agentsize + prim.size();
+        std::pair<double, double> p = prim.getInterval(cell.first, cell.second, radius);
+        if(p.first < prim.begin)
             continue;
-        Point point(i2,j2), p0(i0,j0), p1(i1,j1);
-        int cls = point.classify(p0, p1);
-        dist = fabs((i0 - i1)*j2 + (j1 - j0)*i2 + (j0*i1 - i0*j1))/sqrt(pow(i0 - i1, 2) + pow(j0 - j1, 2));
-        int da = (i0 - i2)*(i0 - i2) + (j0 - j2)*(j0 - j2);
-        int db = (i1 - i2)*(i1 - i2) + (j1 - j2)*(j1 - j2);
-        double ha = sqrt(da - dist*dist);
-        double size = sqrt(radius*radius - dist*dist);
-        if(cls == 3)
-        {
-            interval.begin = sec.g1;
-            interval.end = sec.g1 + (sqrt(radius*radius - dist*dist) - ha)/sec.mspeed;
-        }
-        else if(cls == 4)
-        {
-            interval.begin = sec.g2 - sqrt(radius*radius - dist*dist)/sec.mspeed + sqrt(db - dist*dist)/sec.mspeed;
-            interval.end = sec.g2;
-        }
-        else if(da < radius*radius)
-        {
-            if(db < radius*radius)
-            {
-                interval.begin = sec.g1;
-                interval.end = sec.g2;
-            }
-            else
-            {
-                double hb = sqrt(db - dist*dist);
-                interval.begin = sec.g1;
-                interval.end = sec.g2 - hb/sec.mspeed + size/sec.mspeed;
-            }
-        }
-        else
-        {
-            if(db < radius*radius)
-            {
-                interval.begin = sec.g1 + ha/sec.mspeed - size/sec.mspeed;
-                interval.end = sec.g2;
-            }
-            else
-            {
-                interval.begin = sec.g1 + ha/sec.mspeed - size/sec.mspeed;
-                interval.end = sec.g1 + ha/sec.mspeed + size/sec.mspeed;
-            }
-        }
+        SafeInterval interval(p.first, p.second);
+        int i2(cell.first), j2(cell.second);
         for(unsigned int j = 0; j < safe_intervals[i2][j2].size(); j++)
         {
             if(safe_intervals[i2][j2][j].begin < interval.begin + CN_EPSILON && safe_intervals[i2][j2][j].end + CN_EPSILON > interval.begin)
@@ -167,26 +110,26 @@ void Constraints::updateCellSafeIntervals(std::pair<int, int> cell)
         }
         for(unsigned int j = 0; j < safe_intervals[i2][j2].size(); j++)
             safe_intervals[i2][j2][j].id = j;
+
+        if(safe_intervals[i2][j2][0].begin > 0)
+            collision_intervals[i2][j2].push_back({0, safe_intervals[i2][j2][0].begin});
+        for(int i=0; i<safe_intervals[i2][j2].size()-1; i++)
+            collision_intervals[i2][j2].push_back({safe_intervals[i2][j2][i].end, safe_intervals[i2][j2][i+1].begin});
+        if(safe_intervals[i2][j2].back().end < CN_INFINITY)
+            collision_intervals[i2][j2].push_back({safe_intervals[i2][j2].back().end, CN_INFINITY});
+
     }
 }
 
-std::vector<SafeInterval> Constraints::getSafeIntervals(Node curNode, const std::unordered_multimap<int, Node> &close, int w)
+std::vector<SafeInterval> Constraints::getSafeIntervals(Node curNode, const ClosedList &close)
 {
     std::vector<SafeInterval> intervals(0);
-    auto range = close.equal_range(curNode.i*w + curNode.j);
     for(unsigned int i = 0; i < safe_intervals[curNode.i][curNode.j].size(); i++)
         if(safe_intervals[curNode.i][curNode.j][i].end >= curNode.g
                 && safe_intervals[curNode.i][curNode.j][i].begin <= (curNode.Parent->interval.end + curNode.g - curNode.Parent->g))
         {
-            bool has = false;
-            for(auto it = range.first; it != range.second; it++)
-                if(it->second.interval.begin == safe_intervals[curNode.i][curNode.j][i].begin)
-                if((it->second.g + tweight*fabs(curNode.heading - it->second.heading)/(180*rspeed)) - curNode.g < CN_EPSILON)//take into account turning cost
-                {
-                    has = true;
-                    break;
-                }
-            if(!has)
+            auto has = close.get<0>().find(boost::make_tuple(curNode.i, curNode.j, safe_intervals[curNode.i][curNode.j][i].id, curNode.angle_id, curNode.speed));
+            if(has == close.get<0>().end())
                 intervals.push_back(safe_intervals[curNode.i][curNode.j][i]);
         }
     return intervals;
@@ -197,172 +140,69 @@ std::vector<SafeInterval> Constraints::getSafeIntervals(Node curNode)
     return safe_intervals[curNode.i][curNode.j];
 }
 
-void Constraints::addStartConstraint(int i, int j, int size, std::vector<std::pair<int, int> > cells, double agentsize)
+void Constraints::addConstraints(const std::vector<Primitive> &primitives, double size, double mspeed, const Map &map)
 {
-    section sec(i, j, i, j, 0, size);
-    sec.size = agentsize;
-    for(auto cell: cells)
-        constraints[cell.first][cell.second].insert(constraints[cell.first][cell.second].begin(),sec);
-    return;
+    if(primitives.size() == 1)
+        safe_intervals[primitives.back().source.i][primitives.back().source.j].clear();
+    for(auto prim: primitives)
+        for(auto c: prim.getCells())
+            constraints[c.i][c.j].push_back(prim.id);
 }
 
-void Constraints::removeStartConstraint(std::vector<std::pair<int, int> > cells, int start_i, int start_j)
+std::vector<SafeInterval> Constraints::findIntervals(Node curNode, std::vector<double> &EAT, const ClosedList &close, const OpenContainer &open)
 {
-    for(auto cell: cells)
-        for(size_t k = 0; k < constraints[cell.first][cell.second].size(); k++)
-            if(constraints[cell.first][cell.second][k].i1 == start_i && constraints[cell.first][cell.second][k].j1 == start_j && constraints[cell.first][cell.second][k].g1 < CN_EPSILON)
-            {
-                constraints[cell.first][cell.second].erase(constraints[cell.first][cell.second].begin() + k);
-                k--;
-            }
-    return;
-}
-
-void Constraints::addConstraints(const std::vector<Node> &sections, double size, double mspeed, const Map &map)
-{
-    std::vector<std::pair<int,int>> cells;
-    LineOfSight los(size);
-    section sec(sections.back(), sections.back());
-    sec.g2 = CN_INFINITY;
-    sec.size = size;
-    sec.mspeed = mspeed;
-    cells = los.getCellsCrossedByLine(sec.i1, sec.j1, sec.i2, sec.j2, map);
-    for(auto cell: cells)
-        constraints[cell.first][cell.second].push_back(sec);
-    if(sec.g1 == 0)
-        for(auto cell: cells)
-            safe_intervals[cell.first][cell.second].clear();
-    for(unsigned int a = 1; a < sections.size(); a++)
-    {
-        cells = los.getCellsCrossedByLine(sections[a-1].i, sections[a-1].j, sections[a].i, sections[a].j, map);
-        sec = section(sections[a-1], sections[a]);
-        sec.size = size;
-        sec.mspeed = mspeed;
-        for(unsigned int i = 0; i < cells.size(); i++)
-            constraints[cells[i].first][cells[i].second].push_back(sec);
-        /*if(a+1 == sections.size())
-            updateSafeIntervals(cells,sec,true);
-        else
-            updateSafeIntervals(cells,sec,false);*/
-    }
-}
-
-std::vector<SafeInterval> Constraints::findIntervals(Node curNode, std::vector<double> &EAT, const std::unordered_multimap<int, Node> &close, const Map &map)
-{
-    std::vector<SafeInterval> curNodeIntervals = getSafeIntervals(curNode, close, map.width);
+    std::vector<SafeInterval> curNodeIntervals = getSafeIntervals(curNode, close);
+    std::vector<SafeInterval> result;
     if(curNodeIntervals.empty())
+    {
         return curNodeIntervals;
+    }
     EAT.clear();
-    LineOfSight los(agentsize);
-    std::vector<std::pair<int,int>> cells = los.getCellsCrossedByLine(curNode.i, curNode.j, curNode.Parent->i, curNode.Parent->j, map);
-    std::vector<section> sections(0);
-    section sec;
-    for(unsigned int i = 0; i < cells.size(); i++)
-        for(unsigned int j = 0; j < constraints[cells[i].first][cells[i].second].size(); j++)
-        {
-            sec = constraints[cells[i].first][cells[i].second][j];
-            if(sec.g2 < curNode.Parent->g || sec.g1 > (curNode.Parent->interval.end + curNode.g - curNode.Parent->g))
-                continue;
-            if(std::find(sections.begin(), sections.end(), sec) == sections.end())
-                sections.push_back(sec);
-        }
-    auto range = close.equal_range(curNode.i*map.width + curNode.j);
-
     for(unsigned int i=0; i<curNodeIntervals.size(); i++)
     {
         SafeInterval cur_interval(curNodeIntervals[i]);
+        curNode.interval = cur_interval;
         if(cur_interval.begin < curNode.g)
             cur_interval.begin = curNode.g;
-        double startTimeA = curNode.Parent->g;
-        if(cur_interval.begin > startTimeA + curNode.g - curNode.Parent->g)
-            startTimeA = cur_interval.begin - curNode.g + curNode.Parent->g;
-        unsigned int j = 0;
-        bool goal_collision;
-        while(j < sections.size())
+        double startTime = curNode.Parent->g;
+        if(cur_interval.begin > curNode.g)
         {
-            goal_collision = false;
-
-            if(hasCollision(curNode, startTimeA, sections[j], goal_collision))
-            {
-                double offset = 1.0;
-                startTimeA += offset;
-                cur_interval.begin += offset;
-                j = 0;//start to check all constraints again, because time has changed
-                if(goal_collision || cur_interval.begin > cur_interval.end || startTimeA > curNode.Parent->interval.end)
-                {
-                    curNodeIntervals.erase(curNodeIntervals.begin() + i);
-                    i--;
-                    break;
-                }
-            }
-            else
-                j++;
+            if(curNode.Parent->speed > 0)
+                continue;
+            startTime = cur_interval.begin - curNode.primitive.duration;
         }
-        if(j == sections.size())
-        {
-            bool has = false;
-            for(auto rit = range.first; rit != range.second; rit++)
-                if(rit->second.interval.begin == curNodeIntervals[i].begin)
-                if((rit->second.g + tweight*fabs(curNode.heading - rit->second.heading)/(180*rspeed) - cur_interval.begin) < CN_EPSILON)//take into account turning cost
-                {
-                    has = true;
-                    curNodeIntervals.erase(curNodeIntervals.begin()+i);
-                    i--;
-                    break;
-                }
-            if(!has)
-                EAT.push_back(cur_interval.begin);
-        }
+        curNode.interval = cur_interval;
+        Node open_node = open.findNode(curNode);
+        if(open_node.g - CN_EPSILON < startTime + curNode.primitive.duration)
+            continue;
+        double initTime(startTime);
+        getEAT(curNode, startTime, open_node.g);
+        if(startTime > curNode.Parent->interval.end || startTime + curNode.primitive.duration > cur_interval.end || (curNode.Parent->speed > 0 && startTime > initTime + CN_EPSILON) || startTime + curNode.primitive.duration > open_node.g)
+            continue;
+        EAT.push_back(startTime + curNode.primitive.duration);
+        result.push_back(curNodeIntervals[i]);
     }
-    return curNodeIntervals;
+    return result;
 }
 
-bool Constraints::hasCollision(const Node &curNode, double startTimeA, const section &constraint, bool &goal_collision)
+void Constraints::getEAT(Node curNode, double& startTime, double open_node_g)
 {
-    double endTimeA(startTimeA + curNode.g - curNode.Parent->g), startTimeB(constraint.g1), endTimeB(constraint.g2);
-    if(startTimeA > endTimeB || startTimeB > endTimeA)
-        return false;
-    Vector2D A(curNode.Parent->i,curNode.Parent->j);
-    Vector2D VA((curNode.i - curNode.Parent->i)/(curNode.g - curNode.Parent->g), (curNode.j - curNode.Parent->j)/(curNode.g - curNode.Parent->g));
-    Vector2D B(constraint.i1, constraint.j1);
-    Vector2D VB((constraint.i2 - constraint.i1)/(constraint.g2 - constraint.g1), (constraint.j2 - constraint.j1)/(constraint.g2 - constraint.g1));
-    if(startTimeB > startTimeA)
+    auto cells = curNode.primitive.getCells();
+    for(int k = 0; k < cells.size(); k++)
     {
-      // Move A to the same time instant as B
-      A += VA*(startTimeB-startTimeA);
-      startTimeA=startTimeB;
+        auto c = cells[k];
+        std::pair<double, double> interval = {startTime + c.interval.first, startTime + c.interval.second};
+        std::vector<SafeInterval> intervals = collision_intervals[c.i][c.j];
+        for(int i = 0; i < intervals.size(); i++)
+            if((interval.first <= intervals[i].begin && interval.second > intervals[i].begin) ||
+                    (interval.first >= intervals[i].begin && interval.first < intervals[i].end))
+            {
+                startTime = startTime - interval.first + intervals[i].end + CN_EPSILON;
+                if(startTime > curNode.Parent->interval.end || startTime + curNode.primitive.duration > curNode.interval.end || curNode.Parent->speed > 0 || startTime + curNode.primitive.duration > open_node_g)
+                    return;
+                k=-1;
+                break;
+            }
     }
-    else if(startTimeB < startTimeA)
-    {
-      B += VB*(startTimeA - startTimeB);
-      startTimeB = startTimeA;
-    }
-    double r(constraint.size + agentsize + inflateintervals); //combined radius
-    Vector2D w(B - A);
-    double c(w*w - r*r);
-    if(c < 0)
-    {
-        if(constraint.g2 == CN_INFINITY)
-            goal_collision = true;
-        return true;
-    } // Agents are currently colliding
-
-    // Use the quadratic formula to detect nearest collision (if any)
-    Vector2D v(VA - VB);
-    double a(v*v);
-    double b(w*v);
-
-    double dscr(b*b - a*c);
-    if(dscr <= 0)
-        return false;
-
-    double ctime = (b - sqrt(dscr))/a;
-    if(ctime > -CN_EPSILON && ctime < std::min(endTimeB,endTimeA) - startTimeA + CN_EPSILON)
-    {
-        if(constraint.g2 == CN_INFINITY)
-            goal_collision = true;
-        return true;
-    }
-    else
-        return false;
+    return;
 }

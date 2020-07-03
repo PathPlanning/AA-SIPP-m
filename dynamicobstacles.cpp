@@ -14,7 +14,6 @@ bool DynamicObstacles::getObstacles(const char *fileName)
         std::cout << "Error openning input XML file."<<std::endl;
         return false;
     }
-
     XMLElement *root = doc.FirstChildElement(CNS_TAG_ROOT);
     if (!root)
     {
@@ -37,9 +36,10 @@ bool DynamicObstacles::getObstacles(const char *fileName)
         default_size = CN_DEFAULT_SIZE;
     }
     obstacle obs;
+    int prim_id(1);
     for(XMLElement *element = root->FirstChildElement(CNS_TAG_OBSTACLE); element; element = element->NextSiblingElement(CNS_TAG_OBSTACLE))
     {
-        obs.id = element->Attribute(CNS_TAG_ATTR_ID);
+        //obs.id = element->Attribute(CNS_TAG_ATTR_ID);
         if(element->DoubleAttribute(CNS_TAG_ATTR_SIZE))
             obs.size = element->DoubleAttribute(CNS_TAG_ATTR_SIZE);
         else
@@ -50,29 +50,51 @@ bool DynamicObstacles::getObstacles(const char *fileName)
             obs.size = default_size;
         }
         obs.sections.clear();
+        obs.primitives.clear();
         Node node;
-        for(XMLElement *sec = element->FirstChildElement(CNS_TAG_SECTION); sec; sec = sec->NextSiblingElement(CNS_TAG_SECTION))
+        Primitive prim;
+        double curtime(0);
+        for(XMLElement *sec = element->FirstChildElement("action"); sec; sec = sec->NextSiblingElement("action"))
         {
-            if(node.i < 0)
-            {
-                node.i = sec->IntAttribute(CNS_TAG_ATTR_SY);
-                node.j = sec->IntAttribute(CNS_TAG_ATTR_SX);
-                node.g = 0;
-                obs.sections.push_back(node);
-            }
-            node.i = sec->IntAttribute(CNS_TAG_ATTR_GY);
-            node.j = sec->IntAttribute(CNS_TAG_ATTR_GX);
-            node.g += sec->DoubleAttribute(CNS_TAG_ATTR_DURATION);
-            obs.sections.push_back(node);
+            prim.source.i = sec->IntAttribute("y0");
+            prim.source.j = sec->IntAttribute("x0");
+            prim.target.i = sec->IntAttribute("yf");
+            prim.target.j = sec->IntAttribute("xf");
+
+            prim.id = prim_id;
+            prim_id++;
+            prim.type = 1;
+            prim.agentSize = obs.size;
+            prim.begin = curtime;
+            prim.duration = sec->DoubleAttribute("duration");
+            curtime += prim.duration;
+
+            prim.i_coefficients.resize(4);
+            prim.j_coefficients.resize(4);
+            prim.i_coefficients[0] = prim.source.i;
+            prim.j_coefficients[0] = prim.source.j;
+            prim.i_coefficients[1] = (prim.target.i - prim.source.i)/prim.duration;
+            prim.j_coefficients[1] = (prim.target.j - prim.source.j)/prim.duration;
+            prim.i_coefficients[2] = prim.j_coefficients[2] = prim.i_coefficients[3] = prim.j_coefficients[3] = 0;
+
+            prim.countCells();
+            prim.countIntervals(prim.agentSize);
+            obs.primitives.push_back(prim);
         }
-        for(size_t i = 1; i < obs.sections.size(); i++)
-            if(obs.sections[i-1].i != obs.sections[i].i || obs.sections[i-1].j != obs.sections[i].j)
-            {
-                double dist = sqrt(pow(obs.sections[i-1].i - obs.sections[i].i, 2) + pow(obs.sections[i-1].j - obs.sections[i].j, 2));
-                obs.mspeed = dist/(obs.sections[i].g - obs.sections[i-1].g);
-                break;
-            }
+        Primitive last;
+        last.type = -1;
+        last.source = obs.primitives.back().target;
+        last.target = obs.primitives.back().target;
+        last.begin = obs.primitives.back().begin + obs.primitives.back().duration;
+        last.cells = {Cell(last.source.i, last.source.j)};
+        last.cells.back().interval = {last.begin, CN_INFINITY};
+        last.duration = CN_INFINITY;
+        last.setSize(obs.size);
+        last.id = prim_id;
+        prim_id++;
         obstacles.push_back(obs);
+        //if(obstacles.size() == 200)
+        //    break;
     }
     return true;
 }
@@ -81,22 +103,46 @@ std::vector<Node> DynamicObstacles::getSections(int num) const
 {
     if(num >= 0 && num < obstacles.size())
         return obstacles[num].sections;
+    else
+        return {};
+}
+
+std::vector<Primitive> DynamicObstacles::getPrimitives(int num) const
+{
+    if(num >= 0 && num < obstacles.size())
+        return obstacles[num].primitives;
+    else
+        return {};
+}
+
+Primitive DynamicObstacles::getPrimitive(int id)
+{
+    for(int i = 0; i < obstacles.size(); i++)
+        if(obstacles[i].primitives.begin()->id <= id && obstacles[i].primitives.begin()->id + obstacles[i].primitives.size() > id)
+            return obstacles[i].primitives.at(id - obstacles[i].primitives.begin()->id);
+    return Primitive();
 }
 
 double DynamicObstacles::getSize(int num) const
 {
     if(num >= 0 && num < obstacles.size())
         return obstacles[num].size;
+    else
+        return -1;
 }
 
 double DynamicObstacles::getMSpeed(int num) const
 {
     if(num >= 0 && num < obstacles.size())
         return obstacles[num].mspeed;
+    else
+        return -1;
 }
 
 std::string DynamicObstacles::getID(int num) const
 {
     if(num >= 0 && num < obstacles.size())
         return obstacles[num].id;
+    else
+        return "";
 }

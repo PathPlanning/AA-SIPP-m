@@ -1,5 +1,6 @@
 #include"mission.h"
 #include <iostream>
+#include "primitive.h"
 
 int main(int argc, char* argv[])
 {
@@ -14,7 +15,7 @@ int main(int argc, char* argv[])
             mission.setFileNames(argv[1], argv[1], argv[1], argv[1]);
         else
         {
-            std::cout<<"Wrong number of input XML-files. It should be either all-in-one file, or three ones: map-file, task-file and config-file.\n";
+            std::cout<<"Wrong number of input XML-files. It should be either all-in-one file, or three ones: map-file, task-file and config-file. Additional file with obstacles is also allowed.\n";
             return 0;
         }
         if (!mission.getConfig())

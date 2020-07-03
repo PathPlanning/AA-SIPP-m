@@ -10,16 +10,16 @@ struct ResultPathInfo
     bool pathfound;
     double pathlength;
     double runtime;
-    std::list<Node> path;
-    std::vector<Node> sections;
+    std::vector<Primitive> primitives;
+    std::vector<TerminalPoint> points;
 
     ResultPathInfo()
     {
         runtime = 0;
         pathfound = false;
         pathlength = 0;
-        path.clear();
-        sections.clear();
+        primitives.clear();
+        points.clear();
     }
 };
 

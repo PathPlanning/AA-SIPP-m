@@ -14,8 +14,8 @@ Mission::~Mission()
 
 void Mission::setFileNames(const char *taskName, const char *mapName, const char *configName, const char *obstaclesName)
 {
-    this->mapName = mapName;
     this->taskName = taskName;
+    this->mapName = mapName;
     this->configName = configName;
     this->obstaclesName = obstaclesName;
 }
@@ -70,15 +70,19 @@ void Mission::startSearch()
 
 void Mission::printSearchResultsToConsole()
 {
+    //std::ofstream out;
+    //out.open("250obs.txt", std::ios::app);
+    //out<<sr.runtime<<" "<<sr.pathInfo[0].runtime<<" "<<sr.flowtime<<"\n";
+    //out.close();
     //std::cout<<bool(sr.agentsSolved/sr.agents)<<" "<<sr.time<<" "<<sr.makespan<<" "<<sr.pathlength<<" "<<sr.flowlength<<"\n";
-    std::cout<<"Results:\nTask solved: "<<bool(sr.agentsSolved/sr.agents)<<"\nTries: "<<sr.tries<<"\nRuntime: "<<sr.runtime<<"\nAgents solved: "<<sr.agentsSolved<<" ("<<(float)sr.agentsSolved*100/sr.agents<<"%)\nFlowtime: "<<sr.flowtime<<"\nMakespan: "<<sr.makespan<<"\n";
+    std::cout<<"Task solved: "<<bool(sr.agentsSolved/sr.agents)<<"\nTries: "<<sr.tries<<" Runtime: "<<sr.runtime<<" Agents solved: "<<sr.agentsSolved<<" ("<<(float)sr.agentsSolved*100/sr.agents<<"%) Flowtime: "<<sr.flowtime<<" Makespan: "<<sr.makespan<<"\n";
 }
 
 void Mission::saveSearchResultsToLog()
 {
     if(m_config.loglevel == CN_LOGLVL_NO)
         return;
-    std::cout<<"LOG STARTED\n";
+    //std::cout<<"LOG STARTED\n";
     m_pLogger->writeToLogInput(taskName, mapName, configName, obstaclesName);
     m_pLogger->writeToLogSummary(sr);
     if(sr.pathfound)
@@ -87,6 +91,6 @@ void Mission::saveSearchResultsToLog()
         m_pLogger->writeToLogPath(sr, m_task, m_config);
     }
     m_pLogger->saveLog();
-    std::cout<<"LOG SAVED\n";
+    //std::cout<<"LOG SAVED\n";
 }
 

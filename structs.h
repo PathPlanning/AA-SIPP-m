@@ -1,9 +1,21 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
-#include "gl_const.h"
 #include <utility>
 #include <vector>
 #include <string>
+#include <math.h>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include "gl_const.h"
+#include "primitive.h"
+using boost::multi_index_container;
+using namespace boost::multi_index;
 
 struct conflict
 {
@@ -23,9 +35,11 @@ struct Agent
     int start_i;
     int start_j;
     double start_heading;
+    int start_angle_id;
     int goal_i;
     int goal_j;
     double goal_heading;
+    int goal_angle_id;
     double size;
     double rspeed;
     double mspeed;
@@ -56,27 +70,25 @@ struct SafeInterval
     int id;
     SafeInterval(double begin_=0, double end_=CN_INFINITY, int id_=0):begin(begin_), end(end_), id(id_) {}
 };
+struct TerminalPoint
+{
+    double i,j,t,angle;
+    int primitive_id;
+    TerminalPoint(double _i=-1, double _j=-1, double _t=-1, double _angle=-1, double _primitive_id=-1):i(_i),j(_j),t(_t),angle(_angle),primitive_id(_primitive_id){}
+};
+
 
 struct Node
 {
     Node(int _i=-1, int _j=-1, double _g=-1, double _F=-1):i(_i),j(_j),g(_g),F(_F),Parent(nullptr){}
     ~Node(){ Parent = nullptr; }
-    int     i, j;
-    double  size;
+    int     i, j, angle_id, interval_id, speed; //complex id
     double  g;
     double  F;
     double  heading;
-    Node*   Parent;
+    const   Node*   Parent;
+    Primitive primitive;
     SafeInterval interval;
-};
-
-struct obstacle
-{
-    std::string id;
-    double size;
-    double mspeed;
-    std::vector<Node> sections;
-    obstacle(){ id = -1; size = CN_DEFAULT_SIZE; mspeed = CN_DEFAULT_MSPEED; }
 };
 
 struct section
@@ -90,7 +102,7 @@ struct section
     int j2;
     double size;
     double g1;
-    double g2;//is needed for goal and wait actions
+    double g2;//is needed for goals and wait actions
     double mspeed;
     bool operator == (const section &comp) const {return (i1 == comp.i1 && j1 == comp.j1 && g1 == comp.g1);}
 
@@ -111,33 +123,67 @@ class Vector2D {
     inline void operator -=(const Vector2D &vec) { i -= vec.i; j -= vec.j; }
 };
 
-class Point {
-public:
-    double i;
-    double j;
 
-    Point(double _i = 0.0, double _j = 0.0):i (_i), j (_j){}
-    Point operator-(Point &p){return Point(i - p.i, j - p.j);}
-    int operator== (Point &p){return (i == p.i) && (j == p.j);}
-    int classify(Point &pO, Point &p1)
+struct cost{};
+struct id{};
+
+typedef multi_index_container<
+        Primitive,
+        indexed_by<
+            hashed_unique<tag<id>, BOOST_MULTI_INDEX_MEMBER(Primitive, int, id)>
+        >
+> Constraints_container;
+
+typedef multi_index_container<
+    Node,
+    indexed_by<
+        hashed_unique<tag<id>, composite_key<Node, BOOST_MULTI_INDEX_MEMBER(Node, int, i), BOOST_MULTI_INDEX_MEMBER(Node, int, j), BOOST_MULTI_INDEX_MEMBER(Node, int, interval_id), BOOST_MULTI_INDEX_MEMBER(Node, int, angle_id), BOOST_MULTI_INDEX_MEMBER(Node, int, speed)>>,
+        ordered_non_unique<tag<cost>, composite_key<Node, BOOST_MULTI_INDEX_MEMBER(Node, double, F), BOOST_MULTI_INDEX_MEMBER(Node, double, g)>>
+    >
+> OpenList;
+
+class OpenContainer
+{
+    OpenList open;
+public:
+    void clear() {open.clear();}
+    bool isEmpty() {return open.empty();}
+    Node findMin()
     {
-        Point p2 = *this;
-        Point a = p1 - pO;
-        Point b = p2 - pO;
-        double sa = a.i * b.j - b.i * a.j;
-        if (sa > 0.0)
-            return 1;//LEFT;
-        if (sa < 0.0)
-            return 2;//RIGHT;
-        if ((a.i * b.i < 0.0) || (a.j * b.j < 0.0))
-            return 3;//BEHIND;
-        if ((a.i*a.i + a.j*a.j) < (b.i*b.i + b.j*b.j))
-            return 4;//BEYOND;
-        if (pO == p2)
-            return 5;//ORIGIN;
-        if (p1 == p2)
-            return 6;//DESTINATION;
-        return 7;//BETWEEN;
+        Node min = *open.get<cost>().begin();
+        open.get<cost>().erase(open.get<cost>().begin());
+        return min;
+    }
+
+    void addOpen(Node &newNode)
+    {
+        auto key = open.get<id>().find(boost::make_tuple(newNode.i, newNode.j, newNode.interval_id, newNode.angle_id, newNode.speed));
+        if(key == open.get<id>().end())
+            open.insert(newNode);
+        else if(key->g < newNode.g + CN_EPSILON)
+            return;
+        else
+        {
+            open.get<id>().erase(key);
+            open.insert(newNode);
+        }
+    }
+
+    Node findNode(Node n) const
+    {
+        auto it = open.get<id>().find(boost::make_tuple(n.i, n.j, n.interval_id, n.angle_id, n.speed));
+        if(it != open.get<id>().end())
+            return *it;
+        else
+            return Node(-1,-1, CN_INFINITY);
     }
 };
+
+typedef multi_index_container<
+    Node,
+    indexed_by<
+        hashed_unique<tag<id>, composite_key<Node, BOOST_MULTI_INDEX_MEMBER(Node, int, i), BOOST_MULTI_INDEX_MEMBER(Node, int, j), BOOST_MULTI_INDEX_MEMBER(Node, int, interval_id), BOOST_MULTI_INDEX_MEMBER(Node, int, angle_id), BOOST_MULTI_INDEX_MEMBER(Node, int, speed)>>
+    >
+> ClosedList;
+
 #endif

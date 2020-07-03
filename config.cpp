@@ -249,7 +249,7 @@ bool Config::getConfig(const char* fileName)
             stream.clear();
             stream.str("");
         }
-        if(loglevel != CN_LOGLVL_NO && loglevel != CN_LOGLVL_NORM && loglevel != CN_LOGLVL_ALL)
+        if(loglevel != CN_LOGLVL_NO && loglevel != CN_LOGLVL_PRIMS && loglevel != CN_LOGLVL_ALL && loglevel != CN_LOGLVL_POINTS && loglevel != CN_LOGLVL_BOTH)
         {
             std::cout << "Warning! Wrong value of '"<<CNS_TAG_LOGLVL<<"' element found inside '"<<CNS_TAG_OPTIONS<<"' section. Its value is set to '"<<CNS_DEFAULT_LOGLVL<<"'."<<std::endl;
             loglevel = CN_DEFAULT_LOGLVL;
